@@ -1,0 +1,319 @@
+:root {
+    --primary-dark: #1e3c72;
+    --primary-medium: #2a5298;
+    --light-bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --success: #10b981;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    max-width: 480px;
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+/* Header */
+.header {
+    position: relative;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-medium));
+    color: white;
+    text-align: center;
+    padding: 75px 24px;
+}
+
+.btn-close-nota {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color:  #2a529896; /* Um leve destaque */
+    border-bottom: 18px; /* Arredonda só a quina interna */
+    transition: background-color 0.2s ease;
+}
+
+
+.btn-close-nota:hover {
+    background-color: rgba(255, 0, 0, 0.185); /* Feedback visual de fechar */
+}
+
+/* 3. REGRA DE OURO: Esconder no PDF/Impressão */
+@media print {
+    .btn-close-nota, .btn-header, #fecharNota{
+        display: none !important;
+    }
+}
+
+
+
+
+.btn-header {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-header:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Botão de Fechar (Esquerda) */
+.btn-left {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 60px;
+    border-bottom-right-radius: 18px;
+}
+
+.btn-left:hover {
+    background: rgba(239, 68, 68, 0.4); /* Vermelho suave no hover */
+}
+
+/* Container de Ações (Direita) */
+.header-actions-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 1px; /* Linha fina separando os botões */
+}
+
+.header-actions-right .btn-header {
+    width: 55px;
+    height: 60px;
+}
+
+/* Arredonda apenas a quina inferior esquerda do bloco da direita */
+.header-actions-right .btn-header:first-child {
+    border-bottom-left-radius: 0px;
+}
+
+
+
+
+
+.company-name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.page-title {
+    font-size: 1.1rem;
+    opacity: 0.92;
+    font-weight: 400;
+}
+
+/* Card principal */
+.sale-card {
+    background: var(--card-bg);
+    padding: 32px 28px;
+}
+
+/* Seção de sucesso */
+.success-section {
+    text-align: center;
+    margin-bottom: 36px;
+}
+.success-icon {
+    width: 90px;
+    height: 90px;
+    background: rgba(16, 185, 129, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+.success-icon svg {
+    width: 48px;
+    height: 48px;
+    color: var(--success);
+    stroke-width: 2.5;
+}
+.success-section h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.success-section p {
+    color: var(--text-secondary);
+}
+
+/* Cards de informação */
+.info-card {
+    background: #fafbff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.info-card h3 {
+    font-size: 1.15rem;
+    color: var(--primary-medium);
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+/* Grid de informações */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.info-item .label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 4px;
+}
+.info-item .value {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+.highlight {
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+/* Tabela de produtos */
+.product-table {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+}
+.product-row {
+    display: grid;
+    grid-template-columns: 2fr 0.8fr 1.2fr 1.2fr;
+    padding: 14px 16px;
+    align-items: center;
+    font-size: 0.95rem;
+}
+.product-row.header {
+    background: rgba(30, 60, 114, 0.1);
+    font-weight: 600;
+    color: var(--primary-dark);
+    font-size: 0.875rem;
+}
+.product-row:not(.header) {
+    border-top: 1px solid var(--border);
+}
+.product-name {
+    font-weight: 500;
+}
+.qty, .price {
+    text-align: center;
+    font-weight: 600;
+}
+.price {
+    text-align: right;
+}
+
+/* Resumo */
+.summary {
+    background: rgba(30, 60, 114, 0.05);
+    padding: 16px;
+    border-radius: 10px;
+}
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+.summary-line.total {
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding-top: 12px;
+    border-top: 2px solid var(--border);
+    margin-top: 12px;
+    color: var(--primary-dark);
+}
+
+/* ID da transação */
+.transaction-id {
+    background: rgba(30, 60, 114, 0.08);
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 28px 0;
+    word-break: break-all;
+}
+
+/* Mensagem de despedida */
+.goodbye {
+    text-align: center;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin: 32px 0;
+    padding: 20px;
+    background: rgba(30, 60, 114, 0.03);
+    border-radius: 12px;
+}
+
+/* Rodapé */
+.footer {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    .product-row {
+        grid-template-columns: 2fr 1fr 1.5fr;
+        font-size: 0.9rem;
+    }
+    .product-row span:last-child { display: none; }
+    .sale-card { padding: 24px 20px; }
+}
+
+
+
+
+

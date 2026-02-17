@@ -1,0 +1,485 @@
+/* Reset leve scoped para a dashboard de vendas */
+.dashboard-venda * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Fonte moderna */
+    margin-bottom: -5px;
+}
+
+/* Corpo principal com fundo leve e gradiente sutil */
+.dashboard-venda {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f0f4f8, #d9e2ec); 
+    padding: 20px;
+}
+
+/* Header da dashboard */
+.dashboard-header {
+    display: grid;
+    grid-template-columns: 1fr auto;           /* esquerda (título/nav) | direita (ações) */
+    grid-template-rows: auto auto;             /* linha 1: título | linha 2: nav */
+    grid-template-areas:
+        "title actions"
+        "nav   actions";
+    gap: 10px 20px;
+    
+    padding: 20px;
+    background: #1e3c72;
+    color: #fff;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-header h1 {
+    font-size: 1.8rem;
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-actions span {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.dashboard-header nav ul {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+    margin-top: 35px;
+    margin-bottom: 0px;
+}
+
+.dashboard-header nav ul li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-header nav ul li div {
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.dashboard-header nav ul li div:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Responsivo: empilha tudo e deixa o nav abaixo do título e das ações */
+@media (max-width: 768px) {
+    .dashboard-header {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        grid-template-areas:
+            "title"
+            "actions"
+            "nav";
+        gap: 10px;
+    }
+    .dashboard-header .user-actions {
+        justify-self: start;  /* ações vão para a esquerda no mobile */
+    }
+}
+
+div.div_pai{
+    overflow: auto;
+    scrollbar-color: #2a5298c9 #dbdee2;
+    max-height: 70vh;
+    padding: 10px;
+    background-color: #d7dfe7;
+    border-radius: 15px;
+}
+
+#btn-logout {
+    padding: 8px 20px;
+    background: #2a5298;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+#btn-logout:hover {
+    background: #5a8dec;
+}
+
+/* Seção de produtos */
+.produtos-section {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Estilo para o novo container de pesquisa */
+.pesquisa_conteiner {
+    max-width: 1200px;
+    margin: 0 auto 30px; /* Espaçamento inferior para separar da próxima seção */
+    padding: 0 20px;
+    width: 100%; /* Garante que ocupe a largura disponível */
+}
+
+#esconde {
+    display: none !important;
+}
+/* Container de busca dentro do pesquisa_conteiner */
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Aumentei o gap para melhor espaçamento */
+    position: relative;
+    width: 100%;
+    flex-wrap: wrap; /* Permite que os elementos quebrem em mobile */
+}
+
+/* Ícone de voltar */
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f0f4f8; /* Fundo claro para contraste */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #2a5298; /* Cor do SVG */
+    flex-shrink: 0; /* Impede que o ícone encolha */
+}
+
+.icon.oculto {
+    opacity: 0.5; /* Indica que está oculto, mas visível */
+    pointer-events: none; /* Desativa cliques se oculto */
+}
+
+.icon:hover {
+    background: #d9e2ec; /* Escurece no hover */
+    transform: scale(1.1); /* Efeito de zoom */
+}
+
+.icon svg {
+    width: 24px;
+    height: 24px;
+    fill: #2a5298; /* Cor do ícone */
+    transition: fill 0.3s ease;
+}
+
+.icon:hover svg {
+    fill: #1e3c72; /* Escurece o SVG no hover */
+}
+
+/* Input de pesquisa */
+#pesquisa {
+    flex: 1 1 auto; /* Ocupa espaço disponível, mas permite quebra */
+    padding: 12px 40px; /* Espaço para o ícone interno */
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    font-size: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease;
+    min-width: 200px; /* Mínimo para evitar colapso */
+}
+
+#pesquisa:focus {
+    outline: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Ícone interno de lupa */
+.search-container::before {
+    position: absolute;
+    left: 15px;
+    font-size: 1.2rem;
+    color: #666;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Botão Buscar */
+#btn_buscar {
+    padding: 12px 25px;
+    font-size: 1rem;
+    font-weight: 500;
+    background: #2a5298; /* Cor principal do tema */
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0; /* Impede que o botão encolha */
+}
+
+#btn_buscar:hover {
+    background: #1e3c72;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .pesquisa_conteiner {
+        padding: 0 10px;
+    }
+
+    .search-container {
+        flex-direction: column;
+        align-items: stretch; /* Alinha os itens para ocupar a largura */
+        gap: 10px; /* Reduzi o gap em mobile */
+    }
+
+    .icon {
+        width: 35px;
+        height: 35px;
+        align-self: flex-start; /* Alinha o ícone à esquerda */
+    }
+
+    .icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    #pesquisa {
+        padding: 10px 35px;
+        width: 100%; /* Ocupa toda a largura em mobile */
+    }
+
+    #btn_buscar {
+        width: 100%;
+        padding: 12px;
+    }
+}
+
+/* Grid de cards de produtos */
+.produtos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Card individual de produto */
+.produto-card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.produto-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.produto-nome {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #2a5298;
+}
+
+.produto-preco {
+    font-size: 1.1rem;
+    color: #155724; /* Verde para preço, evocando sucesso/venda */
+    margin-bottom: 5px;
+}
+
+.produto-estoque {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.produto-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-vender, .btn-add-sacola {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-vender {
+    background: #1e3c72;
+    color: #fff;
+}
+
+.btn-vender:hover {
+    background: #2a5298;
+}
+
+.btn-add-sacola {
+    background: #4CAF50; /* Verde para adicionar, evocando ação positiva */
+    color: #fff;
+}
+
+.btn-add-sacola:hover {
+    background: #388E3C;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .produtos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Estilos para a mensagem de feedback, scoped para evitar conflitos */
+.feedback-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    min-width: 200px;
+    max-width: 80%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.feedback-message.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.feedback-message.success {
+    background-color: #22c55e;
+    border: 1px solid #16a34a;
+}
+
+.feedback-message.error {
+    background-color: #ef4444;
+    border: 1px solid #dc2626;
+}
+
+.feedback-message::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.feedback-message.success::before {
+    content: '✔';
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 7px;
+}
+
+.feedback-message.error::before {
+    content: '✖';
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 7px;
+}
+
+/* Estilo para o botão de remover da sacola */
+.btn_removeSacola {
+    padding: 10px 20px; /* Reduzi ligeiramente para menos destaque */
+    border: none;
+    margin: 10px 10px 10px 0px;
+    width: 40%; /* Mantive a largura, ajustável conforme layout */
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500; /* Reduzi para menos impacto visual */
+    transition: all 0.3s ease;
+    background:rgba(255, 127, 127, 1.0); 
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Sombra mais leve */
+    text-align: center; /* Garante alinhamento do texto */
+}
+
+.btn_removeSacola:hover {
+    background: rgb(250, 113, 113);
+    transform: translateY(-1px); /* Efeito de elevação reduzido */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Sombra leve no hover */
+}
+
+/* Responsividade para garantir consistência em mobile */
+@media (max-width: 768px) {
+    .btn_removeSacola {
+        width: 100%; /* Ocupa toda a largura em mobile */
+        padding: 12px 20px; /* Ajuste para maior acessibilidade */
+        margin: 5px 0; /* Reduzi margem em mobile */
+    }
+}
+
+/* Estilo para o botão de finalizar sacola */
+.btn_finalizarSacola {
+    padding: 15px 30px; /* Aumentado para mais destaque */
+    border: none;
+    border-radius: 10px; /* Bordas um pouco mais arredondadas */
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.1rem; /* Fonte maior para destaque */
+    transition: all 0.3s ease;
+    background: linear-gradient(90deg, #4CAF50, #45a049); /* Gradiente sutil para visual mais rico */
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra mais pronunciada */
+    text-transform: uppercase; /* Letras maiúsculas para impacto */
+    letter-spacing: 0.5px; /* Espaçamento sutil para sofisticação */
+    display: block; /* Garante comportamento de bloco */
+    margin: 20px auto 0; /* Centraliza horizontalmente com margem superior */
+}
+
+/* Ajuste no container pai (ex.: .sacola-total) para centralização */
+.sacola-total {
+    text-align: center; /* Centraliza texto e elementos inline-block */
+    padding: 15px;
+}
+
+/* Hover */
+.btn_finalizarSacola:hover {
+    background: linear-gradient(90deg, #388E3C, #2f6b33); /* Gradiente mais escuro no hover */
+    transform: translateY(-3px); /* Efeito de elevação mais perceptível */
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); /* Sombra mais forte no hover */
+}
+
+/* Responsividade para garantir consistência em mobile */
+@media (max-width: 768px) {
+    .btn_finalizarSacola {
+        width: 100%; /* Ocupa toda a largura em mobile */
+        padding: 18px 30px; /* Ajuste para maior destaque em mobile */
+        font-size: 1.2rem; /* Fonte ainda maior em telas menores */
+        margin: 15px auto 0; /* Ajuste de margem em mobile */
+    }
+
+    .sacola-total {
+        padding: 10px;
+    }
+}

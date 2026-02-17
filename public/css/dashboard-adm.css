@@ -1,0 +1,174 @@
+:root {
+    --primary-vendas: #3498db;    /* O azul que você usa nos botões/links */
+    --vendas-dark:#1E3C72;      /* O azul escuro dos textos/headers */
+    --vendas-success: #27ae60;   /* O verde do "valor total" ou "sucesso" */
+    --bg-body: #f0f2f5;          /* Um cinza bem clarinho para destacar os cards */
+    --white: #ffffff;
+    --shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    background-color: var(--bg-body);
+    color: var(--vendas-dark);
+}
+
+/* Sidebar com as cores da sua marca */
+#sidebar {
+    width: 260px;
+    background: linear-gradient(180deg, var(--vendas-dark) 0%, #1a252f 100%);
+    color: var(--white);
+    padding: 20px 0;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+}
+
+.sidebar-brand {
+    padding: 0 25px 30px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--primary-vendas);
+}
+
+#sidebar ul li a {
+    padding: 12px 25px;
+    display: flex;
+    align-items: center;
+    color: #ecf0f1;
+    text-decoration: none;
+    transition: 0.2s;
+    font-weight: 500;
+}
+
+#sidebar ul li a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--primary-vendas);
+}
+
+/* Conteúdo com os padrões da sua página de vendas */
+#content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.header-adm {
+    background: var(--white);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.container-adm {
+    padding: 40px;
+}
+
+/* Cards com o estilo "Highlight" que você usa na nota */
+.stat-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.card-adm {
+    background: var(--white);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s;
+}
+
+.card-adm:hover {
+    transform: translateY(-5px);
+}
+
+.card-adm .label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #95a5a6;
+    text-transform: uppercase;
+}
+
+.card-adm .number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-top: 10px;
+}
+
+/* Highlight azul/verde conforme o seu sistema */
+.text-primary { color: var(--primary-vendas); }
+.text-success { color: var(--vendas-success); }
+
+/* Seção de dados estilo "Sacola" */
+.data-table-container {
+    background: var(--white);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+}
+
+.btn-primary-vendas {
+    background: var(--primary-vendas);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+
+svg {
+    margin-right: 10px;
+}
+
+
+
+.btn-toggle {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    align-self: flex-end; /* Joga o botão para a direita */
+    margin: 5px;
+}
+
+/* Estado Encolhido (Collapsed) */
+#sidebar.collapsed {
+    width: 80px; /* Largura apenas para os ícones */
+}
+
+/* Esconde o texto e a marca quando estiver encolhido */
+#sidebar.collapsed .sidebar-brand,
+#sidebar.collapsed ul li a {
+    font-size: 0; /* "Esconde" o texto */
+    padding: 15px 0;
+    text-align: center;
+}
+
+/* Mantém apenas os SVGs visíveis e centralizados */
+#sidebar.collapsed ul li a svg {
+    margin-right: 0;
+    width: 30px;
+    height: 30px;
+}
+
+/* Esconde as setas de sub-menu no modo compacto */
+#sidebar.collapsed #iconArrow, 
+#sidebar.collapsed #iconArrowPerfil {
+    display: none;
+}
+
+/* Suaviza a transição */
+#sidebar {
+    transition: width 0.3s ease;
+}
+

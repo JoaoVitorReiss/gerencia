@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmação de Venda</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="/css/style_nota.css">
+    <link rel="shortcut icon" href="/img/icon/icon.png" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div id="fecharNota" class="btn-close-nota" title="Fechar e Voltar">
+        <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 -960 960 960" width="32px" fill="#e3e3e3">
+            <path d="m251.33-204.67-46.66-46.66L433.33-480 204.67-708.67l46.66-46.66L480-526.67l228.67-228.66 46.66 46.66L526.67-480l228.66 228.67-46.66 46.66L480-433.33 251.33-204.67Z"/>
+        </svg>
+        </div>
+
+        <div class="header-actions-right">
+        <button id="btnGerarPDF" class="btn-header" title="Baixar/Imprimir">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="m720-120 160-160-56-56-64 64v-167h-80v167l-64-64-56 56 160 160ZM560 0v-80h320V0H560ZM240-160q-33 0-56.5-23.5T160-240v-560q0-33 23.5-56.5T240-880h280l240 240v121h-80v-81H480v-200H240v560h240v80H240Zm0-80v-560 560Z"/></svg>
+        </button>
+        <button id="btnShare" class="btn-header" title="Compartilhar">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M680-80q-50 0-85-35t-35-85q0-6 3-28L282-392q-16 15-37 23.5t-45 8.5q-50 0-85-35t-35-85q0-50 35-85t85-35q24 0 45 8.5t37 23.5l281-164q-2-7-2.5-13.5T560-760q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35q-24 0-45-8.5T598-672L317-508q2 7 2.5 13.5t.5 14.5q0 8-.5 14.5T317-452l281 164q16-15 37-23.5t45-8.5q50 0 85 35t35 85q0 50-35 85t-85 35Zm0-80q17 0 28.5-11.5T720-200q0-17-11.5-28.5T680-240q-17 0-28.5 11.5T640-200q0 17 11.5 28.5T680-160ZM200-440q17 0 28.5-11.5T240-480q0-17-11.5-28.5T200-520q-17 0-28.5 11.5T160-480q0 17 11.5 28.5T200-440Zm480-280q17 0 28.5-11.5T720-760q0-17-11.5-28.5T680-800q-17 0-28.5 11.5T640-760q0 17 11.5 28.5T680-720Zm0 520ZM200-480Zm480-280Z"/></svg>
+        </button>
+    </div>
+            <h1 class="company-name">Sistema de gerenciamento</h1>
+            <p class="page-title">Confirmação de Venda</p>
+        </header>
+
+        <main class="sale-card">
+            <!-- Status de sucesso -->
+            <div class="success-section">
+                <div class="success-icon">
+                <div class="success-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#10b981">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                    
+                </div>
+                <h2>Venda Confirmada!</h2>
+            </div>
+
+            <!-- Informações gerais -->
+            <section class="info-card"  id="info_venda">
+
+            </section>
+
+            <!-- Produtos -->
+            <div class="product-table">
+                <div class="product-row header">
+                    <span>Produto</span>
+                    <span style="text-align: center;">Qtd</span>
+                    <span style="text-align: right;">Unit.</span>
+                    <span style="text-align: right;">Total</span>
+                </div>
+                
+                <div id="itns_vendidos"></div>
+            </div>
+
+                <div class="summary">
+                    <!-- <div class="summary-line">
+                        <span>Subtotal</span>
+                        <span class="amount">R$ 25,90</span>
+                    </div> -->
+                    <div class="summary-line total">
+                        <span>Valor Total</span>
+                        <span class="amount highlight" id="valor_total">00</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pagamento -->
+            <section class="info-card payment" id="info_pagamento">
+
+            </section>
+
+
+            <!-- ID da transação -->
+            <div class="transaction-id">
+                ID da Transação:<br>
+                <span id="id_transacao">000</span>
+            </div>
+
+            <!-- Mensagem final -->
+            <div class="goodbye">
+                <p>Obrigado pela preferência! Volte sempre</p>
+            </div>
+
+            <!-- Rodapé -->
+            <footer class="footer">
+                <p>Esta confirmação não é um comprovante fiscal.</p>
+                <p>Em caso de dúvidas, entre em contato conosco.</p>
+            </footer>
+        </main>
+    </div>
+
+
+
+    <script type="module" src="/js/nota.js"></script>
+</body>
+</html>

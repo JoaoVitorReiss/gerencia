@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/reletorio.css">
+    <link rel="shortcut icon" href="/img/icon/icon.png" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <title>Relatório de Vendas</title>
+</head>
+<body>
+    <div class="relatorio-container">
+        <header class="relatorio-header">
+            <h1>Relatório de Vendas</h1>
+            <div class="filtros-periodo" id="interval_time">
+                <button class="btn-filtro active" value="1">Hoje</button>
+                <button class="btn-filtro" value="7">7 Dias</button>
+                <button class="btn-filtro" value="30">30 Dias</button>
+                <div class="calendario-custom">
+                    <input type="date" id="data_inicio">
+                    <span>até</span>
+                    <input type="date" id="data_fim">
+                    <button id="btn_buscar_custom">Buscar</button>
+                </div>
+            </div>
+        </header>
+
+        <section class="kpi-grid">
+            <div class="kpi-card">
+                <span class="kpi-titulo">Faturamento Total</span>
+                <div class="kpi-valor" id="fatu_total">R$ 12.450,00</div>
+                <span class="kpi-status positivo" id="faturamento_status" >↑ 12% vs anterior</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-titulo">Vendas Realizadas</span>
+                <div class="kpi-valor" id="vendas_total">84</div>
+                <span class="kpi-status positivo" id="vendas_status">↑ 5% vs anterior</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-titulo">Ticket Médio</span>
+                <div class="kpi-valor" id="ticket_total">R$ 148,21</div>
+                <span class="kpi-status negativo" id="ticket_status">↓ 2% vs anterior</span>
+            </div>
+        </section>
+        <section class="graficos-grid">
+
+            <div class="chart-container large">
+                <div class="chart-header">
+                    <h3>Tendência de Vendas</h3>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="meuGraficoLinha"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container small">
+                <div class="chart-header">
+                    <h3>Meios de Pagamento</h3>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="meuGraficoRosca"></canvas>
+                </div>
+            </div>
+        </section>
+    </div>
+    <script type="module" src="/js/relatorio.js"></script>
+</body>
+</html>

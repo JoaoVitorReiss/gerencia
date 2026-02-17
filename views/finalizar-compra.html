@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/finalizar-compra.css">
+    <link rel="shortcut icon" href="/img/icon/icon.png" type="image/x-icon">
+    <link rel="stylesheet" href="">
+    <title>Finalizar conprar</title>
+</head>
+<body>
+    <div id="mensagem-feedback" class="feedback-message" style="display: none;"></div>
+    <div id="fin_com">
+        <div id="produtos_info">
+            <h2>Finalizar Compra</h2>
+            
+            <div id="info_final">
+                <h3 class="produto-nome" id="nome_produto">Nome do Produto</h3>
+                <p class="produto-preco" id="preco_produto">R$ 0,00</p>
+                <p id="qtd">
+                    Quantidade:
+                    <span class="quantity-control">
+                        <button type="button" class="btn-quantity" id="btn-minus">-</button>
+                        <input type="number" name="qtd_pro" id="qtd_pro" min="1" value="1" readonly max="0">
+                        <button type="button" class="btn-quantity" id="btn-plus">+</button>
+                    </span>
+                    <p id="subtotal"></p>
+                    <p class="q_disponivel">Quantidade disponivel:<span id="valor_qtd">00</span></p>
+                </p>
+            </div>
+            
+            <div id="container-sacola">
+                </div>
+        </div>
+        
+        <br>
+        <label for="pagamento">Selecione o Método de Pagamento</label>
+        <select id="pagamento" name="m_pagamento">
+            <option value="Pix">Pix</option>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Cartao">Cartão</option>
+        </select>
+        
+        <div id="dinheiro-section" style="display: none;">
+            <label for="m_dinheiro">Valor Recebido</label>
+            <input type="number" name="m_dinheiro" id="m_dinheiro" min="0" step="0.01" placeholder="R$ 0,00">
+            <p id="troco">Troco: R$ 0,00</p>
+        </div>
+        
+        <p id="valor-total">Valor Total: R$ 0,00</p>
+        <button type="button" id="finalizar">Finalizar</button>
+        <button type="button" id="btn_cancelar">Cancelar</button>
+    </div>
+    <div id="mensagem-feedback" class="feedback-message" style="display: none;"></div>
+
+
+    <script type="module" src="/js/acao_venda.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,290 @@
+/* Novo CSS para a página de finalização de compra */
+
+/* Contêiner principal, similar ao dashboard-venda */
+#fin_com {
+    background: #fff;
+    border-radius: 15px;
+    padding: 30px;
+    margin: 50px auto;
+    max-width: 500px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#fin_com h2 {
+    font-size: 1.8rem;
+    color: #1e3c72; /* Cor principal do tema */
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#info_final {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.produto-nome,
+.produto-preco {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.produto-nome {
+    font-size: 1.4rem;
+    color: #2a5298;
+}
+
+.produto-preco {
+    font-size: 1.2rem;
+    color: #155724; /* Verde para preço */
+}
+
+#qtd {
+    font-size: 1rem;
+    color: #666;
+    margin-top: 10px;
+}
+
+/* Container para o controle de quantidade */
+.quantity-control {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-left: 10px; /* Mantém um pequeno espaço do texto "Quantidade:" */
+    background-color: #fff; /* Fundo branco para a caixinha */
+}
+
+/* Botões de mais e menos */
+.btn-quantity {
+    background: #fff;
+    color: #2a5298; /* Cor principal para os botões */
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: background 0.2s ease;
+}
+
+.btn-quantity:hover {
+    background: #f0f0f0;
+}
+
+/* O input central */
+#qtd_pro {
+    width: 100%; /* Largura reduzida para deixar os botões mais visíveis */
+    margin: 30px;
+    text-align: center;
+    border: none;
+    background: #fff;
+    font-size: 1rem;
+    color: #333;
+    /* Remove as setas no Firefox */
+
+}
+
+/* Remove as setas no Chrome, Safari, Edge, etc. */
+#qtd_pro::-webkit-inner-spin-button,
+#qtd_pro::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+p.q_disponivel {
+    color: gray;
+    font-size: 13px;
+}
+
+/* Estilos para campos de formulário */
+#fin_com label {
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+#fin_com input[type="number"],
+#qtd_pro {
+    width: 100px;
+    text-align: center;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+#fin_com select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    
+}
+
+#fin_com input[type="number"]:focus,
+#fin_com select:focus {
+    outline: none;
+    border-color: #2a5298; /* Borda com a cor principal ao focar */
+}
+
+#dinheiro-section {
+    margin-top: 20px;
+}
+
+#troco {
+    margin-top: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #1e3c72;
+}
+
+#valor-total {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1e3c72;
+    margin-top: 25px;
+    text-align: center;
+}
+
+/* Estilos dos botões de ação */
+#fin_com button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    font-size: 1rem;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#finalizar {
+    background: #1e3c72;
+    color: #fff;
+}
+
+#finalizar:hover {
+    background: #2a5298;
+    transform: translateY(-2px);
+}
+
+#cancelar-modal {
+    background: #e0e0e0;
+    color: #333;
+}
+
+#cancelar-modal:hover {
+    background: #ccc;
+}
+
+/* Adicionando um estilo de fundo ao body para a página inteira */
+body {
+    background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 20px;
+}
+
+
+
+/* Ícone de voltar */
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f0f4f8; /* Fundo claro para contraste */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #2a5298; /* Cor do SVG */
+    flex-shrink: 0; /* Impede que o ícone encolha */
+}
+
+
+.icon:hover {
+    background: #d9e2ec; /* Escurece no hover */
+    transform: scale(1.1); /* Efeito de zoom */
+}
+
+.icon svg {
+    width: 24px;
+    height: 24px;
+    fill: #2a5298; /* Cor do ícone */
+    transition: fill 0.3s ease;
+}
+
+.icon:hover svg {
+    fill: #1e3c72; /* Escurece o SVG no hover */
+}
+
+
+
+
+/* Estilos para a mensagem de feedback, scoped para evitar conflitos */
+.feedback-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    min-width: 200px;
+    max-width: 80%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.feedback-message.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.feedback-message.success {
+    background-color: #22c55e;
+    border: 1px solid #16a34a;
+}
+
+.feedback-message.error {
+    background-color: #ef4444;
+    border: 1px solid #dc2626;
+}
+
+.feedback-message::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.feedback-message.success::before {
+    content: '✔';
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 7px;
+}
+
+.feedback-message.error::before {
+    content: '✖';
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 7px;
+}

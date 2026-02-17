@@ -1,0 +1,198 @@
+/* Reset leve e scoped apenas para a home-page */
+.home-page * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Fonte moderna e clean */
+}
+
+/* Corpo principal com fundo gradiente, scoped */
+.home-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    color: #fff;
+    position: relative;
+    overflow: auto;
+    background: linear-gradient(135deg, #1e3c72, #2a5298); /* Gradiente com suas cores para um visual grandioso */
+}
+
+/* Overlay para efeito de profundidade */
+.home-page .background-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.2); /* Transparência para destacar o conteúdo */
+    z-index: -1;
+}
+
+/* Header hero para impacto visual */
+.home-page .hero-header {
+    text-align: center;
+    padding: 60px 20px;
+    animation: fadeIn 1.5s ease-out; /* Animação de entrada suave */
+}
+
+.home-page .logo-container {
+    margin-bottom: 20px;
+}
+
+.home-page .logo {
+    width: 150px; /* Tamanho grandioso para o logo */
+    height: auto;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)); /* Sombra para destaque */
+    transition: transform 0.3s ease;
+}
+
+.home-page .logo:hover {
+    transform: scale(1.1); /* Efeito de zoom no hover para interatividade */
+}
+
+.home-page h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra no texto para elegância */
+}
+
+.home-page .slogan {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+/* Seção de login (da home, não da tela de login real) */
+.home-page .login-section {
+    text-align: center;
+    padding: 40px 20px;
+    background: rgba(255, 255, 255, 0.1); /* Fundo semi-transparente para contraste */
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Sombra profunda para grandiosidade */
+    max-width: 600px;
+    width: 100%;
+    animation: slideUp 1s ease-out 0.5s forwards; /* Animação de subida */
+    opacity: 0;
+    transform: translateY(50px);
+}
+
+.home-page h2 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+.home-page p {
+    font-size: 1rem;
+    margin-bottom: 20px;
+    opacity: 0.85;
+}
+
+.home-page .login-button {
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background-color: #ffffff; /* Branco para contraste com o fundo azul */
+    color: #1e3c72; /* Cor escura do tema */
+    border: none;
+    border-radius: 50px; /* Bordas arredondadas modernas */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.home-page .login-button:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-3px); /* Efeito de elevação no hover */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Footer */
+.home-page footer {
+    margin-top: auto;
+    padding: 20px;
+    text-align: center;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+/* Animações chave */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .home-page h1 { font-size: 2rem; }
+    .home-page h2 { font-size: 1.5rem; }
+    .home-page .logo { width: 120px; }
+    .home-page .login-section { padding: 30px 15px; }
+}
+
+/* Estilos para a mensagem de feedback, scoped para evitar conflitos */
+.home-page .feedback-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    min-width: 200px;
+    max-width: 80%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.home-page .feedback-message.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.home-page .feedback-message.success {
+    background-color: #22c55e;
+    border: 1px solid #16a34a;
+}
+
+.home-page .feedback-message.error {
+    background-color: #ef4444;
+    border: 1px solid #dc2626;
+}
+
+.home-page .feedback-message::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.home-page .feedback-message.success::before {
+    content: '✔';
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 7px;
+}
+
+.home-page .feedback-message.error::before {
+    content: '✖';
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 7px;
+
+}
