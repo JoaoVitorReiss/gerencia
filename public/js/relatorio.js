@@ -17,6 +17,8 @@ class DataSelect {
                     this.atualizaCard(res.dados);
                     this.desenharGrafico(res.dados.graficoFaturamento);
                     this.desenharGraficoPagamento(res.dados.graficoPagamento);
+                    this.renderizarTabelaProdutos(res.dados.produtosTop);
+                    this.preencherInsights(res.dados);
 
                 }
             } catch (error) {
@@ -74,20 +76,18 @@ class DataSelect {
             elemento.innerHTML = `<span style="color: ${cor}">${seta} ${Math.abs(variacao).toFixed(2)}%</span>`;
         };
 
-        // -> CARD FATURAMENTO
         const fatValor = document.getElementById("fatu_total");
         const fatStatus = document.getElementById("faturamento_status");
         fatValor.innerHTML = `R$ ${Number(dados.atual.faturamento_total).toFixed(2)}`;
         formatarStatus(fatStatus, calcularVariacao(dados.atual.faturamento_total, dados.anterior.faturamento_total));
 
-        // -> CARD VENDAS
+        
         const vendasValor = document.getElementById("vendas_total");
         const vendasStatus = document.getElementById("vendas_status");
         vendasValor.innerHTML = dados.atual.qtd_vendas;
         formatarStatus(vendasStatus, calcularVariacao(dados.atual.qtd_vendas, dados.anterior.qtd_vendas));
 
 
-        // -> CARD TICKET MÉDIO ---
         const ticketValor = document.getElementById("ticket_total");
         const ticketStatus = document.getElementById("ticket_status");
         ticketValor.innerHTML = `R$ ${Number(dados.atual.ticket_medio).toFixed(2)}`;
@@ -188,6 +188,73 @@ class DataSelect {
                 }
             }
         });
+    };
+    static renderizarTabelaProdutos(produtos) {
+        const corpoTabela = document.getElementById("corpo-tabela-produtos");
+        corpoTabela.innerHTML = ""; // Limpa a tabela anterior
+
+        if (!produtos || produtos.length === 0) {
+            corpoTabela.innerHTML = '<tr><td colspan="4" style="text-align:center">Sem vendas no período</td></tr>';
+            return;
+        }
+
+        const faturamentoTotalPeriodo = produtos.reduce((acc, p) => acc + Number(p.faturamento), 0);
+
+        produtos.forEach(item => {
+            const participacao = ((item.faturamento / faturamentoTotalPeriodo) * 100).toFixed(1);
+            
+            const linha = `
+                <tr>
+                    <td>${item.produto}</td>
+                    <td>${item.qtd}</td>
+                    <td>R$ ${Number(item.faturamento).toFixed(2)}</td>
+                    <td><strong>${participacao}%</strong></td>
+                </tr>
+            `;
+            corpoTabela.innerHTML += linha;
+        });
+    };
+    static preencherInsights(dados){
+    const setTexto = (id, texto) => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.innerText = texto;
+        } else {
+            console.warn(`Aviso: Elemento com ID '${id}' não encontrado no HTML.`);
+        }
+    };
+
+    const atualArray = dados.graficoFaturamento.atual || [];
+    const pagamentosArray = dados.graficoPagamento || [];
+
+    if (atualArray.length > 0) {
+        const melhorDiaObj = [...atualArray].sort((a, b) => b.total - a.total)[0];
+        const dataFormatada = new Date(melhorDiaObj.data + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
+        setTexto("melhor-dia", dataFormatada);
+    }
+
+    if (pagamentosArray.length > 0) {
+        const topMetodo = [...pagamentosArray].sort((a, b) => b.total - a.total)[0];
+        setTexto("metodo-top", topMetodo.metodo || topMetodo.venda_metodo_paga || "N/A");
+    }
+
+    const totalItens = Number(dados.atual.total_itens_vendidos) || 0;
+    const totalVendas = Number(dados.atual.qtd_vendas) || 1;
+    setTexto("itens-por-venda", (totalItens / totalVendas).toFixed(1));
+
+
+    const campoComp = document.getElementById("comparativo-periodo");
+    if (campoComp) {
+        const totalAtual = atualArray.reduce((acc, item) => acc + Number(item.total), 0);
+        const totalAnterior = (dados.graficoFaturamento.anterior || []).reduce((acc, item) => acc + Number(item.total), 0);
+
+        if (totalAnterior > 0) {
+            const variacao = ((totalAtual - totalAnterior) / totalAnterior) * 100;
+            campoComp.innerHTML = `<span style="color: ${variacao >= 0 ? 'green' : 'red'}">${variacao >= 0 ? '↑' : '↓'} ${Math.abs(variacao).toFixed(1)}%</span>`;
+        } else {
+            campoComp.innerText = "Sem histórico";
+            }
+        }
     }
     static async init() {
         this.data_selecionada();

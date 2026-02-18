@@ -239,8 +239,8 @@ const balancoPorData = async (dataInicio, dataFim) => {
         const sql = `
             SELECT 
                 COUNT(DISTINCT id_transacao) AS qtd_vendas,
-                IFNULL(SUM(venda_valor), 0) AS faturamento_total,
-                -- Se qtd_vendas for 0, o ticket médio será 0 para evitar erro de divisão
+                SUM(venda_valor) AS faturamento_total,
+                SUM(venda_quantidade_itens) AS total_itens_vendidos,
                 IFNULL(SUM(venda_valor) / NULLIF(COUNT(DISTINCT id_transacao), 0), 0) AS ticket_medio
             FROM vendas
             WHERE data_venda BETWEEN ? AND ?;`;
@@ -294,6 +294,34 @@ const pagamentosGrafico = async (dataInicio, dataFim) => {
         throw erro;
     }
 };
+
+
+// Esta função retorna os itens mais vendidos em um perildo de tempo determinado
+
+const topProdutos = async (dataInicio, dataFim) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                p.descri_produto AS produto, 
+                SUM(v.venda_quantidade_itens) AS qtd, 
+                SUM(v.venda_valor) AS faturamento
+            FROM vendas v
+            INNER JOIN produtos p ON v.id_produto_venda = p.id_produto_produto
+            WHERE v.data_venda BETWEEN ? AND ?
+            GROUP BY v.id_produto_venda
+            ORDER BY faturamento DESC
+            LIMIT 5;`;
+
+        const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
+        return linhas;
+    } catch (erro) {
+        console.error("Erro ao buscar top produtos:", erro);
+        throw erro;
+    }
+};
+
+
 module.exports = { 
     verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -310,7 +338,8 @@ module.exports = {
     produtosEstoqueBaixo,
     balancoPorData,
     faturamentoGrafico,
-    pagamentosGrafico
+    pagamentosGrafico,
+    topProdutos
     //dados_vendedor
   };
 

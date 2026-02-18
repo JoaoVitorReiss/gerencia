@@ -62,12 +62,50 @@
                     <canvas id="meuGraficoRosca"></canvas>
                 </div>
             </div>
+            <div class="analise-detalhada-container">
+    
+    <div class="card-detalhe">
+        <div class="card-header">
+            <h3>Top Produtos (Performance)</h3>
+            <span class="sub-header">Os 5 itens mais rentáveis do período</span>
+        </div>
+        <div class="tabela-wrapper">
+            <table id="tabela-top-produtos">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Qtd.</th>
+                        <th>Faturamento</th>
+                        <th>% Part.</th>
+                    </tr>
+                </thead>
+                <tbody id="corpo-tabela-produtos">
+                    </tbody>
+            </table>
+        </div>
+    </div>
 
-
-            <div>
-                <h2>Resumo</h2>
+        <div class="card-detalhe insights-painel">
+            <div class="card-header">
+                <h3>Insights do Período</h3>
             </div>
-        </section>
+            <div class="insight-item">
+                <span class="label">Melhor Dia de Vendas:</span>
+                <span class="valor" id="melhor-dia">-</span>
+            </div>
+            <div class="insight-item">
+                <span class="label">Itens por Transação:</span>
+                <span class="valor" id="itens-por-venda">0.0</span>
+            </div>
+            <div class="insight-item">
+                <span class="label">Performance vs Período Anterior:</span>
+                <span class="valor" id="comparativo-periodo">-</span>
+            </div>
+        <div class="status-caixa" id="caixa-sugestao">
+            </div>
+        </div>
+    </div>
+    </section>
     </div>
     <script type="module" src="/js/relatorio.js"></script>
 </body>

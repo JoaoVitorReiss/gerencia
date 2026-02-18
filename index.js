@@ -650,12 +650,14 @@ app.post("/relatorio_balanco", authenticateJWT, requireAdm, async (req, res) => 
         dInicioAnterior.setDate(dInicioAnterior.getDate() - (diffDays - 1));
 
         const f = (d) => d.toISOString().split('T')[0];
-        const [atual, anterior, dadosGrafico, dadosPagamento, dadosgraficoAnterior] = await Promise.all([
+        const [atual, anterior, dadosGrafico, dadosPagamento, dadosgraficoAnterior, produtosTop] = await Promise.all([
             db.balancoPorData(f(dInicio), f(dFim)),
             db.balancoPorData(f(dInicioAnterior), f(dFimAnterior)),
             db.faturamentoGrafico(f(dInicio), f(dFim)),
             db.pagamentosGrafico(f(dInicio), f(dFim)),
-            db.faturamentoGrafico(f(dInicioAnterior), f(dFimAnterior)) // anterior
+            db.faturamentoGrafico(f(dInicioAnterior), f(dFimAnterior)),
+            db.topProdutos(f(dInicio), f(dFim))
+            
         ]);
 
         res.status(200).json({
@@ -666,7 +668,8 @@ app.post("/relatorio_balanco", authenticateJWT, requireAdm, async (req, res) => 
                     atual: dadosGrafico,
                     anterior: dadosgraficoAnterior
                 },
-                graficoPagamento: dadosPagamento 
+                graficoPagamento: dadosPagamento,
+                produtosTop: produtosTop
             }
         });
 
