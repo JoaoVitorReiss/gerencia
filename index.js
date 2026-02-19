@@ -606,6 +606,21 @@ app.get("/relatorio", authenticateJWT, requireAdm, async (req, res) => {
     }
 })
 
+
+
+app.get("/estoque", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        let html = await fs.readFile(path.join(__dirname, "views", "estoque.html"), "utf-8");
+        res.status(200).send(html);
+
+    }catch (erro) {
+        console.error("Erro ao carregar a página de controle de estoque: " + erro);
+        res.status(500).json({
+            mensagem: "Erro interno ao carregar a página de controle de estoque."
+        })
+    }
+})
+
 // rotas para a dashboard de Adiministração:
 
 

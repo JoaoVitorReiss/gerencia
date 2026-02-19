@@ -32,6 +32,8 @@ class DataSelect {
         const inputFim = document.getElementById("data_fim");
         const btnBuscaManual = document.getElementById("btn_buscar_custom");
 
+
+
         // Lógica dos Botões Rápidos (Hoje, 7d, 30d)
         botoes.forEach(botao => {
             botao.addEventListener("click", () => {
@@ -41,7 +43,6 @@ class DataSelect {
                 const hoje = new Date();
                 const dataInicio = new Date();
                 dataInicio.setDate(hoje.getDate() - dias);
-
                 enviarParaServidor(formatarData(dataInicio), formatarData(hoje));
             });
         });
@@ -97,7 +98,7 @@ class DataSelect {
     static desenharGrafico(dadosGrafico) {
 
         const { atual, anterior } = dadosGrafico;
-        console.log(anterior)
+        //console.log(anterior)
         const ctx = document.getElementById('meuGraficoLinha').getContext('2d');
         if (!dadosGrafico || dadosGrafico.length === 0) {
             console.warn("Nenhum dado encontrado para o gráfico.");
