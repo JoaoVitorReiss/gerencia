@@ -143,7 +143,7 @@ class preview {
                     evt.preventDefault();
                     evt.stopPropagation();
                     preview.innerHTML = 
-                        `<h2>Vendas realizadas últimas 24h: para <a href="estoque">Informações detalhadas</a></h2>
+                        `<h2>Vendas realizadas últimas 24h: para <a href="relatorio">Informações detalhadas</a></h2>
                         <h4>Total de vendas: <strong>${dados.dados.qtd_vendas}</strong></h4>
                         <h4>Quantidade total de produtos vendidos: <strong>${dados.dados.qtd_itens_total}</strong></h4>`
             })

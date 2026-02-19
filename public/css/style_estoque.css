@@ -1,0 +1,488 @@
+/* style_estoque.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap');
+
+:root {
+    --primary-blue: #325088;
+    --bg-light: #f4f7f6;
+    --text-dark: #2c3e50;
+    --white: #ffffff;
+    --success: #27ae60;
+    --danger: #e74c3c;
+    --warning: #f39c12;      /* adicionado para atenção */
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --border-radius: 12px;
+    --font-family: 'Inter', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-light);
+    font-family: var(--font-family);
+    color: var(--text-dark);
+    padding: 2rem 2rem 4rem;
+    line-height: 1.5;
+}
+
+/* link de voltar */
+a[title="Voltar para a Dashboard"] {
+    display: inline-block;
+    margin-bottom: 1rem;
+    transition: opacity 0.2s;
+}
+a[title="Voltar para a Dashboard"]:hover {
+    opacity: 0.8;
+}
+
+h1 {
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--primary-blue);
+    margin-bottom: 2rem;
+    border-left: 8px solid var(--primary-blue);
+    padding-left: 1.5rem;
+}
+
+/* seções com estilo de card */
+section {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 1.8rem 2rem;
+    margin-bottom: 2.5rem;
+}
+
+section h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--primary-blue);
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--bg-light);
+    padding-bottom: 0.8rem;
+}
+
+/* tabela de código de cores (status) */
+#tabela_deCores {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: inline-block; /* Ajusta ao conteúdo ou use width: 100% */
+    min-width: 300px;
+}
+
+#tabela_deCores h4 {
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#codi_show {
+    background: var(--bg-light);
+    border: none;
+    border-radius: 8px;
+    padding: 5px;
+    cursor: pointer;
+    float: right;
+    transition: all 0.2s;
+}
+
+#codi_show:hover {
+    background: #e2e8f0;
+}
+
+#codi_show svg {
+    fill: var(--primary-blue); /* Ajustei para azul para combinar com o tema */
+}
+
+#codigo {
+    margin-top: 10px;
+    border-top: 1px solid var(--bg-light);
+    padding-top: 10px;
+}
+
+/* Alinhamento dos itens da legenda */
+#codigo > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+
+#codigo > div:last-child {
+    margin-bottom: 0;
+}
+
+/* Bolinhas de status com efeito de brilho suave */
+.alerta, .atencao, .normal {
+    flex-shrink: 0; /* Impede que a bolinha amasse em telas pequenas */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.alerta { background-color: var(--danger); }
+.atencao { background-color: var(--warning); }
+.normal { 
+    background-color: var(--success); 
+    box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.1); /* Efeito extra já sugerido no seu CSS */
+}
+
+.alerta {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--danger);
+}
+
+
+.atencao {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--warning);
+}
+
+
+.normal{
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--success);
+}
+
+
+
+
+.normal {
+    background-color: var(--success);
+    box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.2);
+}
+
+/* estilo base para as tabelas de itens */
+.stilo_tabela {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stilo_tabela caption {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--primary-blue);
+    background: var(--bg-light);
+    padding: 0.8rem;
+    border-radius: 8px 8px 0 0;
+    text-align: left;
+    caption-side: top;
+}
+
+.stilo_tabela thead {
+    background-color: var(--primary-blue);
+    color: var(--white);
+}
+
+.stilo_tabela thead th {
+    padding: 1rem;
+    font-weight: 500;
+    text-align: left;
+}
+
+.stilo_tabela tbody tr {
+    border-bottom: 1px solid #eaeef2;
+    transition: background 0.2s;
+}
+
+.stilo_tabela tbody tr:hover {
+    background-color: #f9fbfc;
+}
+
+.stilo_tabela tbody td {
+    padding: 1rem;
+    color: var(--text-dark);
+}
+
+/* coluna de ações com botão */
+.stilo_tabela tbody td button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background-color: #eef2f7;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.stilo_tabela tbody td button:hover {
+    background-color: #dce4ec;
+    transform: scale(1.05);
+}
+
+.stilo_tabela tbody td button svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--primary-blue);  /* ajuste a cor do ícone */
+}
+
+/* botões de filtro (período) */
+.filtros-periodo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.8rem;
+    background: var(--bg-light);
+    padding: 1rem 1.5rem;
+    border-radius: 40px;
+}
+
+.btn-filtro {
+    background: transparent;
+    border: 1px solid #cbd5e0;
+    color: var(--text-dark);
+    font-weight: 500;
+    padding: 0.5rem 1.2rem;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.btn-filtro.active,
+.btn-filtro:hover {
+    background: var(--primary-blue);
+    border-color: var(--primary-blue);
+    color: var(--white);
+}
+
+.calendario-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+    flex-wrap: wrap;
+}
+
+.calendario-custom input[type="date"] {
+    border: 1px solid #cbd5e0;
+    border-radius: 30px;
+    padding: 0.5rem 1rem;
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    background: var(--white);
+}
+
+.calendario-custom span {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+#btn_buscar_custom {
+    background: var(--primary-blue);
+    border: none;
+    color: var(--white);
+    font-weight: 500;
+    padding: 0.5rem 1.5rem;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: 1px solid var(--primary-blue);
+}
+
+#btn_buscar_custom:hover {
+    background: #1f3a5f;
+}
+
+
+/* Estilo para o campo de pesquisa */
+#pesquisa {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.5rem 0 1rem;
+    width: 100%;
+    max-width: 500px; /* opcional: limita a largura em telas grandes */
+}
+
+#pesquisa input[type="search"] {
+    flex: 1;
+    padding: 0.75rem 1.2rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 30px;
+    font-family: var(--font-family);
+    font-size: 0.95rem;
+    background: var(--white);
+    color: var(--text-dark);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#pesquisa input[type="search"]:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(50, 80, 136, 0.2);
+}
+
+#pesquisa input[type="search"]::placeholder {
+    color: #a0b3c2;
+    font-style: italic;
+}
+
+#pesquisa input[type="button"] {
+    background: var(--primary-blue);
+    border: none;
+    color: var(--white);
+    font-weight: 500;
+    padding: 0.75rem 1.8rem;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    border: 1px solid var(--primary-blue);
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+#pesquisa input[type="button"]:hover {
+    background: #1f3a5f;
+    border-color: #1f3a5f;
+    transform: scale(1.02);
+}
+
+#pesquisa input[type="button"]:active {
+    transform: scale(0.98);
+}
+
+/* Ajuste para telas menores */
+@media (max-width: 600px) {
+    #pesquisa {
+        flex-direction: column;
+        align-items: stretch;
+        max-width: 100%;
+    }
+    
+    #pesquisa input[type="button"] {
+        width: 100%;
+    }
+}
+
+/* seção de adicionar item */
+#add_itens {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    background: linear-gradient(145deg, var(--white), #fafdfc);
+}
+
+#add_itens h2 {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+#add_itens button {
+    background: var(--primary-blue);
+    border: none;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: background 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#add_itens button:hover {
+    background: #1f3a5f;
+    transform: scale(1.1);
+}
+
+#add_itens button svg {
+    width: 30px;
+    height: 30px;
+    fill: var(--white);
+}
+
+/* responsividade */
+@media (max-width: 900px) {
+    body {
+        padding: 1.5rem;
+    }
+    .filtros-periodo {
+        flex-direction: column;
+        align-items: stretch;
+        border-radius: 20px;
+    }
+    .calendario-custom {
+        margin-left: 0;
+        justify-content: space-between;
+    }
+    .stilo_tabela {
+        font-size: 0.9rem;
+    }
+    .stilo_tabela thead th,
+    .stilo_tabela tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+@media (max-width: 600px) {
+    section {
+        padding: 1.2rem;
+    }
+    #tabela_status tbody td {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    #tabela_status tbody td div {
+        margin-left: 0;
+    }
+    .stilo_tabela,
+    .stilo_tabela tbody,
+    .stilo_tabela tr,
+    .stilo_tabela td {
+        display: block;
+        width: 100%;
+    }
+    .stilo_tabela thead {
+        display: none;
+    }
+    .stilo_tabela tbody tr {
+        margin-bottom: 1rem;
+        border: 1px solid #e0e7e9;
+        border-radius: 8px;
+        padding: 0.8rem;
+    }
+    .stilo_tabela tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed #d0d9e0;
+    }
+    .stilo_tabela tbody td:last-child {
+        border-bottom: none;
+    }
+    .stilo_tabela tbody td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--primary-blue);
+        width: 40%;
+    }
+}
+
+
