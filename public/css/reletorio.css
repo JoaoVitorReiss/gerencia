@@ -379,3 +379,63 @@ td {
     color: #34495e;
     line-height: 1.4;
 }
+
+.card-relatorio-executivo {
+    margin-top: 30px;
+    border-top: 5px solid var(--primary-blue);
+    line-height: 1.6;
+}
+
+.analise-secao {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.analise-secao h4 {
+    color: #34495e;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.relatorio-conteudo p {
+    color: #555;
+    text-align: justify;
+    font-size: 0.95rem;
+}
+
+.conclusao-tecnica {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 5px solid #2ecc71;
+}
+
+.btn-print {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+/* REGRA DE OURO PARA IMPRESSÃO */
+@media print {
+    body * { visibility: hidden; }
+    #sessao-impressao, #sessao-impressao * { visibility: visible; }
+    #sessao-impressao {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none;
+        border: none;
+    }
+    .btn-print { display: none; }
+}

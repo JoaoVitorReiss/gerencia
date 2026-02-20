@@ -21,10 +21,10 @@
                 <div class="alerta"></div> Alerta: Quando a quantidade de itens for inferior a 10
             </div>
             <div>
-                <div class="atencao"></div> Atenção: Quando a quantidade de itens for menor do 15
+                <div class="atencao"></div> Atenção: Quando a quantidade de itens for menor do 25
             </div>
             <div>
-                <div class="normal"></div> Normal: quando a quantidade de itens for superior a 15
+                <div class="normal"></div> Normal: quando a quantidade de itens for superior a 25
             </div>
         </div>
     </div>
@@ -32,13 +32,14 @@
     <section id="secao_tabelas">
         <h2>Protudos com estoque baixo</h2>
         <table id="tb_falta" class="stilo_tabela">
-            <caption>Lissta de itens em falta</caption>
+            <caption>Lista de itens em falta</caption>
             <thead>
                 <tr>
                     <th>Id</th>
                     <th>Produto</th>
                     <th>Preço (Venda)</th>
                     <th>Estoque Atual</th>
+                    <th>Qtd vendidas</th>
                     <th>Status</th>
                     <th>Ações</th>
                 </tr>
@@ -50,8 +51,9 @@
                     <td>Nome do produto</td>
                     <td>R$Preço</td>
                     <td>qtd em estoque</td>
+                    <td>Qtd vendidas</td>
                     <td>estatus</td>
-                    <td><button id="edt_itemFalta"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3498db"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg></button></td>
+                    <td><button class="edt_itemFalta"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3498db"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg></button></td>
                 </tr>
             </tbody>
         </table>
@@ -62,7 +64,8 @@
         <h2>Listagem de produtos mais vendidos</h2>
         <div class="relatorio-container">
             <div class="filtros-periodo" id="interval_time">
-                <button class="btn-filtro active" value="1">Hoje</button>
+                <button class="btn-filtro active" value="0">Geral</button>
+                <button class="btn-filtro " value="1">Hoje</button>
                 <button class="btn-filtro" value="7">7 Dias</button>
                 <button class="btn-filtro" value="30">30 Dias</button>
                 <div class="calendario-custom">
@@ -82,6 +85,7 @@
                     <th>Produto</th>
                     <th>Preço (Venda)</th>
                     <th>Estoque Atual</th>
+                    <th>Qtd vendidas</th>
                     <th>Status</th>
                     <th>Ações</th> 
                 </tr>
@@ -93,6 +97,7 @@
                     <td>Nome do produto</td>
                     <td>R$Preço</td>
                     <td>qtd em estoque</td>
+                    <td>Qtd vendidas</td>
                     <td>estatus</td>
                     <td><button id="edt_itemFalta"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3498db"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg></button></td>
                 </tr>

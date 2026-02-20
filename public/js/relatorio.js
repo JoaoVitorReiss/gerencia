@@ -19,6 +19,7 @@ class DataSelect {
                     this.desenharGraficoPagamento(res.dados.graficoPagamento);
                     this.renderizarTabelaProdutos(res.dados.produtosTop);
                     this.preencherInsights(res.dados);
+                    this.gerarRelatorioEscrito(res.dados)
 
                 }
             } catch (error) {
@@ -255,6 +256,59 @@ class DataSelect {
         } else {
             campoComp.innerText = "Sem histórico";
             }
+        }
+    }
+
+    static gerarRelatorioEscrito(dados) {
+        
+        // 1. Captura de dados com valores padrão para evitar erros
+
+        const faturamentoAtual = dados.graficoFaturamento?.atual || [];
+        const faturamentoAnterior = dados.graficoFaturamento?.anterior || [];
+        const produtos = dados.produtosTop || [];
+        const ticketMedio = Number(dados.atual?.ticket_medio) || 0;
+        const itensVenda = document.getElementById("itens-por-venda")?.innerText || "0.0";
+        const melhorDia = document.getElementById("melhor-dia")?.innerText || "N/A";
+        const metodoDominante = document.getElementById("metodo-top")?.innerText || "N/A";
+
+        // 2. Cálculos de Faturamento
+        const totalAtual = faturamentoAtual.reduce((acc, i) => acc + Number(i.total), 0);
+        const totalAnterior = faturamentoAnterior.reduce((acc, i) => acc + Number(i.total), 0);
+        
+        let varPerc = 0;
+        if (totalAnterior > 0) {
+            varPerc = (((totalAtual - totalAnterior) / totalAnterior) * 100).toFixed(1);
+        }
+
+        // A. Sumário de Faturamento
+        const faturamentoTexto = `O faturamento total consolidado foi de R$ ${totalAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. ` +
+            (totalAnterior > 0 
+                ? `Este valor apresenta uma variação de ${varPerc}% em relação ao período anterior. ` 
+                : `Não há dados históricos suficientes para comparação percentual direta. `) +
+            `O pico de demanda foi identificado no dia ${melhorDia}.`;
+        
+        document.getElementById("relatorio-faturamento-texto").innerText = faturamentoTexto;
+
+        // B. Mix de Produtos
+        const principalProduto = produtos.length > 0 ? produtos[0].produto : "Nenhum produto listado";
+        document.getElementById("relatorio-mix-texto").innerText = 
+            `O item "${principalProduto}" destaca-se como o principal motor de receita no período. ` +
+            `O ticket médio operacional fixou-se em R$ ${ticketMedio.toFixed(2)}, com uma média de ${itensVenda} produtos por transação.`;
+
+        // C. Eficiência Operacional (Onde estava travado)
+        document.getElementById("relatorio-operacional-texto").innerText = 
+            metodoDominante !== "N/A" && metodoDominante !== "-"
+            ? `A análise de fluxo indica que o método ${metodoDominante} é a principal via de entrada de capital. Recomenda-se monitorar as taxas de liquidação desta modalidade.`
+            : `Ainda não há dados consolidados suficientes sobre os métodos de pagamento para uma análise de eficiência operacional.`;
+
+        // D. Conclusão Tectônica (O diagnóstico final)
+        const campoConclusao = document.getElementById("relatorio-conclusao-texto");
+        if (totalAtual === 0) {
+            campoConclusao.innerText = "Operação sem movimentação financeira no período selecionado. Aguardando processamento de vendas para diagnóstico.";
+        } else if (varPerc >= 0) {
+            campoConclusao.innerText = "Os indicadores apontam uma movimentação tectônica positiva. A manutenção do ticket médio aliada à estabilidade do mix de produtos sugere um cenário de retenção saudável.";
+        } else {
+            campoConclusao.innerText = "Identificada uma retração nos indicadores de volume. Recomenda-se auditoria no estoque dos produtos líderes e revisão da política de descontos para reverter a tendência de queda.";
         }
     }
     static async init() {

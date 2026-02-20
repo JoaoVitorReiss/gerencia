@@ -735,7 +735,26 @@ app.get("/estoque_baixo", authenticateJWT, requireAdm, async (req, res) => {
 
 
 
+// Rota para a página de: Controle de estoque:
+app.get("/contro_estoque", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const nome_itens = await db.produtosEstoqueBaixoDetalhado();
 
+        if(nome_itens) {
+            res.status(200).json({
+                mensagem:"Dados completos dos itens com estoque baixo",
+                dados: nome_itens
+            })
+        }
+
+
+    }catch(error) {
+        console.log("Eu ao obter os itens com estoque baixo: " + error);
+        res.status(500).json({
+            mensagem: "Erro interno ao tentar obter os itens com estoque baixo"
+        });
+    };
+});
 
 
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {

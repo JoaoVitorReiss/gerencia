@@ -322,6 +322,36 @@ const topProdutos = async (dataInicio, dataFim) => {
 };
 
 
+
+// Esta função retorna os dados detalhados dos produtos com estoque abaixo de 25, 
+// incluindo o total de unidades já vendidas de cada um.
+const produtosEstoqueBaixoDetalhado = async () => {
+    try {
+        const conectar = await conecta_banco();
+        
+        const sql = `
+            SELECT 
+                p.id_produto_produto AS Id,
+                p.descri_produto AS nome_do_Produto,
+                p.preco_produto AS Preço,
+                p.qtd_produto AS Estoque_Atual,
+                COALESCE(SUM(v.venda_quantidade_itens), 0) AS Qtd_vendidas
+            FROM produtos p
+                LEFT JOIN vendas v ON p.id_produto_produto = v.id_produto_venda
+                WHERE p.qtd_produto < 25
+                GROUP BY p.id_produto_produto, p.descri_produto, p.preco_produto, p.qtd_produto
+                ORDER BY p.qtd_produto ASC;
+        `;
+
+        const [linhas] = await conectar.query(sql);
+        return linhas;
+    }
+    catch (erro) {
+        console.error("Erro ao buscar relatório de estoque crítico! ERRO: ", erro);
+        throw erro;
+    };
+}
+
 module.exports = { 
     verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -339,7 +369,8 @@ module.exports = {
     balancoPorData,
     faturamentoGrafico,
     pagamentosGrafico,
-    topProdutos
+    topProdutos,
+    produtosEstoqueBaixoDetalhado
     //dados_vendedor
   };
 
