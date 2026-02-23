@@ -677,6 +677,10 @@ app.post("/relatorio_balanco", authenticateJWT, requireAdm, async (req, res) => 
 
         res.status(200).json({
             dados: { 
+                datas: {
+                    data_inicio: dInicio,
+                    data_fim: dFim
+                },
                 atual, 
                 anterior, 
                 graficoFaturamento: {

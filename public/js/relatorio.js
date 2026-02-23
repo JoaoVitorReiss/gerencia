@@ -228,6 +228,7 @@ class DataSelect {
 
     const atualArray = dados.graficoFaturamento.atual || [];
     const pagamentosArray = dados.graficoPagamento || [];
+    
 
     if (atualArray.length > 0) {
         const melhorDiaObj = [...atualArray].sort((a, b) => b.total - a.total)[0];
@@ -261,17 +262,30 @@ class DataSelect {
 
     static gerarRelatorioEscrito(dados) {
         
-        // 1. Captura de dados com valores padrão para evitar erros
-
+        // 1. Captura de dados 
         const faturamentoAtual = dados.graficoFaturamento?.atual || [];
         const faturamentoAnterior = dados.graficoFaturamento?.anterior || [];
         const produtos = dados.produtosTop || [];
         const ticketMedio = Number(dados.atual?.ticket_medio) || 0;
         const itensVenda = document.getElementById("itens-por-venda")?.innerText || "0.0";
         const melhorDia = document.getElementById("melhor-dia")?.innerText || "N/A";
-        const metodoDominante = document.getElementById("metodo-top")?.innerText || "N/A";
+        const metodoDominante = document.getElementById("relatorio-operacional-texto");
+        const datas_perildo =  document.getElementById("periodo-relatorio");
+        const data_inicio = dados.datas.data_inicio.split('T')[0];
+        const data_fim = dados.datas.data_fim.split('T')[0];
 
-        // 2. Cálculos de Faturamento
+
+        const dadosPg = dados.graficoPagamento
+        console.log(dadosPg)
+        const maiorCapital = dadosPg.reduce((a, b) => (a.total > b.total ? a : b), {metodo: "N/A", total: 0});
+
+        const maisUtilizado = dadosPg.reduce((a, b) => (a.qtd > b.qtd ? a : b), {metodo: "N/A", qtd: 0});
+
+        const metodoDominanteCard = maiorCapital.metodo;
+        const popular = maisUtilizado.metodo;
+
+
+
         const totalAtual = faturamentoAtual.reduce((acc, i) => acc + Number(i.total), 0);
         const totalAnterior = faturamentoAnterior.reduce((acc, i) => acc + Number(i.total), 0);
         
@@ -280,7 +294,11 @@ class DataSelect {
             varPerc = (((totalAtual - totalAnterior) / totalAnterior) * 100).toFixed(1);
         }
 
-        // A. Sumário de Faturamento
+        datas_perildo.innerHTML =`
+            Período: <strong>${data_inicio}</strong> <em>até</em> <strong>${data_fim}</strong>
+        `
+
+        //Sumário de Faturamento
         const faturamentoTexto = `O faturamento total consolidado foi de R$ ${totalAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. ` +
             (totalAnterior > 0 
                 ? `Este valor apresenta uma variação de ${varPerc}% em relação ao período anterior. ` 
@@ -289,26 +307,44 @@ class DataSelect {
         
         document.getElementById("relatorio-faturamento-texto").innerText = faturamentoTexto;
 
-        // B. Mix de Produtos
+        // Mix de Produtos
         const principalProduto = produtos.length > 0 ? produtos[0].produto : "Nenhum produto listado";
         document.getElementById("relatorio-mix-texto").innerText = 
             `O item "${principalProduto}" destaca-se como o principal motor de receita no período. ` +
             `O ticket médio operacional fixou-se em R$ ${ticketMedio.toFixed(2)}, com uma média de ${itensVenda} produtos por transação.`;
 
-        // C. Eficiência Operacional (Onde estava travado)
-        document.getElementById("relatorio-operacional-texto").innerText = 
-            metodoDominante !== "N/A" && metodoDominante !== "-"
-            ? `A análise de fluxo indica que o método ${metodoDominante} é a principal via de entrada de capital. Recomenda-se monitorar as taxas de liquidação desta modalidade.`
-            : `Ainda não há dados consolidados suficientes sobre os métodos de pagamento para uma análise de eficiência operacional.`;
-
-        // D. Conclusão Tectônica (O diagnóstico final)
-        const campoConclusao = document.getElementById("relatorio-conclusao-texto");
-        if (totalAtual === 0) {
-            campoConclusao.innerText = "Operação sem movimentação financeira no período selecionado. Aguardando processamento de vendas para diagnóstico.";
-        } else if (varPerc >= 0) {
-            campoConclusao.innerText = "Os indicadores apontam uma movimentação tectônica positiva. A manutenção do ticket médio aliada à estabilidade do mix de produtos sugere um cenário de retenção saudável.";
+        // Sumário de Método de pagamento
+        if (metodoDominanteCard && metodoDominanteCard !== "N/A" && metodoDominanteCard !== "-") {
+            metodoDominante.innerHTML = 
+                `A análise de fluxo indica que o método <strong>${metodoDominanteCard}</strong> ` +
+                `é a principal via de entrada de capital. Além disso, o método <strong>${popular}</strong> apresentou a maior frequência de uso. `
+                    +
+                `Recomenda-se monitorar as taxas de liquidação e os custos associados a essas modalidades.`;
         } else {
-            campoConclusao.innerText = "Identificada uma retração nos indicadores de volume. Recomenda-se auditoria no estoque dos produtos líderes e revisão da política de descontos para reverter a tendência de queda.";
+            metodoDominante.innerHTML = 
+                `Ainda não há dados consolidados suficientes sobre os métodos de pagamento ` +
+                `para uma análise de eficiência operacional.`;
+        }
+
+        // Conclusão Tecnica (O diagnóstico final)
+        const campoConclusao = document.getElementById("relatorio-conclusao-texto");
+        if (!totalAtual || totalAtual <= 0) {
+            campoConclusao.textContent = 
+                "Operação sem movimentação financeira no período selecionado. " +
+                "Aguardando vendas para gerar diagnóstico.";
+        } 
+        else if (varPerc >= 0) {
+            campoConclusao.textContent = 
+                "Os indicadores apontam uma trajetória positiva. " +
+                "A manutenção do ticket médio aliada à estabilidade no mix de produtos " +
+                "sugere um cenário de retenção e saúde comercial satisfatórios.";
+        } 
+        else {
+            campoConclusao.textContent = 
+                "Foi identificada retração nos indicadores de volume e faturamento. " +
+                "Recomenda-se: auditoria no estoque dos produtos líderes, " +
+                "revisão da política de preços/descontos e análise de fatores externos " +
+                "para reverter a tendência de queda.";
         }
     }
     static async init() {
