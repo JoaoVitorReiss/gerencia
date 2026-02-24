@@ -67,6 +67,8 @@ const todosProdutos = async () => {
     try {
         const conectar = await conecta_banco();
         const [linhas] = await conectar.query("SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos");
+        console.log("--- DEBUG ESTOQUE ---");
+        console.log("Quantidade de itens retornados:", linhas.length);
         return linhas
     }
     catch (erro) {
@@ -79,7 +81,7 @@ const todosProdutos = async () => {
 const produto_pesquisadodb = async (nomeProduto) => {
     try {
         const conectar = await conecta_banco();
-        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE descri_produto = ? OR descri_produto = ?";
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE (descri_produto = ? OR descri_produto = ?) AND qtd_produto > 0";
         const [rows] = await conectar.query(sql, [nomeProduto]);
         return rows; // Retorna as linhas encontradas
     } catch (error) {
@@ -92,7 +94,7 @@ const produto_pesquisadoID = async (idProdutos) => {
     try {
         const conectar = await conecta_banco();
         
-        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE id_produto_produto IN (?)";
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE id_produto_produto IN (?) AND qtd_produto > 0";
         
         const [rows] = await conectar.query(sql, [idProdutos]);
         
@@ -108,7 +110,7 @@ const todos_nomeProdutos = async () => {
     try {
         const conectar = await conecta_banco();
         // Incluindo preco_produto e qtd_produto na query
-        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos"; 
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos todos_nomeProdutos WHERE qtd_produto > 0"; 
         const [rows] = await conectar.query(sql);
         return rows;
     } catch (error) {
