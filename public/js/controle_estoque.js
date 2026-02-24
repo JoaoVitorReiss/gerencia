@@ -7,6 +7,84 @@ class status_cores{
     };
 };
 
+class ModalEstoque {
+    static abrir(config = { titulo: "Novo Item", dados: null, callback: null, tipo: 0 }) {
+     
+        const overlay = document.createElement('div');
+        overlay.id = 'modal-overlay';
+
+
+ 
+        overlay.innerHTML = `
+            <div id="modal-container">
+                <div class="modal-header">
+                    <h2>${config.titulo}</h2>
+                    <button id="fechar-modal">&times;</button>
+                </div>
+                <form id="form-estoque">
+                    <div class="campo-grupo">
+                        <label for="nomeitem">Nome do item:</label>
+                        <input type="text" id="nomeitem" value="${config.dados?.nome || ''}" required>
+                    </div>
+                    <div class="linha-dupla">
+                        <div class="campo-grupo">
+                            <label for="valorItem">Preço (Venda) R$:</label>
+                            <input type="number" id="valorItem" step="0.01" value="${config.dados?.preco || ''}" required>
+                        </div>
+                        <div class="campo-grupo">
+                            <label for="qtditem">Quantidade:</label>
+                            <input type="number" id="qtditem" value="${config.dados?.qtd || ''}" required>
+                        </div>
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="valitem">Validade (Opcional):</label>
+                        <input type="date" id="valitem" value="${config.dados?.validade || ''}">
+                    </div>
+                    <div class="modal-footer">
+                        
+                        <button type="button" class="btn-cancelar" id="btn-cancelar">Cancelar</button>
+                        <button id="btn_excluir" class="hidden">Excluir item</button>
+                        <button type="submit" class="btn-finalizar">Finalizar</button>
+                        
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+
+        if(config.tipo == 1){
+           const btn_excluir = document.getElementById('btn_excluir')
+           btn_excluir.classList.remove("hidden")
+        }
+
+        // --- EVENTOS ---
+
+        const fechar = () => overlay.remove();
+        
+        document.getElementById('fechar-modal').onclick = fechar;
+        document.getElementById('btn-cancelar').onclick = fechar;
+
+        // Fechar ao clicar fora do modal
+        overlay.onclick = (e) => { if(e.target === overlay) fechar(); };
+
+        // Submissão do Formulário
+        document.getElementById('form-estoque').onsubmit = (e) => {
+            e.preventDefault();
+            const payload = {
+                nome: document.getElementById('nomeitem').value,
+                preco: document.getElementById('valorItem').value,
+                qtd: document.getElementById('qtditem').value,
+                validade: document.getElementById('valitem').value
+            };
+            
+            if (config.callback) config.callback(payload);
+            fechar();
+        };
+    }
+}
+
+
 
 class estoque{
     static async estoque_baixo(){
@@ -37,11 +115,30 @@ class estoque{
 
         if (dados_tabela.length > 0) {
             const tbody = document.getElementById("dados_itemFalta");
-            tbody.innerHTML = ``;
+            tbody.innerHTML = ""; // Limpa a tabela
 
             dados_tabela.forEach(item => {
                 const tr = document.createElement("tr");
-                tr.setAttribute("id", `${item.Id}`)
+                tr.setAttribute("id", item.Id);
+
+                const button = document.createElement('button');
+                button.classList.add('edt_itemFalta');
+
+                // 2. Criar o SVG
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.setAttribute("height", "24px");
+                svg.setAttribute("viewBox", "0 -960 960 960");
+                svg.setAttribute("width", "24px");
+                svg.setAttribute("fill", "#3498db");
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("d", "M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z");
+                button.setAttribute("id", item.Id);
+
+                svg.appendChild(path);
+                button.appendChild(svg);
+
+                // 3. Montar o conteúdo da TR
                 tr.innerHTML = `
                     <td>${item.Id}</td>
                     <td>${item.nome_do_Produto}</td>
@@ -49,16 +146,27 @@ class estoque{
                     <td>${item.Estoque_Atual}</td>
                     <td>${item.Qtd_vendidas}</td>
                     <td>${this.status_info(item)}</td>
-                    <td>
-                        <button class="edt_itemFalta">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3498db">
-                                <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
-                            </svg>
-                        </button>
-                    </td>
+                    <td class="acoes"></td> 
                 `;
+
+
+                tr.querySelector(".acoes").appendChild(button);
+
                 tbody.appendChild(tr);
+
+                
             });
+        
+        tbody.addEventListener("click", evt => {
+            const btn = evt.target.closest('.edt_itemFalta');
+            
+            if (btn) {
+                console.log( btn.id);
+                ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1});
+                 
+                
+            }
+        });
 
         } else {
             console.warn("Nenhum dado encontrado para a tabela.");
@@ -66,14 +174,14 @@ class estoque{
 
     };
 
-    static acao_edt(){
-        const btn_edt = document.querySelectorAll(".edt_itemFalta");
-        btn_edt.forEach((item) => {
-            item.addEventListener("click", (evt) =>{
-                console.log(evt.target)
-            })
+    static criarNewitem(){
+       const btn_add = document.getElementById("add_novoitem");
+       btn_add.addEventListener("click", evt => {
+            evt.preventDefault();
+            ModalEstoque.abrir();
         })
-    }
+    };
+
 };
 
 
@@ -81,7 +189,7 @@ class start{
     static init(){
         status_cores.show_hidden();
         estoque.criar_tabela();
-        estoque.acao_edt();
+        estoque.criarNewitem();
     };
 };
 
