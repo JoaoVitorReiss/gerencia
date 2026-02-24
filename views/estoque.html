@@ -14,20 +14,7 @@
     
     <h1>Controle de estoque</h1>
 
-    <div id="tabela_deCores">
-        <h4>Status de cores</h4> <button id="codi_show"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M607.5-372.5Q660-425 660-500t-52.5-127.5Q555-680 480-680t-127.5 52.5Q300-575 300-500t52.5 127.5Q405-320 480-320t127.5-52.5Zm-204-51Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM214-281.5Q94-363 40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200q-146 0-266-81.5ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button>
-        <div id="codigo" style="display: none;">
-            <div>
-                <div class="alerta"></div> Alerta: Quando a quantidade de itens for inferior a 10
-            </div>
-            <div>
-                <div class="atencao"></div> Atenção: Quando a quantidade de itens for menor do 25
-            </div>
-            <div>
-                <div class="normal"></div> Normal: quando a quantidade de itens for superior a 25
-            </div>
-        </div>
-    </div>
+    
     
     <section id="secao_tabelas">
         <h2>Protudos com estoque baixo</h2>
@@ -59,16 +46,34 @@
         </table>
     </section>
 
-
+<div id="tabela_deCores">
+        <h4>Status de cores</h4> <button id="codi_show"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M607.5-372.5Q660-425 660-500t-52.5-127.5Q555-680 480-680t-127.5 52.5Q300-575 300-500t52.5 127.5Q405-320 480-320t127.5-52.5Zm-204-51Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM214-281.5Q94-363 40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200q-146 0-266-81.5ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button>
+        <div id="codigo" style="display: none;">
+            <div>
+                <div class="alerta"></div> Alerta: Quando a quantidade de itens for inferior a 10
+            </div>
+            <div>
+                <div class="atencao"></div> Atenção: Quando a quantidade de itens for menor do 25
+            </div>
+            <div>
+                <div class="normal"></div> Normal: quando a quantidade de itens for superior a 25
+            </div>
+        </div>
+    </div>
     <section id="secao_maisvendidos">
-        <label for="selecionar">Filtro</label>
-        <select id="selecionar" name="filtro">
-            <option value="volvo">Mais vendios</option>
-            <option value="saab">Perto do vencimento</option>
-            <option value="mercedes">Maior qtd em estoque</option>
-            <option value="audi">Menos vendios</option>
-        </select>
-        <h2>Listagem de produtos mais vendidos</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h2>Listagem de produtos mais vendidos</h2>
+            <div class="filtro-select">
+                <label for="selecionar">Filtro</label>
+                <select id="selecionar" name="filtro">
+                    <option value="volvo">Mais vendidos</option>
+                    <option value="saab">Perto do vencimento</option>
+                    <option value="mercedes">Maior qtd em estoque</option>
+                    <option value="audi">Menos vendidos</option>
+                </select>
+            </div>
+        </div>
+        <hr>
         <div class="relatorio-container">
             <div class="filtros-periodo" id="interval_time">
                 <button class="btn-filtro active" value="0">Geral</button>

@@ -66,9 +66,8 @@ const buscarFuncionarioPorId = async (id) => {
 const todosProdutos = async () => {
     try {
         const conectar = await conecta_banco();
-        const [linhas] = await conectar.query("SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos");
+        const [linhas] = await conectar.query("SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE qtd_produto > 0 LIMIT 100");
         console.log("--- DEBUG ESTOQUE ---");
-        console.log("Quantidade de itens retornados:", linhas.length);
         return linhas
     }
     catch (erro) {
@@ -110,7 +109,7 @@ const todos_nomeProdutos = async () => {
     try {
         const conectar = await conecta_banco();
         // Incluindo preco_produto e qtd_produto na query
-        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos todos_nomeProdutos WHERE qtd_produto > 0"; 
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos todos_nomeProdutos WHERE qtd_produto > 0 LIMIT 100"; 
         const [rows] = await conectar.query(sql);
         return rows;
     } catch (error) {

@@ -173,6 +173,7 @@ section h2 {
     border-radius: var(--border-radius);
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    scrollbar-color: var(--primary-blue) #ffffff00;
 }
 
 .stilo_tabela caption {
@@ -486,3 +487,131 @@ section h2 {
 }
 
 
+#tb_falta {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    table-layout: auto;
+
+    display: block;
+    max-height: 400px; 
+    overflow-y: auto;
+    overflow-x: hidden; 
+    
+}
+
+
+
+
+#tb_falta th:nth-child(1) { width: 5%; }   /* ID */
+#tb_falta th:nth-child(2) { width: 40%; }  /* Produto */
+#tb_falta th:nth-child(3) { width: 20%; }  /* Preço */
+#tb_falta th:nth-child(4) { width: 10%; }  /* Estoque */
+#tb_falta th:nth-child(5) { width: 10%; }  /* Qtd vendidas */
+#tb_falta th:nth-child(6) { width: 10%; }  /* Status */
+#tb_falta th:nth-child(7) { width: 30%; }  /* Ações */
+
+
+#tb_falta thead {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: table-header-group; /* garante o comportamento correto */
+}
+
+#tb_falta thead th {
+    padding: 1rem;
+    font-weight: 1000;
+    text-align: left;
+    min-width: 100px;
+    white-space: nowrap; /* opcional: evita quebra de texto */
+}
+
+/* Corpo da tabela */
+#tb_falta tbody {
+    display: table-row-group;
+}
+
+#tb_falta tbody tr {
+    border-bottom: 1px solid #eaeef2;
+    transition: background 0.2s;
+}
+
+#tb_falta tbody tr:hover {
+    background-color: #f9fbfc;
+}
+
+#tb_falta tbody td {
+    padding: 1rem;
+    color: var(--text-dark);
+    word-break: break-word;
+}
+
+
+section > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;        /* para telas pequenas */
+    gap: 1rem;              /* espaçamento entre título e filtro */
+    margin-bottom: 1.5rem;  /* mesmo espaçamento que o h2 tinha antes */
+}
+
+/* Remove a borda inferior do h2 original, pois agora ela ficaria estranha */
+section h2 {
+    border-bottom: none;    /* a borda pode ser removida ou movida para o container */
+    margin-bottom: 0;       /* ajuste fino */
+    padding-bottom: 0;
+}
+
+/* Estilização do grupo de filtro (label + select) */
+.filtro-select {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;    /* impede quebra do label/select em telas grandes */
+}
+
+.filtro-select label {
+    font-weight: 500;
+    color: var(--primary-blue);
+    font-size: 0.95rem;
+}
+
+.filtro-select select {
+    padding: 0.5rem 1.5rem 0.5rem 1rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 30px;
+    font-family: var(--font-family);
+    font-size: 0.95rem;
+    background: var(--white);
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;       /* remove seta padrão (opcional) */
+    background-image: url("data:image/svg+xml,..."); /* seta customizada se desejar */
+}
+
+.filtro-select select:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(50, 80, 136, 0.2);
+}
+
+/* Responsividade: em telas pequenas, o título e o filtro ficam um sobre o outro */
+@media (max-width: 600px) {
+    section > div:first-child {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .filtro-select {
+        width: 100%;
+    }
+    .filtro-select select {
+        flex: 1;
+    }
+}

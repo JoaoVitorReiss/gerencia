@@ -11,6 +11,8 @@ const conteiner_pesquisa = document.getElementById("controla_oculta");
 
 
 
+
+
 home.style.background = "#325088ff";
 // Array que armazena os IDs dos itens clicados
 let array_itensClic = [];
@@ -109,6 +111,17 @@ class selecao_produto {
     }
 }
 
+//Função para carregar somente uma vez os Cards na ação de voltar na barra de pesquisa
+let jaCarregou = false;
+function carregarUmaVez() {
+    if (jaCarregou) return; 
+    
+    selecao_produto.exibirProdutos();
+    jaCarregou = true; 
+}
+
+
+
 // Classe para gerenciar a busca de produtos
 class buscar_produto {
     static async refatorar_pesquisa(produto_pesq){
@@ -151,10 +164,12 @@ class buscar_produto {
 
                 icon_voltar.classList.remove("oculto");
                 icon_voltar.addEventListener("click", async () => {
-                    section.innerHTML = "";
-                    await selecao_produto.exibirProdutos();
-                    icon_voltar.classList.add("oculto");
+                    section.innerText = "";
+                    jaCarregou = false;
+                    carregarUmaVez();
+                    icon_voltar.classList.add("oculto")
                     inputPesquisa.value = "";
+
                 }, { once: true }); // Adicionado { once: true } para evitar múltiplos listeners
             } else {
                 const resultado = await busca.json();
