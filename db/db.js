@@ -104,6 +104,9 @@ const produto_pesquisadoID = async (idProdutos) => {
     }
 };
 
+
+
+
 // Esta função Retornar a lista de todos os Produtos
 const todos_nomeProdutos = async () => {
     try {
@@ -353,6 +356,26 @@ const produtosEstoqueBaixoDetalhado = async () => {
     };
 }
 
+
+
+
+
+// Esta função retorna os dados dos produtos pesquisados pelo ID e retorna também a validade
+const itemEstoque_pesquisadoID = async (idProdutos) => {
+    try {
+        const conectar = await conecta_banco();
+        
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto, validade FROM produtos WHERE id_produto_produto IN (?) AND qtd_produto > 0";
+        
+        const [rows] = await conectar.query(sql, [idProdutos]);
+        
+        return rows;
+    } catch (error) {
+        console.log("Erro ao buscar produto no banco de dados! ERRO: " + error);
+        throw error;
+    }
+};
+
 module.exports = { 
     verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -371,7 +394,8 @@ module.exports = {
     faturamentoGrafico,
     pagamentosGrafico,
     topProdutos,
-    produtosEstoqueBaixoDetalhado
+    produtosEstoqueBaixoDetalhado,
+    itemEstoque_pesquisadoID
     //dados_vendedor
   };
 

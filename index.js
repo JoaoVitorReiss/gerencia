@@ -761,6 +761,28 @@ app.get("/contro_estoque", authenticateJWT, requireAdm, async (req, res) => {
 });
 
 
+// ROta para página de controle de estoque: Rota para buscar  dados dos itens clicados
+
+app.post("/buscar_info", authenticateJWT, requireAdm, async (req, res) => {
+    try{
+        const id_item = req.body.id;
+        const dados = await db.itemEstoque_pesquisadoID(id_item);
+        console.log(dados)
+
+        res.status(200).json({
+            item: dados,
+            mensagem: "Dados obtidos com sucesso!"
+        })
+
+
+    }catch(error){
+        console.log("Erro ao buscar dados dos itens clicados no Banco de Dados: " + error)
+        res.status(500).json({
+            mensagem: "Erro interno ao busca dados do item clicado!"
+        })
+    }
+})
+
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
     try {
         req.session.dadosSacolaNota = [];

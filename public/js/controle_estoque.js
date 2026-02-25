@@ -1,3 +1,7 @@
+
+const dados_user = localStorage.getItem('id_vendedor');
+console.log(dados_user)
+
 class status_cores{
     static show_hidden(){
         document.getElementById('codi_show').addEventListener('click', function() {
@@ -8,13 +12,68 @@ class status_cores{
 };
 
 class ModalEstoque {
-    static abrir(config = { titulo: "Novo Item", dados: null, callback: null, tipo: 0 }) {
+    static modelConfirm(callbackExcluir){
+    const overlay = document.createElement('div');
+            overlay.id = 'modal-overlay-confirm';
+
+            overlay.innerHTML = `
+                <div id="modal-confirm-container">
+                    <div class="modal-header">
+                        <h3>Confirmar exclusão</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>Deseja realmente excluir este item?</p>
+                        <p>Essa ação não pode ser desfeita.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancelar" id="btn-cancelar-confirm">Cancelar</button>
+                        <button type="button" class="btn-excluir" id="btn-confirmar-excluir">Excluir</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            // Eventos
+            const fechar = () => overlay.remove();
+
+            document.getElementById('btn-cancelar-confirm').onclick = fechar;
+
+            document.getElementById('btn-confirmar-excluir').onclick = () => {
+                if (typeof callbackExcluir === 'function') {
+                    callbackExcluir();
+                }
+                fechar();
+            };
+
+            // Fechar clicando fora
+            overlay.onclick = (e) => {
+                if (e.target === overlay) fechar();
+            };
+
+            //fechar com ESC
+            const fecharComEsc = (e) => {
+                if (e.key === 'Escape') {
+                    fechar();
+                    document.removeEventListener('keydown', fecharComEsc);
+                }
+            };
+            document.addEventListener('keydown', fecharComEsc);
+    
+
+    }
+    static async abrir(config = { titulo: "Novo Item", dados: null, callback: null, tipo: 0, id: null }) {
      
+        let nome = null;
+        let preco = null;
+        let qtd = null;
+        let validade = null;
+        let motivo = null;
         const overlay = document.createElement('div');
         overlay.id = 'modal-overlay';
 
 
- 
+        
         overlay.innerHTML = `
             <div id="modal-container">
                 <div class="modal-header">
@@ -37,13 +96,18 @@ class ModalEstoque {
                         </div>
                     </div>
                     <div class="campo-grupo">
-                        <label for="valitem">Validade (Opcional):</label>
+                        <label for="valitem" id="valitemLabel">Validade (Opcional):</label>
                         <input type="date" id="valitem" value="${config.dados?.validade || ''}">
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="motivo">Motivo: </label>
+                        <input type="text" id="motivo" value="${config.dados?.motivo || 'Novo item'}" required>
                     </div>
                     <div class="modal-footer">
                         
                         <button type="button" class="btn-cancelar" id="btn-cancelar">Cancelar</button>
-                        <button id="btn_excluir" class="hidden">Excluir item</button>
+                        <button type="button" id="btn_excluir" class="hidden">Excluir item</button>
                         <button type="submit" class="btn-finalizar">Finalizar</button>
                         
                     </div>
@@ -52,18 +116,72 @@ class ModalEstoque {
         `;
         
         document.body.appendChild(overlay);
+        const label_valitemLabel = document.getElementById("valitemLabel")
+        const campo_motivo = document.getElementById("motivo");
+        const campo_validade  = document.getElementById("valitem");
+        const campo_qtditem = document.getElementById("qtditem");
+        const campo_valorItem = document.getElementById("valorItem");
+        const campo_nomeitem  =document.getElementById("nomeitem");
 
-        if(config.tipo == 1){
-           const btn_excluir = document.getElementById('btn_excluir')
-           btn_excluir.classList.remove("hidden")
+
+        if (config.tipo == 1) {
+            const btn_excluir = document.getElementById('btn_excluir');
+            campo_validade.classList.add("hidden");
+            label_valitemLabel.classList.add("hidden");
+            btn_excluir.classList.remove("hidden");
+            btn_excluir.addEventListener("click", () => {
+        
+                ModalEstoque.modelConfirm( async () => {
+                    console.log("Excluindo...")
+                    // Chame seu fetch de deletar aqui!
+                    //await fetch(`/deletar_item/${config.id}`, { method: 'DELETE' });
+                    //location.reload(); // Recarrega para atualizar a tabela
+                });;
+            });
+
+
+        async function buscar_dados() {
+            try {
+                const id_itemclicado = {
+                    id: config.id
+                };
+            const busca = await fetch("/buscar_info", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(id_itemclicado)
+            });
+
+            if(busca.ok){
+                const resposta = await busca.json();
+                campo_nomeitem.value = resposta.item[0]["descri_produto"];
+                campo_valorItem.value = resposta.item[0]["preco_produto"];
+                campo_qtditem.value = resposta.item[0]["qtd_produto"];
+                if(resposta.item[0]["validade"].split('T')[0] <= 0){
+                    campo_validade.value = null;
+                }else {
+                    campo_validade.value = resposta.item[0]["validade"].split('T')[0];
+                }
+
+                campo_motivo.value = "Alterando a qunatidade em estoque"
+            }
+
+            }catch(erro) {
+                console.log("Erro ao tentar buscar os dados vindo do Banco de dados");
+            };
         }
 
+        buscar_dados();
+    }
+
+
+       
         // --- EVENTOS ---
 
         const fechar = () => overlay.remove();
         
         document.getElementById('fechar-modal').onclick = fechar;
         document.getElementById('btn-cancelar').onclick = fechar;
+        
 
         // Fechar ao clicar fora do modal
         overlay.onclick = (e) => { if(e.target === overlay) fechar(); };
@@ -75,8 +193,11 @@ class ModalEstoque {
                 nome: document.getElementById('nomeitem').value,
                 preco: document.getElementById('valorItem').value,
                 qtd: document.getElementById('qtditem').value,
-                validade: document.getElementById('valitem').value
+                validade: document.getElementById('valitem').value,
+                motivo: document.getElementById('motivo').value
             };
+
+            console.log(payload)
             
             if (config.callback) config.callback(payload);
             fechar();
@@ -161,8 +282,8 @@ class estoque{
             const btn = evt.target.closest('.edt_itemFalta');
             
             if (btn) {
-                console.log( btn.id);
-                ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1});
+                //console.log( btn.id);
+                ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: btn.id});
                  
                 
             }
