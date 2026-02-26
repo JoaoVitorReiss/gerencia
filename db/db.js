@@ -66,7 +66,7 @@ const buscarFuncionarioPorId = async (id) => {
 const todosProdutos = async () => {
     try {
         const conectar = await conecta_banco();
-        const [linhas] = await conectar.query("SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE qtd_produto > 0 LIMIT 100");
+        const [linhas] = await conectar.query("SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE qtd_produto > 0");
         console.log("--- DEBUG ESTOQUE ---");
         return linhas
     }
@@ -112,7 +112,7 @@ const todos_nomeProdutos = async () => {
     try {
         const conectar = await conecta_banco();
         // Incluindo preco_produto e qtd_produto na query
-        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos todos_nomeProdutos WHERE qtd_produto > 0 LIMIT 100"; 
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos todos_nomeProdutos WHERE qtd_produto > 0"; 
         const [rows] = await conectar.query(sql);
         return rows;
     } catch (error) {
@@ -376,6 +376,23 @@ const itemEstoque_pesquisadoID = async (idProdutos) => {
     }
 };
 
+
+// esta função exclui um item da tabela com base no ID:
+const dell_item = async (idItem) => {
+    try {
+        const conectar = await conecta_banco();
+        
+        const sql = "delete from produtos where id_produto_produto =  ?;";
+        const [resutado] = await conectar.query(sql, idItem);
+        return resutado;
+
+    }catch (error) {
+        console.log("Erro interno ao tentar excluir um itemm do Banco de dados: " + error)
+        throw error
+    }
+}
+
+
 module.exports = { 
     verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -395,7 +412,8 @@ module.exports = {
     pagamentosGrafico,
     topProdutos,
     produtosEstoqueBaixoDetalhado,
-    itemEstoque_pesquisadoID
+    itemEstoque_pesquisadoID,
+    dell_item,
     //dados_vendedor
   };
 

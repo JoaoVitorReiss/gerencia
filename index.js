@@ -767,7 +767,7 @@ app.post("/buscar_info", authenticateJWT, requireAdm, async (req, res) => {
     try{
         const id_item = req.body.id;
         const dados = await db.itemEstoque_pesquisadoID(id_item);
-        console.log(dados)
+        
 
         res.status(200).json({
             item: dados,
@@ -782,6 +782,43 @@ app.post("/buscar_info", authenticateJWT, requireAdm, async (req, res) => {
         })
     }
 })
+
+
+
+
+// Rota para deletar item cllicado lá no frondEnd
+app.delete("/deletar_item", authenticateJWT, requireAdm, async (req, res) => {
+    try{
+
+        const  id_item  = req.body.id;
+        const dell = await db.dell_item(id_item);
+        dell;
+
+        
+
+    }catch(error){
+        return  res.status(500).json({
+            mensagem: "Erro interno ao tentar excluir o item: " + error
+        })   
+    }
+});
+
+
+// Rota para atualizar item e adicionar o estoque_log
+
+
+app.post("/atualiza_item", authenticateJWT, requireAdm,  async (req, res) => {
+    try{
+        const dados =  req.body;
+        console.log(dados)
+        
+    }catch(error){
+        return  res.status(500).json({
+            mensagem: "Erro interno ao limpar a sessão de venda."
+        })
+    }
+})
+
 
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
     try {

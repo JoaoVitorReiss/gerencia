@@ -1,6 +1,5 @@
 
 const dados_user = localStorage.getItem('id_vendedor');
-console.log(dados_user)
 
 class status_cores{
     static show_hidden(){
@@ -10,7 +9,20 @@ class status_cores{
         });
     };
 };
-
+class Delet{
+    static async item(id){
+        try{
+            const idItem_excluir = {id: id};
+            const delet_item =  await fetch("/deletar_item", {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(idItem_excluir)
+            })
+        }catch(erro){
+            console.log("Erro ao tentar excluir item")
+        }
+    }
+}
 class ModalEstoque {
     static modelConfirm(callbackExcluir){
     const overlay = document.createElement('div');
@@ -69,6 +81,13 @@ class ModalEstoque {
         let qtd = null;
         let validade = null;
         let motivo = null;
+
+
+
+        let qtdAnterior = 0;
+        let nomeAnterio = "";
+        let precoAnterior = 0;
+
         const overlay = document.createElement('div');
         overlay.id = 'modal-overlay';
 
@@ -116,6 +135,7 @@ class ModalEstoque {
         `;
         
         document.body.appendChild(overlay);
+        
         const label_valitemLabel = document.getElementById("valitemLabel")
         const campo_motivo = document.getElementById("motivo");
         const campo_validade  = document.getElementById("valitem");
@@ -133,9 +153,10 @@ class ModalEstoque {
         
                 ModalEstoque.modelConfirm( async () => {
                     console.log("Excluindo...")
+                    Delet.item(config.id)
                     // Chame seu fetch de deletar aqui!
                     //await fetch(`/deletar_item/${config.id}`, { method: 'DELETE' });
-                    //location.reload(); // Recarrega para atualizar a tabela
+                    location.reload(); // Recarrega para atualizar a tabela
                 });;
             });
 
@@ -151,8 +172,12 @@ class ModalEstoque {
                 body: JSON.stringify(id_itemclicado)
             });
 
+            // dados_user -> essa variavel contém oo ID do usuario logado
             if(busca.ok){
                 const resposta = await busca.json();
+                qtdAnterior = resposta.item[0]["qtd_produto"];
+                nomeAnterio = resposta.item[0]["descri_produto"];
+                precoAnterior = resposta.item[0]["preco_produto"]
                 campo_nomeitem.value = resposta.item[0]["descri_produto"];
                 campo_valorItem.value = resposta.item[0]["preco_produto"];
                 campo_qtditem.value = resposta.item[0]["qtd_produto"];
@@ -162,7 +187,7 @@ class ModalEstoque {
                     campo_validade.value = resposta.item[0]["validade"].split('T')[0];
                 }
 
-                campo_motivo.value = "Alterando a qunatidade em estoque"
+                campo_motivo.value = "Adicione o motivo"
             }
 
             }catch(erro) {
@@ -173,8 +198,6 @@ class ModalEstoque {
         buscar_dados();
     }
 
-
-       
         // --- EVENTOS ---
 
         const fechar = () => overlay.remove();
@@ -187,20 +210,38 @@ class ModalEstoque {
         overlay.onclick = (e) => { if(e.target === overlay) fechar(); };
 
         // Submissão do Formulário
-        document.getElementById('form-estoque').onsubmit = (e) => {
-            e.preventDefault();
-            const payload = {
-                nome: document.getElementById('nomeitem').value,
-                preco: document.getElementById('valorItem').value,
-                qtd: document.getElementById('qtditem').value,
-                validade: document.getElementById('valitem').value,
-                motivo: document.getElementById('motivo').value
-            };
+        document.getElementById('form-estoque').onsubmit = async (e) => {
+        e.preventDefault();
 
-            console.log(payload)
-            
-            if (config.callback) config.callback(payload);
-            fechar();
+            const payload = {
+                id_produto: config.id,
+                id_usuario: dados_user, 
+                qtd_anterior: qtdAnterior,
+                nome_anterio: nomeAnterio,
+                preco_anterior: precoAnterior,
+                qtd_nova: Number(document.getElementById('qtditem').value),
+                nome: document.getElementById('nomeitem').value,
+                preco: Number(document.getElementById('valorItem').value),
+                motivo: document.getElementById('motivo').value,
+                validade: document.getElementById('valitem').value
+            };
+            try {
+                const atualiza_dados = fetch("/atualiza_item", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+
+                })
+                if(!atualiza_dados){
+                    const dadosErro = atualiza_dados.json();
+                    console.log(dadosErro.mensagem)
+                };
+
+                const dados =  await atualiza_dados.json();
+                console.log(dados);
+            }catch (error){
+                console.log("Erro ao tentar atualizar o item selecionado")
+            }
         };
     }
 }
