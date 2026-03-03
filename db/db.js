@@ -18,18 +18,18 @@ const conecta_banco = async () => {
 };
 
 
-const verifica_tipo = async(dados) => {
-    try {
-        const conectar = await conecta_banco();
-        const sql = "select senha_funcionario_funcionario, email_funcionario_funcionario, tipo_funcionario_funcionario, nome_funcionario_funcionario, id_funcionario_funcionario from funcionarios where senha_funcionario_funcionario = ? and email_funcionario_funcionario = ?";
-        const [rows] = await conectar.query(sql, dados);
-        return rows; // Retorna as linhas encontradas
+// const verifica_tipo = async(dados) => {
+//     try {
+//         const conectar = await conecta_banco();
+//         const sql = "select senha_funcionario_funcionario, email_funcionario_funcionario, tipo_funcionario_funcionario, nome_funcionario_funcionario, id_funcionario_funcionario from funcionarios where senha_funcionario_funcionario = ? and email_funcionario_funcionario = ?";
+//         const [rows] = await conectar.query(sql, dados);
+//         return rows; 
         
-    }catch (erro) {
-        console.log("Erro ao verificar credenciais! ERRO: " + erro);
+//     }catch (erro) {
+//         console.log("Erro ao verificar credenciais! ERRO: " + erro);
 
-    }
-}
+//     }
+// }
 
 
 
@@ -43,7 +43,7 @@ const buscarFuncionarioPorEmail = async (email) => {
         return rows[0]; // Retorna o primeiro (e único) funcionário encontrado, ou undefined
     } catch (erro) {
         console.error("Erro ao buscar funcionário por email! ERRO: ", erro);
-        //throw erro; // Lança o erro para ser tratado na rota
+        throw erro;
     }
 };
 
@@ -66,8 +66,8 @@ const buscarFuncionarioPorId = async (id) => {
 const todosProdutos = async () => {
     try {
         const conectar = await conecta_banco();
-        const [linhas] = await conectar.query("SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE qtd_produto > 0");
-        console.log("--- DEBUG ESTOQUE ---");
+        const [linhas] = await conectar.query("SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE qtd_produto > 0 and  ativo = 1");
+
         return linhas
     }
     catch (erro) {
@@ -80,7 +80,7 @@ const todosProdutos = async () => {
 const produto_pesquisadodb = async (nomeProduto) => {
     try {
         const conectar = await conecta_banco();
-        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE (descri_produto = ? OR descri_produto = ?) AND qtd_produto > 0";
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE (descri_produto = ? OR descri_produto = ?) AND qtd_produto > 0 AND ativo = 1";
         const [rows] = await conectar.query(sql, [nomeProduto]);
         return rows; // Retorna as linhas encontradas
     } catch (error) {
@@ -93,7 +93,7 @@ const produto_pesquisadoID = async (idProdutos) => {
     try {
         const conectar = await conecta_banco();
         
-        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE id_produto_produto IN (?) AND qtd_produto > 0";
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE id_produto_produto IN (?) AND qtd_produto > 0 AND ativo = 1";
         
         const [rows] = await conectar.query(sql, [idProdutos]);
         
@@ -111,15 +111,14 @@ const produto_pesquisadoID = async (idProdutos) => {
 const todos_nomeProdutos = async () => {
     try {
         const conectar = await conecta_banco();
-        // Incluindo preco_produto e qtd_produto na query
-        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos todos_nomeProdutos WHERE qtd_produto > 0"; 
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto FROM produtos WHERE qtd_produto > 0 AND ativo = 1"; 
         const [rows] = await conectar.query(sql);
         return rows;
     } catch (error) {
         console.error("Erro ao buscar todos os produtos! ERRO: " + error);
+        throw error;
     }
 };
-
 
 
 const info_user = async (id) => {
@@ -143,6 +142,7 @@ const  subtrair_estoque = async (quantidade_vendidos, id_produto) => {
         return resultado;
     } catch (erro) {
         console.error("Erro ao subtrair estoque! ERRO: ", erro);
+        throw erro;
     }
 }
 
@@ -221,7 +221,7 @@ const produtosEstoqueBaixo = async () => {
                 qtd_produto AS qtd_produtos, 
                 descri_produto AS nome_item 
             FROM produtos 
-            WHERE qtd_produto < 25
+            WHERE qtd_produto < 25 AND ativo = 1
         `;
 
         const [linhas] = await conectar.query(sql);
@@ -247,7 +247,7 @@ const balancoPorData = async (dataInicio, dataFim) => {
                 SUM(venda_quantidade_itens) AS total_itens_vendidos,
                 IFNULL(SUM(venda_valor) / NULLIF(COUNT(DISTINCT id_transacao), 0), 0) AS ticket_medio
             FROM vendas
-            WHERE data_venda BETWEEN ? AND ?;`;
+            WHERE data_venda BETWEEN ? AND ?`;
 
         const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
         return linhas[0]; 
@@ -342,7 +342,7 @@ const produtosEstoqueBaixoDetalhado = async () => {
                 COALESCE(SUM(v.venda_quantidade_itens), 0) AS Qtd_vendidas
             FROM produtos p
                 LEFT JOIN vendas v ON p.id_produto_produto = v.id_produto_venda
-                WHERE p.qtd_produto < 25
+                WHERE p.qtd_produto < 25 AND ativo = 1
                 GROUP BY p.id_produto_produto, p.descri_produto, p.preco_produto, p.qtd_produto
                 ORDER BY p.qtd_produto ASC;
         `;
@@ -365,7 +365,7 @@ const itemEstoque_pesquisadoID = async (idProdutos) => {
     try {
         const conectar = await conecta_banco();
         
-        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto, validade FROM produtos WHERE id_produto_produto IN (?) AND qtd_produto > 0";
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto, validade FROM produtos WHERE id_produto_produto IN (?) AND qtd_produto > 0 AND ativo = 1";
         
         const [rows] = await conectar.query(sql, [idProdutos]);
         
@@ -378,23 +378,105 @@ const itemEstoque_pesquisadoID = async (idProdutos) => {
 
 
 // esta função exclui um item da tabela com base no ID:
-const dell_item = async (idItem) => {
-    try {
-        const conectar = await conecta_banco();
-        
-        const sql = "delete from produtos where id_produto_produto =  ?;";
-        const [resutado] = await conectar.query(sql, idItem);
-        return resutado;
+const dell_item = async (idItem, idUsuario) => {
+    const pool = await conecta_banco();
+    const conexao = await pool.getConnection();
 
-    }catch (error) {
-        console.log("Erro interno ao tentar excluir um itemm do Banco de dados: " + error)
-        throw error
+    try {
+        await conexao.beginTransaction();
+
+        // 1. Busca os dados para o Log (igual antes)
+        const [produto] = await conexao.query("SELECT descri_produto FROM produtos WHERE id_produto_produto = ?", [idItem]);
+        
+        // 2. Grava o Log de exclusão
+        await conexao.query(
+            "INSERT INTO estoque_logs (id_produto_log, id_usuario_log, anterior, novo, motivo, data_hora) VALUES (?, ?, ?, ?, ?, NOW())",
+            [idItem, idUsuario, produto[0].descri_produto, 'DESATIVADO', 'Soft Delete realizado',]
+        );
+
+        // 3. EM VEZ DE DELETAR, DESATIVA!
+        const sqlDesativar = "UPDATE produtos SET ativo = 0 WHERE id_produto_produto = ?;";
+        await conexao.query(sqlDesativar, [idItem]);
+
+        await conexao.commit();
+        return { sucesso: true };
+
+    } catch (error) {
+        if (conexao) await conexao.rollback();
+        throw error;
+    } finally {
+        if (conexao) conexao.release();
     }
-}
+};
+
+
+// Essa função desativa os item, mas não os excluem e adiciona um log para audições futuras
+const atualizarComLog = async (dados) => {
+    // 1. Pegamos o pool (o que sua função conecta_banco costuma retornar)
+    const pool = await conecta_banco();
+    
+    // 2. EXTRAÍMOS uma conexão única do pool para a transação
+    const conexao = await pool.getConnection();
+
+    try {
+        // Agora sim: a 'conexao' individual tem as funções de transação
+        await conexao.beginTransaction();
+
+        // 1. Atualizamos o produto
+        const sqlUpdate = `
+            UPDATE produtos 
+            SET descri_produto = ?, 
+                preco_produto = ?, 
+                qtd_produto = ?, 
+                validade = ? 
+            WHERE id_produto_produto = ?`;
+            
+        await conexao.query(sqlUpdate, [
+            dados.nome, 
+            dados.preco, 
+            dados.qtd_nova, 
+            dados.validade, 
+            dados.id_produto
+        ]);
+
+        // 2. Inserimos o log
+        const logAnterior = `Qtd: ${dados.qtd_anterior}, Nome: ${dados.nome_anterio}, Preço: ${dados.preco_anterior}`;
+        const logNovo = `Qtd: ${dados.qtd_nova}, Nome: ${dados.nome}, Preço: ${dados.preco}`;
+
+        const sqlLog = `
+            INSERT INTO estoque_logs (id_produto_log, id_usuario_log, anterior, novo, motivo, data_hora) 
+            VALUES (?, ?, ?, ?, ?, NOW())`;
+
+        await conexao.query(sqlLog, [
+            dados.id_produto, 
+            dados.id_usuario, 
+            logAnterior, 
+            logNovo, 
+            dados.motivo
+        ]);
+
+        // Sucesso total
+        await conexao.commit();
+        console.log("Transação concluída!");
+        return { sucesso: true };
+
+    } catch (erro) {
+        // Agora o rollback vai funcionar porque 'conexao' é o objeto correto!
+        if (conexao) await conexao.rollback();
+        console.error("Erro na transação:", erro);
+        throw erro;
+
+    } finally {
+        // MUITO IMPORTANTE: Sempre libere a conexão de volta para o pool
+        if (conexao) conexao.release();
+    }
+};
+
+
 
 
 module.exports = { 
-    verifica_tipo, 
+    //verifica_tipo, 
     buscarFuncionarioPorEmail, 
     buscarFuncionarioPorId,
     todosProdutos,
@@ -414,7 +496,6 @@ module.exports = {
     produtosEstoqueBaixoDetalhado,
     itemEstoque_pesquisadoID,
     dell_item,
+    atualizarComLog
     //dados_vendedor
   };
-
-

@@ -790,9 +790,8 @@ app.post("/buscar_info", authenticateJWT, requireAdm, async (req, res) => {
 app.delete("/deletar_item", authenticateJWT, requireAdm, async (req, res) => {
     try{
 
-        const  id_item  = req.body.id;
-        const dell = await db.dell_item(id_item);
-        dell;
+        const  id_item  = req.body;
+        const dell = await db.dell_item(id_item.id, id_item.id_user);
 
         
 
@@ -805,16 +804,20 @@ app.delete("/deletar_item", authenticateJWT, requireAdm, async (req, res) => {
 
 
 // Rota para atualizar item e adicionar o estoque_log
-
-
 app.post("/atualiza_item", authenticateJWT, requireAdm,  async (req, res) => {
     try{
         const dados =  req.body;
+        const atualiza_comLog = await db.atualizarComLog(dados);
+        atualiza_comLog
         console.log(dados)
+
+        res.status(200).json({
+                mensagem: "Dados adicionado/editado com logs realizado com sucesso!!"
+            })
         
     }catch(error){
         return  res.status(500).json({
-            mensagem: "Erro interno ao limpar a sessão de venda."
+            mensagem: "Erro interno ao adicionar/atualizar dados: " + error
         })
     }
 })

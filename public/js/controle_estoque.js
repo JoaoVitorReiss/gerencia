@@ -1,6 +1,38 @@
 
 const dados_user = localStorage.getItem('id_vendedor');
 
+
+
+
+// Função para mostrar a mensagem vindas do servidor
+function mostrarMensagem(mensagem, tipo = 'erro') { // 'erro' ou 'sucesso'
+    const feedbackMensagem = document.getElementById('mensagem-feedback');
+    
+    feedbackMensagem.textContent = mensagem;
+    feedbackMensagem.classList.remove('success', 'error', 'visible');
+    
+    if (tipo === 'sucesso') {
+        feedbackMensagem.classList.add('success');
+    } else {
+        feedbackMensagem.classList.add('error');
+    }
+    
+    // Mostra com animação
+    feedbackMensagem.style.display = 'block';
+    setTimeout(() => {
+        feedbackMensagem.classList.add('visible');
+    }, 10); // Pequeno delay para ativar a transição
+    
+    // Esconde após 3 segundos com fade-out
+    setTimeout(() => {
+        feedbackMensagem.classList.remove('visible');
+        setTimeout(() => {
+            feedbackMensagem.style.display = 'none';
+        }, 500); // Tempo para completar a transição
+    }, 3000);
+}
+
+
 class status_cores{
     static show_hidden(){
         document.getElementById('codi_show').addEventListener('click', function() {
@@ -12,12 +44,14 @@ class status_cores{
 class Delet{
     static async item(id){
         try{
-            const idItem_excluir = {id: id};
+
             const delet_item =  await fetch("/deletar_item", {
                 method: 'DELETE',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(idItem_excluir)
+                body: JSON.stringify(id)
             })
+
+            this.fechar()
         }catch(erro){
             console.log("Erro ao tentar excluir item")
         }
@@ -35,7 +69,6 @@ class ModalEstoque {
                     </div>
                     <div class="modal-body">
                         <p>Deseja realmente excluir este item?</p>
-                        <p>Essa ação não pode ser desfeita.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-cancelar" id="btn-cancelar-confirm">Cancelar</button>
@@ -153,11 +186,18 @@ class ModalEstoque {
         
                 ModalEstoque.modelConfirm( async () => {
                     console.log("Excluindo...")
-                    Delet.item(config.id)
-                    // Chame seu fetch de deletar aqui!
-                    //await fetch(`/deletar_item/${config.id}`, { method: 'DELETE' });
-                    location.reload(); // Recarrega para atualizar a tabela
-                });;
+                    const dados = {
+                        id: config.id,
+                        id_user: dados_user
+                    }
+                    Delet.item(dados)
+                    await fetch(`/deletar_item/${config.id}`, { method: 'DELETE' });
+                    fechar();
+                    mostrarMensagem("Item excluido com sucesso!", "sucesso");
+                    setTimeout(function() {
+                        location.reload(); // Recarrega para atualizar a tabela
+                    }, 500)
+                });
             });
 
 
@@ -223,10 +263,10 @@ class ModalEstoque {
                 nome: document.getElementById('nomeitem').value,
                 preco: Number(document.getElementById('valorItem').value),
                 motivo: document.getElementById('motivo').value,
-                validade: document.getElementById('valitem').value
+                validade: document.getElementById('valitem').value || null
             };
             try {
-                const atualiza_dados = fetch("/atualiza_item", {
+                const atualiza_dados = await fetch("/atualiza_item", {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
@@ -237,10 +277,15 @@ class ModalEstoque {
                     console.log(dadosErro.mensagem)
                 };
 
-                const dados =  await atualiza_dados.json();
-                console.log(dados);
+                //const dados =  await atualiza_dados.json();
+                fechar()
+                mostrarMensagem("Atualizado com sucesso!", "sucesso");
+                setTimeout(function() {
+                    location.reload();
+                }, 700)
+                
             }catch (error){
-                console.log("Erro ao tentar atualizar o item selecionado")
+                console.log("Erro ao tentar atualizar o item selecionado: " + error)
             }
         };
     }
