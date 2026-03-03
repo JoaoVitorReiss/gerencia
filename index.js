@@ -803,13 +803,11 @@ app.delete("/deletar_item", authenticateJWT, requireAdm, async (req, res) => {
 });
 
 
-// Rota para atualizar item e adicionar o estoque_log
+// Rota para atualizar item e adicionar dados no estoque_log
 app.post("/atualiza_item", authenticateJWT, requireAdm,  async (req, res) => {
     try{
         const dados =  req.body;
         const atualiza_comLog = await db.atualizarComLog(dados);
-        atualiza_comLog
-        console.log(dados)
 
         res.status(200).json({
                 mensagem: "Dados adicionado/editado com logs realizado com sucesso!!"
@@ -818,6 +816,24 @@ app.post("/atualiza_item", authenticateJWT, requireAdm,  async (req, res) => {
     }catch(error){
         return  res.status(500).json({
             mensagem: "Erro interno ao adicionar/atualizar dados: " + error
+        });
+    };
+});
+
+
+// Rota para adicionar um novo item, caso esse itém ja exixta, "atualizar" o preço ou o estouque e adicionado dados no estoque_log
+app.post("/additem", authenticateJWT, requireAdm, async (req, res) => {
+    try{
+        const payload = req.body;
+        const add_item = db.adicionarOuReporComLog(payload)
+
+        res.status(200).json({
+            mensagem: "Item adicionado com sucesso!"
+        })
+
+    }catch(error){
+        return res.status(500).json({
+            mensagem: "Erro interno oa adicionar novo item: " + error
         })
     }
 })

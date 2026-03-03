@@ -385,16 +385,14 @@ const dell_item = async (idItem, idUsuario) => {
     try {
         await conexao.beginTransaction();
 
-        // 1. Busca os dados para o Log (igual antes)
         const [produto] = await conexao.query("SELECT descri_produto FROM produtos WHERE id_produto_produto = ?", [idItem]);
         
-        // 2. Grava o Log de exclusão
         await conexao.query(
             "INSERT INTO estoque_logs (id_produto_log, id_usuario_log, anterior, novo, motivo, data_hora) VALUES (?, ?, ?, ?, ?, NOW())",
             [idItem, idUsuario, produto[0].descri_produto, 'DESATIVADO', 'Soft Delete realizado',]
         );
 
-        // 3. EM VEZ DE DELETAR, DESATIVA!
+        // 3. EM VEZ DE DELETAR, DESATIVA
         const sqlDesativar = "UPDATE produtos SET ativo = 0 WHERE id_produto_produto = ?;";
         await conexao.query(sqlDesativar, [idItem]);
 
@@ -412,14 +410,11 @@ const dell_item = async (idItem, idUsuario) => {
 
 // Essa função desativa os item, mas não os excluem e adiciona um log para audições futuras
 const atualizarComLog = async (dados) => {
-    // 1. Pegamos o pool (o que sua função conecta_banco costuma retornar)
     const pool = await conecta_banco();
     
-    // 2. EXTRAÍMOS uma conexão única do pool para a transação
     const conexao = await pool.getConnection();
 
     try {
-        // Agora sim: a 'conexao' individual tem as funções de transação
         await conexao.beginTransaction();
 
         // 1. Atualizamos o produto
@@ -455,19 +450,88 @@ const atualizarComLog = async (dados) => {
             dados.motivo
         ]);
 
-        // Sucesso total
         await conexao.commit();
         console.log("Transação concluída!");
         return { sucesso: true };
 
     } catch (erro) {
-        // Agora o rollback vai funcionar porque 'conexao' é o objeto correto!
         if (conexao) await conexao.rollback();
         console.error("Erro na transação:", erro);
         throw erro;
 
     } finally {
-        // MUITO IMPORTANTE: Sempre libere a conexão de volta para o pool
+    
+        if (conexao) conexao.release();
+    }
+};
+
+
+// essa função adiciona novo item, mas caso ele já exista ela atualizas as informções. Além de registrar os dados no estoque_logs
+const adicionarOuReporComLog = async (payload) => {
+    const pool = await conecta_banco();
+    const conexao = await pool.getConnection();
+
+    try {
+        await conexao.beginTransaction();
+
+        const [existente] = await conexao.query(
+            "SELECT id_produto_produto, qtd_produto, preco_produto FROM produtos WHERE descri_produto = ?",
+            [payload.nome_item.trim()]
+        );
+
+        let qtdAnterior = 0;
+        let precoAnterior = 0;
+        let acaoLog = "CADASTRO NOVO";
+
+        if (existente.length > 0) {
+            qtdAnterior = existente[0].qtd_produto;
+            precoAnterior = existente[0].preco_produto;
+            acaoLog = "REPOSIÇÃO/SOMA";
+        }
+
+        const sqlUpsert = `
+            INSERT INTO produtos (descri_produto, preco_produto, qtd_produto, validade, ativo)
+            VALUES (?, ?, ?, ?, 1)
+            ON DUPLICATE KEY UPDATE 
+                qtd_produto = qtd_produto + VALUES(qtd_produto),
+                preco_produto = VALUES(preco_produto),
+                validade = VALUES(validade),
+                ativo = 1`; // Garante que se estava desativado, ele volta a ser ativo
+
+        const [resUpsert] = await conexao.query(sqlUpsert, [
+            payload.nome_item.trim(),
+            payload.preco,
+            payload.qtd_item,
+            payload.validade
+        ]);
+
+        // Pegamos o ID do produto (ou o existente ou o recém-criado)
+        const idFinal = existente.length > 0 ? existente[0].id_produto_produto : resUpsert.insertId;
+
+
+        const anteriorStr = `Qtd: ${qtdAnterior}, Preço: ${precoAnterior}`;
+        const novoStr = `Adicionado: ${payload.qtd_item}, Novo Preço: ${payload.preco}`;
+
+        const sqlLog = `
+            INSERT INTO estoque_logs (id_produto_log, id_usuario_log, anterior, novo, motivo, data_hora) 
+            VALUES (?, ?, ?, ?, ?, NOW())`;
+
+        await conexao.query(sqlLog, [
+            idFinal,
+            payload.id_user,
+            anteriorStr,
+            novoStr,
+            `${acaoLog}: ${payload.motivo}`
+        ]);
+
+        await conexao.commit();
+        return { sucesso: true, tipo: acaoLog };
+
+    } catch (error) {
+        if (conexao) await conexao.rollback();
+        console.error("Erro ao adicionar/repor produto: ", error);
+        throw error;
+    } finally {
         if (conexao) conexao.release();
     }
 };
@@ -496,6 +560,7 @@ module.exports = {
     produtosEstoqueBaixoDetalhado,
     itemEstoque_pesquisadoID,
     dell_item,
-    atualizarComLog
+    atualizarComLog,
+    adicionarOuReporComLog
     //dados_vendedor
   };

@@ -377,8 +377,8 @@ section h2 {
     }
 }
 
-/* seção de adicionar item */
-#add_itens {
+/* seção item */
+.card {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -386,12 +386,12 @@ section h2 {
     background: linear-gradient(145deg, var(--white), #fafdfc);
 }
 
-#add_itens h2 {
+.card h2 {
     margin-bottom: 0;
     border-bottom: none;
 }
 
-#add_itens button {
+.card button {
     background: var(--primary-blue);
     border: none;
     width: 60px;
@@ -404,55 +404,12 @@ section h2 {
     align-items: center;
     justify-content: center;
 }
-
-#add_itens button:hover {
+.card button:hover {
     background: #1f3a5f;
     transform: scale(1.1);
 }
 
-#add_itens button svg {
-    width: 30px;
-    height: 30px;
-    fill: var(--white);
-}
-
-
-
-
-
-
-#historico {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    background: linear-gradient(145deg, var(--white), #fafdfc);
-}
-
-#historico h2 {
-    margin-bottom: 0;
-    border-bottom: none;
-}
-
-#historico button {
-    background: var(--primary-blue);
-    border: none;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    transition: background 0.2s, transform 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-#historico button:hover {
-    background: #1f3a5f;
-    transform: scale(1.1);
-}
-
-#historico button svg {
+.card button svg {
     width: 30px;
     height: 30px;
     fill: var(--white);

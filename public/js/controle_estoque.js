@@ -177,6 +177,7 @@ class ModalEstoque {
         const campo_nomeitem  =document.getElementById("nomeitem");
 
 
+        
         if (config.tipo == 1) {
             const btn_excluir = document.getElementById('btn_excluir');
             campo_validade.classList.add("hidden");
@@ -273,7 +274,7 @@ class ModalEstoque {
 
                 })
                 if(!atualiza_dados){
-                    const dadosErro = atualiza_dados.json();
+                    const dadosErro = await atualiza_dados.json();
                     console.log(dadosErro.mensagem)
                 };
 
@@ -381,12 +382,48 @@ class estoque{
 
     };
 
-    static criarNewitem(){
+    static async criarNewitem(){
        const btn_add = document.getElementById("add_novoitem");
        btn_add.addEventListener("click", evt => {
-            evt.preventDefault();
             ModalEstoque.abrir();
-        })
+            document.getElementById('form-estoque').onsubmit = async (e) => {
+                e.preventDefault()            
+                const campo_motivo = document.getElementById("motivo");
+                const campo_validade  = document.getElementById("valitem");
+                const campo_qtditem = document.getElementById("qtditem");
+                const campo_valorItem = document.getElementById("valorItem");
+                const campo_nomeitem  =document.getElementById("nomeitem");
+
+
+                const payloadADD = {
+                    validade: campo_validade.value || null,
+                    motivo: campo_motivo.value,
+                    qtd_item: campo_qtditem.value,
+                    preco: campo_valorItem.value,
+                    nome_item: campo_nomeitem.value,
+                    id_user: dados_user
+                }
+
+
+                const res = await fetch("/additem", {
+                    method: "POST",
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payloadADD)
+                })
+
+                if(!res){
+                    const dadosErro = await res.json();
+                    console.log(dadosErro)
+                    mostrarMensagem("Erro ao adicionar o item", "erro");
+                }
+                
+                mostrarMensagem("Item adicionado com sucesso!", "sucesso");
+                setTimeout(function() {
+                    location.reload();
+                }, 500);
+            };
+            
+        });
     };
 
 };
