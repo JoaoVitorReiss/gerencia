@@ -420,7 +420,7 @@ class estoque{
                 mostrarMensagem("Item adicionado com sucesso!", "sucesso");
                 setTimeout(function() {
                     location.reload();
-                }, 500);
+                }, 200);
             };
             
         });
