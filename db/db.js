@@ -338,7 +338,7 @@ const produtosEstoqueBaixoDetalhado = async () => {
                 p.id_produto_produto AS Id,
                 p.descri_produto AS nome_do_Produto,
                 p.preco_produto AS Preço,
-                p.qtd_produto AS Estoque_Atual,
+                p.qtd_produto AS estoque_atual,
                 COALESCE(SUM(v.venda_quantidade_itens), 0) AS Qtd_vendidas
             FROM produtos p
                 LEFT JOIN vendas v ON p.id_produto_produto = v.id_produto_venda
@@ -537,6 +537,70 @@ const adicionarOuReporComLog = async (payload) => {
 };
 
 
+// Essa função retorna para mim os 50 itens mais vendido geral, sem limites de dada
+const rankingVendasCompleto = async (dataFim) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                p.id_produto_produto AS id,
+            
+                p.descri_produto AS nome_produto,
+                p.preco_produto AS preco_atual,
+                p.qtd_produto AS estoque_atual,
+                SUM(v.venda_quantidade_itens) AS total_vendido,
+                p.ativo as ativo
+            FROM vendas v
+            INNER JOIN produtos p ON v.id_produto_venda = p.id_produto_produto
+            WHERE v.data_venda BETWEEN (SELECT MIN(data_venda) FROM vendas) AND ?
+            GROUP BY 
+                p.id_produto_produto, 
+                p.descri_produto, 
+                p.preco_produto, 
+                p.qtd_produto,
+                p.ativo
+            ORDER BY total_vendido DESC
+            LIMIT 25
+        `;
+
+        const [linhas] = await conectar.query(sql, dataFim);
+        return linhas;
+    } catch (erro) {
+        console.error("Erro ao buscar ranking de vendas! ERRO: ", erro);
+        throw erro; // Mantendo o padrão de segurança que corrigimos
+    }
+};
+
+// Essa função retorna para mim os 50 itens mais vendido na data espessificada: 7 dias, 30...etc
+const rankingVendasCompletoDatas = async (dataInicio, dataFim) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                p.id_produto_produto AS id,
+                p.descri_produto AS nome_produto,
+                p.preco_produto AS preco_atual,
+                p.qtd_produto AS estoque_atual,
+                SUM(v.venda_quantidade_itens) AS total_vendido
+            FROM vendas v
+            INNER JOIN produtos p ON v.id_produto_venda = p.id_produto_produto
+            WHERE v.data_venda BETWEEN ? AND ?
+            GROUP BY 
+                p.id_produto_produto, 
+                p.descri_produto, 
+                p.preco_produto, 
+                p.qtd_produto
+            ORDER BY total_vendido DESC
+            LIMIT 25;
+        `;
+
+        const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
+        return linhas;
+    } catch (erro) {
+        console.error("Erro ao buscar ranking de vendas! ERRO: ", erro);
+        throw erro; // Mantendo o padrão de segurança que corrigimos
+    }
+};
 
 
 module.exports = { 
@@ -561,6 +625,8 @@ module.exports = {
     itemEstoque_pesquisadoID,
     dell_item,
     atualizarComLog,
-    adicionarOuReporComLog
+    adicionarOuReporComLog,
+    rankingVendasCompleto,
+    rankingVendasCompletoDatas
     //dados_vendedor
   };

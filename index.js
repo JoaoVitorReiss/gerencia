@@ -839,6 +839,57 @@ app.post("/additem", authenticateJWT, requireAdm, async (req, res) => {
 })
 
 
+// Rota para listagem por data selecionada e por filtro
+app.post("/dados_lista", authenticateJWT, requireAdm, async (req, res) => {
+    try{
+        
+        const { inicio, fim } = req.body;
+        
+
+        if(inicio == 0) {
+            //console.log("Devo fazer aqui uma  rota que satisfaça o dados de forma geral, sem limite de data inicial, pegando todo o perildo")
+            const [rankingGeral] = await Promise.all([
+                db.rankingVendasCompleto(fim)
+            ]);
+            //console.log(rankingGeral)
+            res.status(200).json({
+                itens: {
+                    dados: rankingGeral,
+                    //mensagem: "Busca feita com sucesso!"
+                }
+            })
+
+        }else{
+            const dInicio = new Date(inicio);
+            const dFim = new Date(fim);
+            const f = (d) => d.toISOString().split('T')[0];
+
+            const [rankingPordata] = await Promise.all([
+                db.rankingVendasCompletoDatas(f(dInicio), f(dFim))
+            ])
+            //console.log(rankingPordata);
+
+
+            res.status(200).json({
+                itens: {
+                    dados: rankingPordata,
+                    //mennsagem: "Ranking de itens por data acessado com sucesso!"
+                }
+                
+            })
+        }
+
+
+    }catch(error){
+        return res.status(500).json({
+            mensagem: "Erro iterno ao buscar item: " + error
+        })
+    }
+    
+})
+
+
+
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
     try {
         req.session.dadosSacolaNota = [];

@@ -1,4 +1,3 @@
-
 const dados_user = localStorage.getItem('id_vendedor');
 
 
@@ -313,7 +312,7 @@ class estoque{
     };
 
     static status_info(item){
-        const status = item.Estoque_Atual < 15 ? `<div class="alerta" title="Alerta! Poucoa itens em estoque"></div>` : item.Estoque_Atual < 25 ? `<div class="atencao"  title="Atenção! Item em baixa no estoque"></div>` : `<div class="normal" title="nível de itens normal no estoque"></div>`;
+        const status = item.estoque_atual < 15 ? `<div class="alerta" title="Alerta! Poucoa itens em estoque"></div>` : item.estoque_atual < 25 ? `<div class="atencao"  title="Atenção! Item em baixa no estoque"></div>` : `<div class="normal" title="nível de itens normal no estoque"></div>`;
         return status
     }
 
@@ -429,8 +428,135 @@ class estoque{
 };
 
 
+class criar{
+    static  tabelaItens(dados){
+        const dados_tabela =  dados;
+
+        if (dados_tabela.length > 0) {
+            const tbody = document.getElementById("itens_maisVendidos");
+            tbody.innerHTML = ""; // Limpa a tabela
+
+            dados_tabela.forEach(item => {
+                const tr = document.createElement("tr");
+                tr.setAttribute("id", item.Id);
+
+                const button = document.createElement('button');
+                button.classList.add('edt_itemFalta');
+
+                // 2. Criar o SVG
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.setAttribute("height", "24px");
+                svg.setAttribute("viewBox", "0 -960 960 960");
+                svg.setAttribute("width", "24px");
+                svg.setAttribute("fill", "#3498db");
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("d", "M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z");
+                button.setAttribute("id", item.Id);
+
+                svg.appendChild(path);
+                button.appendChild(svg);
+
+                // 3. Montar o conteúdo da TR
+                tr.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.nome_produto}</td>
+                    <td>R$ ${Number(item.preco_atual).toFixed(2)}</td>
+                    <td>${item.estoque_atual}</td>
+                    <td>${item.total_vendido}</td>
+                    <td>${estoque.status_info(item)}</td>
+                    <td class="acoes"></td> 
+                `;
+
+
+                tr.querySelector(".acoes").appendChild(button);
+
+                tbody.appendChild(tr);
+
+                
+            });
+        }}
+}
+
+
+
+class dataSelect{
+    static async dataSelecionada() {
+
+        const enviarParaServidor = async (inicio, fim) => {
+            try {
+                const resposta = await fetch("/dados_lista", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ inicio, fim })
+                });
+                const res = await resposta.json();
+                if (resposta.ok) {
+                    criar.tabelaItens(res.itens.dados)
+                    //console.log(res.itens.dados)
+                }
+            } catch (error) {
+                console.error("Erro no fetch:", error);
+            };
+        };
+
+
+
+
+        const formatarData = (data) => data.toISOString().split('T')[0];
+        const botoes = document.querySelectorAll(".btn-filtro");
+        const btn_geral = document.getElementById("geral");
+        const inputInicio = document.getElementById("data_inicio");
+        const inputFim = document.getElementById("data_fim");
+        const btnBuscaManual = document.getElementById("btn_buscar_custom");
+
+        // Lógica dos Botões Rápidos (Hoje, 7d, 30d)
+        botoes.forEach(botao => {
+            botao.addEventListener("click", () => {
+                botoes.forEach(b => b.classList.remove("active"));
+                botao.classList.add("active");
+
+                var dias = Number(botao.value);               
+
+                const hoje = new Date();
+                const dataInicio = new Date(); 
+
+                dataInicio.setDate(hoje.getDate() - dias);               
+                if (dias ==  0) {
+                    enviarParaServidor(0, hoje)
+                }
+            
+                enviarParaServidor(formatarData(dataInicio), formatarData(hoje));
+            });
+        });
+
+
+
+         // Lógica da Busca Manual (Período Customizado)
+        btnBuscaManual.addEventListener("click", () => {
+            const inicio = inputInicio.value;
+            const fim = inputFim.value;
+
+            if (inicio && fim) {
+                enviarParaServidor(inicio, fim);
+            } else {
+                alert("Por favor, selecione as duas datas.");
+            }
+        });
+
+        const hojeStr = formatarData(new Date());
+        enviarParaServidor(0, hojeStr)
+
+    }
+    
+    }
+
+
+
+
 class start{
     static init(){
+        dataSelect.dataSelecionada();
         status_cores.show_hidden();
         estoque.criar_tabela();
         estoque.criarNewitem();
