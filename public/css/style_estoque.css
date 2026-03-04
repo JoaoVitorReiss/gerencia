@@ -829,6 +829,13 @@ input {
     cursor: pointer;
     font-weight: 500;
 }
+.Excluido {
+    background-color: #ff919128;
+}
+.Excluido:hover{
+    background-color: #ff919148 !important;
+    color: #ffff !important;
 
+}
 .btn-cancelar:hover { background: #5a6268; }
 .btn-excluir:hover   { background: #c82333; }

@@ -581,7 +581,8 @@ const rankingVendasCompletoDatas = async (dataInicio, dataFim) => {
                 p.descri_produto AS nome_produto,
                 p.preco_produto AS preco_atual,
                 p.qtd_produto AS estoque_atual,
-                SUM(v.venda_quantidade_itens) AS total_vendido
+                SUM(v.venda_quantidade_itens) AS total_vendido,
+                p.ativo as ativo
             FROM vendas v
             INNER JOIN produtos p ON v.id_produto_venda = p.id_produto_produto
             WHERE v.data_venda BETWEEN ? AND ?
@@ -602,6 +603,25 @@ const rankingVendasCompletoDatas = async (dataInicio, dataFim) => {
     }
 };
 
+
+
+
+
+
+// const itemEstoque_pesquisadoID = async (idProdutos) => {
+//     try {
+//         const conectar = await conecta_banco();
+        
+//         const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto, validade FROM produtos WHERE id_produto_produto IN (?)";
+        
+//         const [rows] = await conectar.query(sql, [idProdutos]);
+        
+//         return rows;
+//     } catch (error) {
+//         console.log("Erro ao buscar produto no banco de dados! ERRO: " + error);
+//         throw error;
+//     }
+// };
 
 module.exports = { 
     //verifica_tipo, 

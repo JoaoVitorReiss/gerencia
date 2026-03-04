@@ -1,6 +1,6 @@
 const dados_user = localStorage.getItem('id_vendedor');
-
-
+let situacao;
+let cor;
 
 
 // Função para mostrar a mensagem vindas do servidor
@@ -185,18 +185,20 @@ class ModalEstoque {
             btn_excluir.addEventListener("click", () => {
         
                 ModalEstoque.modelConfirm( async () => {
-                    console.log("Excluindo...")
+                    //console.log("Excluindo...")
                     const dados = {
                         id: config.id,
                         id_user: dados_user
                     }
                     Delet.item(dados)
+                  
                     await fetch(`/deletar_item/${config.id}`, { method: 'DELETE' });
                     fechar();
                     mostrarMensagem("Item excluido com sucesso!", "sucesso");
                     setTimeout(function() {
                         location.reload(); // Recarrega para atualizar a tabela
                     }, 500)
+
                 });
             });
 
@@ -206,6 +208,7 @@ class ModalEstoque {
                 const id_itemclicado = {
                     id: config.id
                 };
+                console.group(id_itemclicado)
             const busca = await fetch("/buscar_info", {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -317,8 +320,10 @@ class estoque{
     }
 
     static async criar_tabela(){
+        
 
         const dados_tabela = await this.estoque_baixo();
+        
 
         if (dados_tabela.length > 0) {
             const tbody = document.getElementById("dados_itemFalta");
@@ -342,6 +347,7 @@ class estoque{
                 path.setAttribute("d", "M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z");
                 button.setAttribute("id", item.Id);
 
+
                 svg.appendChild(path);
                 button.appendChild(svg);
 
@@ -350,7 +356,7 @@ class estoque{
                     <td>${item.Id}</td>
                     <td>${item.nome_do_Produto}</td>
                     <td>R$ ${Number(item.Preço).toFixed(2)}</td>
-                    <td>${item.Estoque_Atual}</td>
+                    <td>${item.estoque_atual}</td>
                     <td>${item.Qtd_vendidas}</td>
                     <td>${this.status_info(item)}</td>
                     <td class="acoes"></td> 
@@ -370,7 +376,6 @@ class estoque{
             if (btn) {
                 //console.log( btn.id);
                 ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: btn.id});
-                 
                 
             }
         });
@@ -457,6 +462,17 @@ class criar{
                 svg.appendChild(path);
                 button.appendChild(svg);
 
+                if(item.ativo == 1){
+                    situacao = "Ativo";
+                    cor= "#000000";
+
+                }else{
+                    situacao = "Excluido";
+                    cor="#d60707f1";
+
+                }
+                tr.classList.add(`${situacao}`)
+
                 // 3. Montar o conteúdo da TR
                 tr.innerHTML = `
                     <td>${item.id}</td>
@@ -465,11 +481,11 @@ class criar{
                     <td>${item.estoque_atual}</td>
                     <td>${item.total_vendido}</td>
                     <td>${estoque.status_info(item)}</td>
-                    <td class="acoes"></td> 
+                    <td style="color:${cor}">${situacao}</td>
+                    <td class="acoesD" id="${item.id}"></td> 
                 `;
 
-
-                tr.querySelector(".acoes").appendChild(button);
+                tr.querySelector(".acoesD").appendChild(button);
 
                 tbody.appendChild(tr);
 
@@ -492,7 +508,19 @@ class dataSelect{
                 });
                 const res = await resposta.json();
                 if (resposta.ok) {
+                    //console.log(res)
                     criar.tabelaItens(res.itens.dados)
+                    const btn_acoes = document.querySelectorAll(".acoesD");
+                    if(btn_acoes){
+                        btn_acoes.forEach(item => {
+                            item.addEventListener("click", (evt) => {
+                                evt.preventDefault();
+                                evt.stopPropagation();
+                                ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: item.id})
+                            })
+                        })
+                        
+                    }
                     //console.log(res.itens.dados)
                 }
             } catch (error) {

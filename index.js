@@ -767,7 +767,8 @@ app.post("/buscar_info", authenticateJWT, requireAdm, async (req, res) => {
     try{
         const id_item = req.body.id;
         const dados = await db.itemEstoque_pesquisadoID(id_item);
-        
+        console.log(id_item)
+        console.log(dados)
 
         res.status(200).json({
             item: dados,
