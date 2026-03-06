@@ -567,7 +567,7 @@ const rankingVendasCompleto = async (dataFim) => {
         return linhas;
     } catch (erro) {
         console.error("Erro ao buscar ranking de vendas! ERRO: ", erro);
-        throw erro; // Mantendo o padrão de segurança que corrigimos
+        throw erro; 
     }
 };
 
@@ -599,7 +599,7 @@ const rankingVendasCompletoDatas = async (dataInicio, dataFim) => {
         return linhas;
     } catch (erro) {
         console.error("Erro ao buscar ranking de vendas! ERRO: ", erro);
-        throw erro; // Mantendo o padrão de segurança que corrigimos
+        throw erro; 
     }
 };
 
@@ -607,21 +607,21 @@ const rankingVendasCompletoDatas = async (dataInicio, dataFim) => {
 
 
 
-
-// const itemEstoque_pesquisadoID = async (idProdutos) => {
-//     try {
-//         const conectar = await conecta_banco();
+// Esta função retorna os dados dos produtos pesquisados pelo ID e retorna também a validade e inclui os itens desativados na resposta
+const item_lista = async (idProdutos) => {
+    try {
+        const conectar = await conecta_banco();
         
-//         const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto, validade FROM produtos WHERE id_produto_produto IN (?)";
+        const sql = "SELECT id_produto_produto, descri_produto, preco_produto, qtd_produto, validade FROM produtos WHERE id_produto_produto IN (?)";
         
-//         const [rows] = await conectar.query(sql, [idProdutos]);
+        const [rows] = await conectar.query(sql, [idProdutos]);
         
-//         return rows;
-//     } catch (error) {
-//         console.log("Erro ao buscar produto no banco de dados! ERRO: " + error);
-//         throw error;
-//     }
-// };
+        return rows;
+    } catch (error) {
+        console.log("Erro ao buscar produto no banco de dados! ERRO: " + error);
+        throw error;
+    }
+};
 
 module.exports = { 
     //verifica_tipo, 
@@ -647,6 +647,7 @@ module.exports = {
     atualizarComLog,
     adicionarOuReporComLog,
     rankingVendasCompleto,
-    rankingVendasCompletoDatas
+    rankingVendasCompletoDatas,
+    item_lista
     //dados_vendedor
   };

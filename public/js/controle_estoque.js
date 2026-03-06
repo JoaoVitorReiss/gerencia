@@ -1,6 +1,7 @@
 const dados_user = localStorage.getItem('id_vendedor');
 let situacao;
 let cor;
+let chave = false;
 
 
 // Função para mostrar a mensagem vindas do servidor
@@ -113,6 +114,7 @@ class ModalEstoque {
         let qtd = null;
         let validade = null;
         let motivo = null;
+        
 
 
 
@@ -159,7 +161,7 @@ class ModalEstoque {
                         
                         <button type="button" class="btn-cancelar" id="btn-cancelar">Cancelar</button>
                         <button type="button" id="btn_excluir" class="hidden">Excluir item</button>
-                        <button type="submit" class="btn-finalizar">Finalizar</button>
+                        <button type="submit" class="btn-finalizar" id="btn_finalizar">Finalizar</button>
                         
                     </div>
                 </form>
@@ -167,7 +169,8 @@ class ModalEstoque {
         `;
         
         document.body.appendChild(overlay);
-        
+
+        const btn_finalizar = document.getElementById("btn_finalizar");
         const label_valitemLabel = document.getElementById("valitemLabel")
         const campo_motivo = document.getElementById("motivo");
         const campo_validade  = document.getElementById("valitem");
@@ -182,7 +185,9 @@ class ModalEstoque {
             campo_validade.classList.add("hidden");
             label_valitemLabel.classList.add("hidden");
             btn_excluir.classList.remove("hidden");
-            btn_excluir.addEventListener("click", () => {
+            btn_excluir.addEventListener("click", (evt) => {
+                evt.stopPropagation();
+                evt.preventDefault();
         
                 ModalEstoque.modelConfirm( async () => {
                     //console.log("Excluindo...")
@@ -200,13 +205,13 @@ class ModalEstoque {
                     }, 500)
 
                 });
-            });
 
-
+            })
         async function buscar_dados() {
             try {
                 const id_itemclicado = {
-                    id: config.id
+                    id: config.id,
+                    chave: chave
                 };
                 console.group(id_itemclicado)
             const busca = await fetch("/buscar_info", {
@@ -320,11 +325,7 @@ class estoque{
     }
 
     static async criar_tabela(){
-        
-
         const dados_tabela = await this.estoque_baixo();
-        
-
         if (dados_tabela.length > 0) {
             const tbody = document.getElementById("dados_itemFalta");
             tbody.innerHTML = ""; // Limpa a tabela
@@ -371,6 +372,8 @@ class estoque{
             });
         
         tbody.addEventListener("click", evt => {
+            evt.stopImmediatePropagation();
+            evt.preventDefault();
             const btn = evt.target.closest('.edt_itemFalta');
             
             if (btn) {
@@ -387,11 +390,15 @@ class estoque{
     };
 
     static async criarNewitem(){
-       const btn_add = document.getElementById("add_novoitem");
-       btn_add.addEventListener("click", evt => {
+        
+        const btn_add = document.getElementById("add_novoitem");
+        btn_add.addEventListener("click", evt => {
+            evt.stopImmediatePropagation();
+            evt.preventDefault();
             ModalEstoque.abrir();
             document.getElementById('form-estoque').onsubmit = async (e) => {
                 e.preventDefault()            
+                
                 const campo_motivo = document.getElementById("motivo");
                 const campo_validade  = document.getElementById("valitem");
                 const campo_qtditem = document.getElementById("qtditem");
@@ -436,7 +443,6 @@ class estoque{
 class criar{
     static  tabelaItens(dados){
         const dados_tabela =  dados;
-
         if (dados_tabela.length > 0) {
             const tbody = document.getElementById("itens_maisVendidos");
             tbody.innerHTML = ""; // Limpa a tabela
@@ -461,15 +467,13 @@ class criar{
 
                 svg.appendChild(path);
                 button.appendChild(svg);
-
+                
                 if(item.ativo == 1){
                     situacao = "Ativo";
                     cor= "#000000";
-
-                }else{
+                }else if(item.ativo == 0){
                     situacao = "Excluido";
                     cor="#d60707f1";
-
                 }
                 tr.classList.add(`${situacao}`)
 
@@ -486,9 +490,7 @@ class criar{
                 `;
 
                 tr.querySelector(".acoesD").appendChild(button);
-
                 tbody.appendChild(tr);
-
                 
             });
         }}
@@ -508,7 +510,6 @@ class dataSelect{
                 });
                 const res = await resposta.json();
                 if (resposta.ok) {
-                    //console.log(res)
                     criar.tabelaItens(res.itens.dados)
                     const btn_acoes = document.querySelectorAll(".acoesD");
                     if(btn_acoes){
@@ -516,7 +517,11 @@ class dataSelect{
                             item.addEventListener("click", (evt) => {
                                 evt.preventDefault();
                                 evt.stopPropagation();
-                                ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: item.id})
+                                if(chave == false) {
+                                    ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: item.id})
+                                }else if(chave == true) {
+                                    ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: item.id})
+                                }
                             })
                         })
                         
@@ -540,7 +545,9 @@ class dataSelect{
 
         // Lógica dos Botões Rápidos (Hoje, 7d, 30d)
         botoes.forEach(botao => {
-            botao.addEventListener("click", () => {
+            botao.addEventListener("click", (evt) => {
+                evt.preventDefault();
+                evt.stopPropagation();
                 botoes.forEach(b => b.classList.remove("active"));
                 botao.classList.add("active");
 
@@ -561,7 +568,9 @@ class dataSelect{
 
 
          // Lógica da Busca Manual (Período Customizado)
-        btnBuscaManual.addEventListener("click", () => {
+        btnBuscaManual.addEventListener("click", (evt) => {
+            evt.preventDefault();
+            evt.stopImmediatePropagation();
             const inicio = inputInicio.value;
             const fim = inputFim.value;
 

@@ -765,10 +765,18 @@ app.get("/contro_estoque", authenticateJWT, requireAdm, async (req, res) => {
 
 app.post("/buscar_info", authenticateJWT, requireAdm, async (req, res) => {
     try{
-        const id_item = req.body.id;
-        const dados = await db.itemEstoque_pesquisadoID(id_item);
-        console.log(id_item)
-        console.log(dados)
+        const id_item = req.body;
+        var dados = undefined;
+        console.log(id_item.chave);
+        
+
+        if(id_item.chave == false){
+            dados = await db.itemEstoque_pesquisadoID(id_item.id);
+           
+        }else {
+            dados =  await db.item_lista(id_item.id);
+        }
+        //console.log(dados)
 
         res.status(200).json({
             item: dados,
