@@ -1,6 +1,7 @@
 const dados_user = localStorage.getItem('id_vendedor');
 let situacao;
 let cor;
+let chave = false;
 
 
 // Função para mostrar a mensagem vindas do servidor
@@ -41,73 +42,71 @@ class status_cores{
     };
 };
 class Delet{
-    static async item(payload){
-        //precisar passar:ID item e o ID user
+    static async item(id){
         try{
-            const delet_item =  await fetch("/dell_item", {
+            const delet_item =  await fetch("/deletar_item", {
                 method: 'DELETE',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
+                body: JSON.stringify(id)
             })
+
+            this.fechar()
         }catch(erro){
-            console.log("Erro ao tentar excluir item" + erro)
+            console.log("Erro ao tentar excluir item")
         }
     }
 }
 class ModalEstoque {
-    static modelConfirm(payload){
-        const overlay = document.createElement('div');
-        overlay.id = 'modal-overlay-confirm';
-        overlay.innerHTML = `
-            <div id="modal-confirm-container">
-                <div class="modal-header">
-                    <h3>Confirmar exclusão</h3>
-                </div>
-                <div class="modal-body">
-                    <p>Deseja realmente excluir este item?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-cancelar" id="btn-cancelar-confirm">Cancelar</button>
-                    <button type="button" class="btn-excluir" id="btn-confirmar-excluir">Excluir</button>
-                </div>
-            </div>`;
+    static modelConfirm(callbackExcluir){
+    const overlay = document.createElement('div');
+            overlay.id = 'modal-overlay-confirm';
 
-        document.body.appendChild(overlay);
+            overlay.innerHTML = `
+                <div id="modal-confirm-container">
+                    <div class="modal-header">
+                        <h3>Confirmar exclusão</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>Deseja realmente excluir este item?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancelar" id="btn-cancelar-confirm">Cancelar</button>
+                        <button type="button" class="btn-excluir" id="btn-confirmar-excluir">Excluir</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
 
             // Eventos
-        const fechar = () => overlay.remove();
+            const fechar = () => overlay.remove();
 
-        document.getElementById('btn-cancelar-confirm').onclick = fechar;
+            document.getElementById('btn-cancelar-confirm').onclick = fechar;
 
-        document.getElementById('btn-confirmar-excluir').onclick = () => {
-            if(Delet.item(payload)){
-                setTimeout(function() {
-                    fechar();
-                    estoque.criar_tabela();
-                    dataSelect.dataSelecionada();
-
-                }, 20)
-
-            }
-        };
-
-        // Fechar clicando fora
-        overlay.onclick = (e) => {
-            if (e.target === overlay) fechar();
-        };
-
-        //fechar com ESC
-        const fecharComEsc = (e) => {
-            if (e.key === 'Escape') {
+            document.getElementById('btn-confirmar-excluir').onclick = () => {
+                if (typeof callbackExcluir === 'function') {
+                    callbackExcluir();
+                }
                 fechar();
-                document.removeEventListener('keydown', fecharComEsc);
-            }
-        };
-        document.addEventListener('keydown', fecharComEsc);
+            };
+
+            // Fechar clicando fora
+            overlay.onclick = (e) => {
+                if (e.target === overlay) fechar();
+            };
+
+            //fechar com ESC
+            const fecharComEsc = (e) => {
+                if (e.key === 'Escape') {
+                    fechar();
+                    document.removeEventListener('keydown', fecharComEsc);
+                }
+            };
+            document.addEventListener('keydown', fecharComEsc);
     
 
     }
-    static async abrir(config = { titulo: "Novo Item", dados: null, callback: null, tipo: 0, id: null}) {
+    static async abrir(config = { titulo: "Novo Item", dados: null, callback: null, tipo: 0, id: null }) {
      
         let nome = null;
         let preco = null;
@@ -188,25 +187,37 @@ class ModalEstoque {
             btn_excluir.addEventListener("click", (evt) => {
                 evt.stopPropagation();
                 evt.preventDefault();
-                const payload_delet = {
-                    id: config.id,
-                    id_user: dados_user
-                }
-                ModalEstoque.modelConfirm(payload_delet)
-                fechar();
+        
+                ModalEstoque.modelConfirm( async () => {
+                    //console.log("Excluindo...")
+                    const dados = {
+                        id: config.id,
+                        id_user: dados_user
+                    }
+                    Delet.item(dados)
+                  
+                    await fetch(`/deletar_item/${config.id}`, { method: 'DELETE' });
+                    fechar();
+                    mostrarMensagem("Item excluido com sucesso!", "sucesso");
+                    setTimeout(function() {
+                        location.reload(); // Recarrega para atualizar a tabela
+                    }, 500)
+
+                });
 
             })
-    async function buscar_dados() {
-        try {
-            const id_itemclicado = {
-                id: config.id
-            };
-            console.group(id_itemclicado)
-        const busca = await fetch("/buscar_info", {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(id_itemclicado)
-        });
+        async function buscar_dados() {
+            try {
+                const id_itemclicado = {
+                    id: config.id,
+                    chave: chave
+                };
+                console.group(id_itemclicado)
+            const busca = await fetch("/buscar_info", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(id_itemclicado)
+            });
 
             // dados_user -> essa variavel contém oo ID do usuario logado
             if(busca.ok){
@@ -243,7 +254,7 @@ class ModalEstoque {
         
 
         // Fechar ao clicar fora do modal
-        //overlay.onclick = (e) => { if(e.target === overlay) fechar(); };
+        overlay.onclick = (e) => { if(e.target === overlay) fechar(); };
 
         // Submissão do Formulário
         document.getElementById('form-estoque').onsubmit = async (e) => {
@@ -505,9 +516,11 @@ class dataSelect{
                             item.addEventListener("click", (evt) => {
                                 evt.preventDefault();
                                 evt.stopPropagation();
-                               
-                                ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: item.id})
-
+                                if(chave == false) {
+                                    ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: item.id})
+                                }else if(chave == true) {
+                                    ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: item.id})
+                                }
                             })
                         })
                         
@@ -572,7 +585,7 @@ class dataSelect{
 
     }
     
-}
+    }
 
 
 

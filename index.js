@@ -766,16 +766,9 @@ app.get("/contro_estoque", authenticateJWT, requireAdm, async (req, res) => {
 app.post("/buscar_info", authenticateJWT, requireAdm, async (req, res) => {
     try{
         const id_item = req.body;
-        var dados = undefined;
-        console.log(id_item.chave);
-        
+   
+        dados = await db.itemEstoque_pesquisadoID(id_item.id);
 
-        if(id_item.chave == false){
-            dados = await db.itemEstoque_pesquisadoID(id_item.id);
-           
-        }else {
-            dados =  await db.item_lista(id_item.id);
-        }
         //console.log(dados)
 
         res.status(200).json({
@@ -796,12 +789,11 @@ app.post("/buscar_info", authenticateJWT, requireAdm, async (req, res) => {
 
 
 // Rota para deletar item cllicado lá no frondEnd
-app.delete("/deletar_item", authenticateJWT, requireAdm, async (req, res) => {
+app.delete("/dell_item", authenticateJWT, requireAdm, async (req, res) => {
     try{
 
         const  id_item  = req.body;
         const dell = await db.dell_item(id_item.id, id_item.id_user);
-
         
 
     }catch(error){
