@@ -1,7 +1,7 @@
 const dados_user = localStorage.getItem('id_vendedor');
 let situacao;
 let cor;
-
+let
 
 // Função para mostrar a mensagem vindas do servidor
 function mostrarMensagem(mensagem, tipo = 'erro') { // 'erro' ou 'sucesso'
@@ -505,9 +505,7 @@ class dataSelect{
                             item.addEventListener("click", (evt) => {
                                 evt.preventDefault();
                                 evt.stopPropagation();
-                               
                                 ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: item.id})
-
                             })
                         })
                         
