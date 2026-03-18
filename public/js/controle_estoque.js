@@ -1,8 +1,8 @@
 const dados_user = localStorage.getItem('id_vendedor');
 let situacao;
 let cor;
-let
 
+let controle = false;
 // Função para mostrar a mensagem vindas do servidor
 function mostrarMensagem(mensagem, tipo = 'erro') { // 'erro' ou 'sucesso'
     const feedbackMensagem = document.getElementById('mensagem-feedback');
@@ -42,6 +42,7 @@ class status_cores{
 };
 class Delet{
     static async item(payload){
+        console.log(controle)
         //precisar passar:ID item e o ID user
         try{
             const delet_item =  await fetch("/dell_item", {
@@ -49,6 +50,7 @@ class Delet{
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
             })
+            
         }catch(erro){
             console.log("Erro ao tentar excluir item" + erro)
         }
@@ -56,6 +58,7 @@ class Delet{
 }
 class ModalEstoque {
     static modelConfirm(payload){
+        controle = false;
         const overlay = document.createElement('div');
         overlay.id = 'modal-overlay-confirm';
         overlay.innerHTML = `
@@ -162,7 +165,9 @@ class ModalEstoque {
                         <button type="button" class="btn-cancelar" id="btn-cancelar">Cancelar</button>
                         <button type="button" id="btn_excluir" class="hidden">Excluir item</button>
                         <button type="submit" class="btn-finalizar" id="btn_finalizar">Finalizar</button>
-                        
+                    
+                        <button type="button" class="btn-resta hidden" id="btn-resta">Restaurar iten</button>
+
                     </div>
                 </form>
             </div>
@@ -171,6 +176,7 @@ class ModalEstoque {
         document.body.appendChild(overlay);
 
         const btn_finalizar = document.getElementById("btn_finalizar");
+        const btn_restaurar = document.getElementById("btn-resta")
         const label_valitemLabel = document.getElementById("valitemLabel")
         const campo_motivo = document.getElementById("motivo");
         const campo_validade  = document.getElementById("valitem");
@@ -196,43 +202,98 @@ class ModalEstoque {
                 fechar();
 
             })
-    async function buscar_dados() {
-        try {
-            const id_itemclicado = {
-                id: config.id
-            };
-            console.group(id_itemclicado)
-        const busca = await fetch("/buscar_info", {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(id_itemclicado)
-        });
+            async function buscar_dados() {
+                try {
+                    const id_itemclicado = {
+                        id: config.id
+                    };
+                    console.group(id_itemclicado)
+                const busca = await fetch("/buscar_info", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(id_itemclicado)
+                });
 
-            // dados_user -> essa variavel contém oo ID do usuario logado
-            if(busca.ok){
-                const resposta = await busca.json();
-                qtdAnterior = resposta.item[0]["qtd_produto"];
-                nomeAnterio = resposta.item[0]["descri_produto"];
-                precoAnterior = resposta.item[0]["preco_produto"]
-                campo_nomeitem.value = resposta.item[0]["descri_produto"];
-                campo_valorItem.value = resposta.item[0]["preco_produto"];
-                campo_qtditem.value = resposta.item[0]["qtd_produto"];
-                if(resposta.item[0]["validade"].split('T')[0] <= 0){
-                    campo_validade.value = null;
-                }else {
-                    campo_validade.value = resposta.item[0]["validade"].split('T')[0];
+                    // dados_user -> essa variavel contém oo ID do usuario logado
+                    if(busca.ok){
+                        const resposta = await busca.json();
+                        qtdAnterior = resposta.item[0]["qtd_produto"];
+                        nomeAnterio = resposta.item[0]["descri_produto"];
+                        precoAnterior = resposta.item[0]["preco_produto"]
+                        campo_nomeitem.value = resposta.item[0]["descri_produto"];
+                        campo_valorItem.value = resposta.item[0]["preco_produto"];
+                        campo_qtditem.value = resposta.item[0]["qtd_produto"];
+                        if(resposta.item[0]["validade"].split('T')[0] <= 0){
+                            campo_validade.value = null;
+                        }else {
+                            campo_validade.value = resposta.item[0]["validade"].split('T')[0];
+                        }
+
+                        campo_motivo.value = "Adicione o motivo"
+                    }
+
+                    }catch(erro) {
+                        console.log("Erro ao tentar buscar os dados vindo do Banco de dados");
+                    };
                 }
 
-                campo_motivo.value = "Adicione o motivo"
-            }
+                buscar_dados();
+        }else if(config.tipo == 2){
+            const btn_excluir = document.getElementById('btn_excluir');
+            campo_validade.classList.add("hidden");
+            label_valitemLabel.classList.add("hidden");
+            btn_finalizar.classList.add("hidden");
+            btn_restaurar.classList.remove("hidden")
 
-            }catch(erro) {
-                console.log("Erro ao tentar buscar os dados vindo do Banco de dados");
-            };
+            btn_excluir.classList.remove("hidden");
+            btn_excluir.addEventListener("click", (evt) => {
+                evt.stopPropagation();
+                evt.preventDefault();
+                const payload_delet = {
+                    id: config.id,
+                    id_user: dados_user
+                }
+                ModalEstoque.modelConfirm(payload_delet)
+                fechar();
+
+            })
+            async function buscar_dados() {
+                try {
+                    const id_itemclicado = {
+                        id: config.id
+                    };
+                    console.group(id_itemclicado)
+                const busca = await fetch("/buscar_infoAll", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(id_itemclicado)
+                });
+
+                    // dados_user -> essa variavel contém oo ID do usuario logado
+                    if(busca.ok){
+                        const resposta = await busca.json();
+                        qtdAnterior = resposta.item[0]["qtd_produto"];
+                        nomeAnterio = resposta.item[0]["descri_produto"];
+                        precoAnterior = resposta.item[0]["preco_produto"]
+                        campo_nomeitem.value = resposta.item[0]["descri_produto"];
+                        campo_valorItem.value = resposta.item[0]["preco_produto"];
+                        campo_qtditem.value = resposta.item[0]["qtd_produto"];
+                        if(resposta.item[0]["validade"].split('T')[0] <= 0){
+                            campo_validade.value = null;
+                        }else {
+                            campo_validade.value = resposta.item[0]["validade"].split('T')[0];
+                        }
+
+                        campo_motivo.value = "Item totalamente excluido"
+                    }
+
+                    }catch(erro) {
+                        console.log("Erro ao tentar buscar os dados vindo do Banco de dados");
+                    };
+                }
+
+                buscar_dados();
         }
-
-        buscar_dados();
-    }
 
         // --- EVENTOS ---
 
@@ -496,22 +557,30 @@ class dataSelect{
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ inicio, fim })
                 });
+            
                 const res = await resposta.json();
+                let dd = res.itens.dados; 
+                let new_item = [];
+                let new_itemEx = [];
+                
                 if (resposta.ok) {
+                    
                     criar.tabelaItens(res.itens.dados)
                     const btn_acoes = document.querySelectorAll(".acoesD");
-                    if(btn_acoes){
-                        btn_acoes.forEach(item => {
-                            item.addEventListener("click", (evt) => {
-                                evt.preventDefault();
-                                evt.stopPropagation();
-                                ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: item.id})
+                        if(btn_acoes){
+                            btn_acoes.forEach(item => {
+                                item.addEventListener("click", (evt) => {
+                                    evt.preventDefault();
+                                    evt.stopPropagation();
+                                    ModalEstoque.abrir({ titulo: 'Edita item', tipo: 1, id: item.id});
+                                })
                             })
-                        })
-                        
+                            
                     }
+                  
                     //console.log(res.itens.dados)
                 }
+                
             } catch (error) {
                 console.error("Erro no fetch:", error);
             };

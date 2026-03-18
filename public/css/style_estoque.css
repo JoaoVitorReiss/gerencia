@@ -829,6 +829,17 @@ input {
     cursor: pointer;
     font-weight: 500;
 }
+
+
+.btn-resta {
+    padding: 10px 18px;
+    background: #028a02dc;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
 .Excluido {
     background-color: #ff919128;
 }

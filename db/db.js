@@ -537,7 +537,7 @@ const adicionarOuReporComLog = async (payload) => {
 };
 
 
-// Essa função retorna para mim os 50 itens mais vendido geral, sem limites de dada
+// Essa função retorna para mim os 50 itens mais vendido geral, sem limites de data
 const rankingVendasCompleto = async (dataFim) => {
     try {
         const conectar = await conecta_banco();

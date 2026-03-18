@@ -762,11 +762,9 @@ app.get("/contro_estoque", authenticateJWT, requireAdm, async (req, res) => {
 
 
 // ROta para página de controle de estoque: Rota para buscar  dados dos itens clicados
-
 app.post("/buscar_info", authenticateJWT, requireAdm, async (req, res) => {
     try{
         const id_item = req.body;
-   
         dados = await db.itemEstoque_pesquisadoID(id_item.id);
 
         //console.log(dados)
@@ -786,7 +784,27 @@ app.post("/buscar_info", authenticateJWT, requireAdm, async (req, res) => {
 })
 
 
+// ROta para página de controle de estoque: Rota para buscar  dados dos itens clicados também os itens "excluidos"
+app.post("/buscar_infoAll", authenticateJWT, requireAdm, async (req, res) => {
+    try{
+        const id_item = req.body;
+        dados = await db.item_lista(id_item.id);
 
+        //console.log(dados)
+
+        res.status(200).json({
+            item: dados,
+            mensagem: "Dados obtidos com sucesso!"
+        })
+
+
+    }catch(error){
+        console.log("Erro ao buscar dados dos itens clicados no Banco de Dados: " + error)
+        res.status(500).json({
+            mensagem: "Erro interno ao busca dados do item clicado!"
+        })
+    }
+})
 
 // Rota para deletar item cllicado lá no frondEnd
 app.delete("/dell_item", authenticateJWT, requireAdm, async (req, res) => {
@@ -794,6 +812,7 @@ app.delete("/dell_item", authenticateJWT, requireAdm, async (req, res) => {
 
         const  id_item  = req.body;
         const dell = await db.dell_item(id_item.id, id_item.id_user);
+
         
 
     }catch(error){
@@ -852,7 +871,6 @@ app.post("/dados_lista", authenticateJWT, requireAdm, async (req, res) => {
             const [rankingGeral] = await Promise.all([
                 db.rankingVendasCompleto(fim)
             ]);
-            //console.log(rankingGeral)
             res.status(200).json({
                 itens: {
                     dados: rankingGeral,
