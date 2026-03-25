@@ -487,7 +487,7 @@ section h2 {
 }
 
 
-#tb_falta {
+#tb_falta, #maisVendidos {
     width: 100%;
     border-collapse: collapse;
     border-radius: var(--border-radius);
@@ -513,8 +513,18 @@ section h2 {
 #tb_falta th:nth-child(6) { width: 10%; }  /* Status */
 #tb_falta th:nth-child(7) { width: 30%; }  /* Ações */
 
+/* Forçando a tabela de mais vendidos a não encolher (100% de largura distribuída) */
+#maisVendidos th:nth-child(1) { width: 5%; }   /* ID */
+#maisVendidos th:nth-child(2) { width: 25%; }  /* Produto */
+#maisVendidos th:nth-child(3) { width: 15%; }  /* Preço */
+#maisVendidos th:nth-child(4) { width: 10%; }  /* Estoque */
+#maisVendidos th:nth-child(5) { width: 10%; }  /* Qtd vendidas */
+#maisVendidos th:nth-child(6) { width: 10%; }  /* Status */
+#maisVendidos th:nth-child(7) { width: 10%; }  /* Situação */
+#maisVendidos th:nth-child(8) { width: 15%; }  /* Ações */
 
-#tb_falta thead {
+
+#tb_falta thead, #maisVendidos thead {
     background-color: var(--primary-blue);
     color: var(--white);
     position: sticky;
@@ -523,7 +533,7 @@ section h2 {
     display: table-header-group; /* garante o comportamento correto */
 }
 
-#tb_falta thead th {
+#tb_falta thead th, #maisVendidos thead th {
     padding: 1rem;
     font-weight: 1000;
     text-align: left;
@@ -532,20 +542,20 @@ section h2 {
 }
 
 /* Corpo da tabela */
-#tb_falta tbody {
+#tb_falta tbody, #maisVendidos tbody {
     display: table-row-group;
 }
 
-#tb_falta tbody tr {
+#tb_falta tbody tr, #maisVendidos tbody tr {
     border-bottom: 1px solid #eaeef2;
     transition: background 0.2s;
 }
 
-#tb_falta tbody tr:hover {
+#tb_falta tbody tr:hover, #maisVendidos tbody tr:hover {
     background-color: #f9fbfc;
 }
 
-#tb_falta tbody td {
+#tb_falta tbody td, #maisVendidos tbody td {
     padding: 1rem;
     color: var(--text-dark);
     word-break: break-word;

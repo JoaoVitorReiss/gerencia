@@ -571,35 +571,72 @@ const rankingVendasCompleto = async (dataFim) => {
     }
 };
 
-// Essa função retorna para mim os 50 itens mais vendido na data espessificada: 7 dias, 30...etc
-const rankingVendasCompletoDatas = async (dataInicio, dataFim) => {
+// Função unificada de listagem de produtos com suporte a ordenação e filtro de datas
+// Modos de ordenação:
+//   'mais_vendidos'     -> SUM(vendas) DESC (padrão)
+//   'menos_vendidos'    -> SUM(vendas) ASC
+//   'maior_estoque'     -> qtd_produto DESC
+//   'vencimento_prox'   -> validade ASC (produtos com validade, null por último)
+const rankingVendasCompletoDatas = async (dataInicio, dataFim, ordenacao = 'mais_vendidos') => {
     try {
         const conectar = await conecta_banco();
-        const sql = `
-            SELECT 
-                p.id_produto_produto AS id,
-                p.descri_produto AS nome_produto,
-                p.preco_produto AS preco_atual,
-                p.qtd_produto AS estoque_atual,
-                SUM(v.venda_quantidade_itens) AS total_vendido,
-                p.ativo as ativo
-            FROM vendas v
-            INNER JOIN produtos p ON v.id_produto_venda = p.id_produto_produto
-            WHERE v.data_venda BETWEEN ? AND ?
-            GROUP BY 
-                p.id_produto_produto, 
-                p.descri_produto, 
-                p.preco_produto, 
-                p.qtd_produto
-            ORDER BY total_vendido DESC
-            LIMIT 25;
-        `;
 
-        const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
+        // Mapeamento seguro: nunca interpolamos string vinda do usuário diretamente
+        const ordenacaoMap = {
+            mais_vendidos:  'total_vendido DESC',
+            menos_vendidos: 'total_vendido ASC',
+            maior_estoque:  'p.qtd_produto DESC',
+            vencimento_prox: 'p.validade IS NULL ASC, p.validade ASC'
+        };
+        const orderByClause = ordenacaoMap[ordenacao] || ordenacaoMap['mais_vendidos'];
+
+        let sql;
+        let params;
+
+        if (dataInicio === 0 || dataInicio === '0') {
+            // Modo GERAL: sem filtro de data, inclui todos os produtos mesmo sem vendas
+            sql = `
+                SELECT 
+                    p.id_produto_produto AS id,
+                    p.descri_produto AS nome_produto,
+                    p.preco_produto AS preco_atual,
+                    p.qtd_produto AS estoque_atual,
+                    p.validade AS validade,
+                    COALESCE(SUM(v.venda_quantidade_itens), 0) AS total_vendido,
+                    p.ativo
+                FROM produtos p
+                LEFT JOIN vendas v ON v.id_produto_venda = p.id_produto_produto
+                GROUP BY p.id_produto_produto, p.descri_produto, p.preco_produto, p.qtd_produto, p.ativo, p.validade
+                ORDER BY ${orderByClause}
+                LIMIT 50
+            `;
+            params = [];
+        } else {
+            // Modo DATAS: filtra vendas pelo período passado
+            sql = `
+                SELECT 
+                    p.id_produto_produto AS id,
+                    p.descri_produto AS nome_produto,
+                    p.preco_produto AS preco_atual,
+                    p.qtd_produto AS estoque_atual,
+                    p.validade AS validade,
+                    COALESCE(SUM(v.venda_quantidade_itens), 0) AS total_vendido,
+                    p.ativo
+                FROM produtos p
+                LEFT JOIN vendas v ON v.id_produto_venda = p.id_produto_produto
+                    AND v.data_venda BETWEEN ? AND ?
+                GROUP BY p.id_produto_produto, p.descri_produto, p.preco_produto, p.qtd_produto, p.ativo, p.validade
+                ORDER BY ${orderByClause}
+                LIMIT 50
+            `;
+            params = [dataInicio, dataFim];
+        }
+
+        const [linhas] = await conectar.query(sql, params);
         return linhas;
     } catch (erro) {
-        console.error("Erro ao buscar ranking de vendas! ERRO: ", erro);
-        throw erro; 
+        console.error('Erro ao buscar listagem de produtos:', erro);
+        throw erro;
     }
 };
 
@@ -620,6 +657,176 @@ const item_lista = async (idProdutos) => {
     } catch (error) {
         console.log("Erro ao buscar produto no banco de dados! ERRO: " + error);
         throw error;
+    }
+};
+
+// Pesquisa global de produtos por nome (ignora filtros de data, busca em TODOS os produtos)
+const pesquisarProdutos = async (termo) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                p.id_produto_produto AS id,
+                p.descri_produto AS nome_produto,
+                p.preco_produto AS preco_atual,
+                p.qtd_produto AS estoque_atual,
+                p.validade,
+                COALESCE(SUM(v.venda_quantidade_itens), 0) AS total_vendido,
+                p.ativo
+            FROM produtos p
+            LEFT JOIN vendas v ON v.id_produto_venda = p.id_produto_produto
+            WHERE p.descri_produto LIKE ?
+            GROUP BY p.id_produto_produto, p.descri_produto, p.preco_produto, p.qtd_produto, p.ativo, p.validade
+            ORDER BY p.descri_produto ASC
+            LIMIT 50
+        `;
+        const [linhas] = await conectar.query(sql, [`%${termo}%`]);
+        return linhas;
+    } catch (erro) {
+        console.error('Erro ao pesquisar produtos:', erro);
+        throw erro;
+    }
+};
+
+// Essa função retorna para mim o histórico de edições dos produtos
+const buscarHistoricoEdicoes = async (dataInicio, dataFim) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                l.id_log,
+                p.id_produto_produto AS id_produto,
+                p.descri_produto AS produto,
+                p.ativo AS ativo_atual,
+                f.nome_funcionario_funcionario AS usuario,
+                l.anterior,
+                l.novo,
+                l.motivo,
+                DATE_FORMAT(l.data_hora, '%d/%m/%Y %H:%i') AS data_formatada,
+                l.data_hora
+            FROM estoque_logs l
+            JOIN produtos p ON l.id_produto_log = p.id_produto_produto
+            JOIN funcionarios f ON l.id_usuario_log = f.id_funcionario_funcionario
+            WHERE l.data_hora >= ? AND l.data_hora <= CONCAT(?, ' 23:59:59')
+            ORDER BY l.data_hora DESC;
+        `;
+
+        const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
+        return linhas;
+    } catch (erro) {
+        console.error("Erro ao buscar logs de auditoria:", erro);
+        throw erro;
+    }
+};
+
+// Esta função retorna os itens apagados definitivamente (apenas lendo a flag no log sem dar JOIN no produto que já não existe mais)
+const buscarHistoricoDeletados = async (dataInicio, dataFim) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                l.id_log,
+                l.anterior AS produto, -- Como o produto sumiu, usamos a string do registro 
+                f.nome_funcionario_funcionario AS usuario,
+                l.motivo,
+                DATE_FORMAT(l.data_hora, '%d/%m/%Y %H:%i') AS data_formatada,
+                l.data_hora
+            FROM estoque_logs l
+            JOIN funcionarios f ON l.id_usuario_log = f.id_funcionario_funcionario
+            WHERE l.novo = 'DELETADO FÍSICO' 
+            AND l.data_hora >= ? AND l.data_hora <= CONCAT(?, ' 23:59:59')
+            ORDER BY l.data_hora DESC;
+        `;
+        const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
+        return linhas;
+    } catch (erro) {
+        console.error("Erro ao buscar logs de exclusão física:", erro);
+        throw erro;
+    }
+};
+
+// Essa função realiza a exclusão definitiva e garante o log de auditoria
+const exclusaoDefinitiva = async (idItem, idUsuario) => {
+    let conexao;
+    try {
+        const pool = await conecta_banco();
+        conexao = await pool.getConnection();
+
+        await conexao.beginTransaction();
+
+        // 1. Buscamos as informações antes de apagar (para o log)
+        // Note que usamos [rows] para desestruturar o resultado do mysql2
+        const [rows] = await conexao.query(
+            "SELECT descri_produto FROM produtos WHERE id_produto_produto = ?", 
+            [idItem]
+        );
+
+        if (rows.length === 0) {
+            throw new Error("Produto não encontrado para exclusão.");
+        }
+
+        const nomeProduto = rows[0].descri_produto;
+
+        // 2. ATENÇÃO: Para deletar um produto, PRECISARMOS apagar as referências dele nas tabelas com Foreign Key
+        // Apagamos todo o histórico de logs atrelado a ele primeiro:
+        await conexao.query("DELETE FROM estoque_logs WHERE id_produto_log = ?", [idItem]);
+
+        // 3. O golpe final: Deletar o produto fisicamente
+        const [resultado] = await conexao.query(
+            "DELETE FROM produtos WHERE id_produto_produto = ?", 
+            [idItem]
+        );
+
+        // 4. (Opcional) Log de exclusão - como o id_produto não existe mais, não podemos linkar o log.
+        // Se a sua tabela aceitar NULL em id_produto_log, podemos registrar:
+        try {
+            await conexao.query(
+                `INSERT INTO estoque_logs 
+                (id_produto_log, id_usuario_log, anterior, novo, motivo, data_hora) 
+                VALUES (NULL, ?, ?, ?, ?, NOW())`,
+                [idUsuario, nomeProduto, 'DELETADO FÍSICO', 'Exclusão permanente']
+            );
+        } catch (e) {
+            console.log("Aviso: Tabela estoque_logs não aceita id_produto_log NULL, log físico descartado.");
+        }
+
+        await conexao.commit();
+        return resultado;
+
+    } catch (error) {
+        if (conexao) await conexao.rollback();
+        console.error("Erro crítico na exclusão definitiva:", error.message);
+        throw error;
+    } finally {
+        if (conexao) conexao.release();
+    }
+};
+
+const restaurar_item = async (idItem, idUsuario) => {
+    const pool = await conecta_banco();
+    const conexao = await pool.getConnection();
+
+    try {
+        await conexao.beginTransaction();
+
+        const [produto] = await conexao.query("SELECT descri_produto FROM produtos WHERE id_produto_produto = ?", [idItem]);
+        
+        await conexao.query(
+            "INSERT INTO estoque_logs (id_produto_log, id_usuario_log, anterior, novo, motivo, data_hora) VALUES (?, ?, ?, ?, ?, NOW())",
+            [idItem, idUsuario, produto[0].descri_produto, 'ATIVO', 'Restaurado do status excluido']
+        );
+
+        const sqlRestaurar = "UPDATE produtos SET ativo = 1 WHERE id_produto_produto = ?;";
+        await conexao.query(sqlRestaurar, [idItem]);
+
+        await conexao.commit();
+        return { sucesso: true };
+
+    } catch (error) {
+        if (conexao) await conexao.rollback();
+        throw error;
+    } finally {
+        if (conexao) conexao.release();
     }
 };
 
@@ -648,6 +855,11 @@ module.exports = {
     adicionarOuReporComLog,
     rankingVendasCompleto,
     rankingVendasCompletoDatas,
-    item_lista
+    item_lista,
+    buscarHistoricoEdicoes,
+    buscarHistoricoDeletados,
+    exclusaoDefinitiva,
+    restaurar_item,
+    pesquisarProdutos
     //dados_vendedor
-  };
+};

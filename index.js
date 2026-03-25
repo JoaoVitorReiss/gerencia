@@ -806,14 +806,87 @@ app.post("/buscar_infoAll", authenticateJWT, requireAdm, async (req, res) => {
     }
 })
 
+
+// Rota para buscar o histórico de edições
+app.post("/historico_edicoes", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const { inicio, fim } = req.body;
+        const dadosLog = await db.buscarHistoricoEdicoes(inicio, fim);
+        res.status(200).json({ dados: dadosLog, mensagem: "Histórico carregado com sucesso" });
+    } catch(err) {
+        res.status(500).json({ mensagem: "Erro ao buscar histórico: " + err });
+    }
+});
+
+app.post("/historico_deletados", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const { inicio, fim } = req.body;
+        const dadosLog = await db.buscarHistoricoDeletados(inicio, fim);
+        res.status(200).json({ dados: dadosLog, mensagem: "Histórico carregado com sucesso" });
+    } catch(err) {
+        res.status(500).json({ mensagem: "Erro ao buscar deletados físicos: " + err });
+    }
+});
+
+// Rota para Restaurar item excluido
+app.post("/restaurar_item", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const { id, id_user } = req.body;
+        await db.restaurar_item(id, id_user);
+        res.status(200).json({ mensagem: "Item restaurado com sucesso!" });
+    } catch(err) {
+        res.status(500).json({ mensagem: "Erro ao restaurar item." });
+    }
+});
+
+// Rota para Excluir definitivamente
+app.post("/exclusao_definitiva", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const { id, id_user } = req.body;
+        await db.exclusaoDefinitiva(id, id_user);
+        res.status(200).json({ mensagem: "Item excluído definitivamente!" });
+    } catch(err) {
+        if (err.code === 'ER_ROW_IS_REFERENCED_2' || err.code === 'ER_ROW_IS_REFERENCED') {
+            res.status(400).json({ mensagem: "Bloqueado: O item já possui vendas ou relatórios no banco. Mantenha-o apenas no Modo Inativado!" });
+        } else {
+            res.status(500).json({ mensagem: "Erro interno crítico na exclusão." });
+        }
+    }
+});
+
+// Rota para listagem de produtos com filtros de data e ordenação
+app.post("/dados_lista", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const { inicio, fim, ordenacao } = req.body;
+        const dados = await db.rankingVendasCompletoDatas(inicio, fim, ordenacao || 'mais_vendidos');
+        res.status(200).json({ itens: { dados }, mensagem: "Listagem carregada com sucesso." });
+    } catch(err) {
+        res.status(500).json({ mensagem: "Erro ao buscar listagem: " + err });
+    }
+});
+
+// Rota de pesquisa global de produtos por nome (sem filtros de data)
+app.post("/pesquisar_produto", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const { termo } = req.body;
+        if (!termo || termo.trim() === '') {
+            return res.status(400).json({ mensagem: "Termo de pesquisa obrigatório." });
+        }
+        const dados = await db.pesquisarProdutos(termo.trim());
+        res.status(200).json({ itens: { dados }, mensagem: "Pesquisa concluída." });
+    } catch(err) {
+        res.status(500).json({ mensagem: "Erro na pesquisa: " + err });
+    }
+});
+
 // Rota para deletar item cllicado lá no frondEnd
-app.delete("/dell_item", authenticateJWT, requireAdm, async (req, res) => {
+app.post("/dell_item", authenticateJWT, requireAdm, async (req, res) => {
     try{
 
         const  id_item  = req.body;
         const dell = await db.dell_item(id_item.id, id_item.id_user);
 
-        
+        res.status(200).json({ mensagem: "Item inativado com sucesso." });
 
     }catch(error){
         return  res.status(500).json({
