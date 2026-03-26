@@ -6,7 +6,6 @@ class dados_userLogado {
             // Acessa os dados do usuário que foram injetados no HTML pelo servidor
             const usuario = window.usuarioLogado;
             if (usuario) {
-                console.log("Dados do usuário encontrados: ", usuario)
                 try{
                     const resposta = await fetch("/dados_user", {
                         method: 'POST',
@@ -15,7 +14,6 @@ class dados_userLogado {
                     })
                     console.log("Esperando o erro")
                     const resposta_user = await resposta.json()
-                    console.log("Resposta do servidor para os dados do usuário: ", resposta_user);
 
                     if(resposta.ok) {
                         localStorage.setItem('id_vendedor', resposta_user.id);
@@ -140,12 +138,17 @@ class dados_userLogado {
 
                                 const imagemPerfil = document.createElement('div');
                                 imagemPerfil.classList.add('perfil-imagem');
-                                if (usuario) {
+                                if (resposta_user.foto_url) {
                                     const img = document.createElement('img');
-                                    img.src = "../img/logo.png";
+                                    img.src = resposta_user.foto_url;
+                                    img.alt = resposta_user.nome;
+                                    img.onerror = () => {
+                                        img.remove();
+                                        imagemPerfil.textContent = resposta_user.nome.charAt(0).toUpperCase();
+                                    };
                                     imagemPerfil.appendChild(img);
                                 } else {
-                                    imagemPerfil.textContent = usuario.nome.charAt(0); // Inicial como fallback
+                                    imagemPerfil.textContent = resposta_user.nome.charAt(0).toUpperCase();
                                 }
 
                                 // Cria a área de informações
@@ -196,8 +199,6 @@ class dados_userLogado {
         
     }
 }
-
-
 
 dados_userLogado.perfil_logado();
 

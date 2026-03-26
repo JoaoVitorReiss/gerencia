@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" href="/img/icon/icon.png" type="image/x-icon">
+    <link rel="stylesheet" href="/css/styly_addfuncionario.css">
+    <title>Adicionar novo funcionario</title>
+</head>
+<body>
+        <nav>
+        <a href="dashboard_adm" title="Voltar para a Dashboard"> <svg xmlns="http://www.w3.org/2000/svg" height="45px" viewBox="0 -960 960 960" width="45px" fill="#325088"><path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"/></svg></a>
+    </nav>
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>Adicionar Novo Funcionário</h1>
+        <button onclick="window.history.back()" class="btn-back">
+            ← Voltar
+        </button>
+    </div>
+
+    <!-- FORMULÁRIO -->
+    <div class="container">
+        <form id="form-funcionario" onsubmit="handleSubmit(event)">
+            
+            <div class="form-header">
+                <h2>Dados do Funcionário</h2>
+                <p>Preencha todas as informações abaixo</p>
+            </div>
+
+            <div class="form-body">
+
+                <!-- FOTO -->
+                <div class="foto-container">
+                    <div class="foto-preview" id="foto-preview">
+                        <span class="placeholder">👤</span>
+                    </div>
+                    <div class="foto-upload">
+                        <label for="foto">Foto do funcionário (opcional)</label>
+                        <input type="file" id="foto" accept="image/*" onchange="previewFoto(event)">
+                        <input type="hidden" id="foto_url" name="foto_url">
+                        <small>Será salva como URL após upload</small>
+                    </div>
+                </div>
+
+                <!-- NOME -->
+                <div class="campo-grupo">
+                    <label for="nome_funcionario">Nome completo do funcionário *</label>
+                    <input type="text" id="nome_funcionario" name="nome_funcionario" required>
+                </div>
+
+                <div class="linha-dupla">
+                    <div class="campo-grupo">
+                        <label for="cpf_funcionario">CPF *</label>
+                        <input type="text" id="cpf_funcionario" name="cpf_funcionario" maxlength="14" placeholder="000.000.000-00" required>
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="telefone_funcionario">Telefone *</label>
+                        <input type="tel" id="telefone_funcionario" name="telefone_funcionario" placeholder="(00) 00000-0000" required>
+                    </div>
+                </div>
+
+                <div class="campo-grupo">
+                    <label for="email_funcionario">E-mail *</label>
+                    <input type="email" id="email_funcionario" name="email_funcionario" required>
+                </div>
+
+                <div class="linha-dupla">
+                    <div class="campo-grupo">
+                        <label for="senha_funcionario">Senha *</label>
+                        <div class="senha-wrapper">
+                            <input type="password" id="senha_funcionario" name="senha_funcionario" required>
+                            <button type="button" class="toggle-senha" onclick="toggleSenha(this)">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="confirmar_senha">Confirmar senha *</label>
+                        <div class="senha-wrapper">
+                            <input type="password" id="confirmar_senha" required>
+                            <button type="button" class="toggle-senha" onclick="toggleSenha(this)">👁️</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="campo-grupo">
+                    <label for="nivel">Nível de acesso *</label>
+                    <select id="nivel" name="nivel" required>
+                        <option value="1">Vendedor</option>
+                        <option value="2">Admin</option>
+                    </select>
+                </div>
+
+                <div class="linha-dupla">
+                    <div class="campo-grupo">
+                        <label for="salario_funcionario">Salário (R$) *</label>
+                        <input type="number" id="salario_funcionario" name="salario_funcionario" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="data_admissao">Data de admissão *</label>
+                        <input type="date" id="data_admissao" name="data_admissao" required>
+                    </div>
+                </div>
+
+                <div class="campo-grupo">
+                    <label for="data_demissao">Data de demissão 
+                        <span style="font-weight:normal;color:#888">(opcional)</span>
+                    </label>
+                    <input type="date" id="data_demissao" name="data_demissao">
+                </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="form-footer">
+                <button type="button" onclick="window.history.back()" class="btn btn-cancelar">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-salvar">
+                    💾 Salvar Funcionário
+                </button>
+            </div>
+        </form>
+    </div>
+
+
+
+
+    <script type="module" src="/js/add_funcionario.js"></script>
+</body>
+</html>

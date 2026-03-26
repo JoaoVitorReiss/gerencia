@@ -154,11 +154,11 @@ app.post("/dados_user", authenticateJWT, requireOperario, async (req, res) => {
     try {
         const id_userLogado =req.body.id;
         const nome_usuario = await db.info_user(id_userLogado);
-        console.log(id_userLogado, nome_usuario)
         if(id_userLogado){
             res.status(200).json({
                 nome: nome_usuario.nome_funcionario_funcionario,
-                id: id_userLogado
+                id: id_userLogado,
+                foto_url: nome_usuario.foto_url || null
             })
         }
     }catch(erro){
@@ -978,6 +978,21 @@ app.post("/dados_lista", authenticateJWT, requireAdm, async (req, res) => {
         })
     }
     
+})
+
+
+// Parte para a criação das lógicas envolvendo a adição de novos  funcionarios.
+app.get("/novofuncionario", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        let html = await fs.readFile(path.join(__dirname, "views", "add_funcionario.html"), "utf-8");
+        res.status(200).send(html);
+
+    }catch (erro) {
+        console.error("Erro ao carregar a página de controle de estoque: " + erro);
+        res.status(500).json({
+            mensagem: "Erro interno ao carregar a página de controle de estoque."
+        })
+    }
 })
 
 

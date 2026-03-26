@@ -124,7 +124,7 @@ const todos_nomeProdutos = async () => {
 const info_user = async (id) => {
     try {
         const conectar = await conecta_banco();
-        const sql = "SELECT nome_funcionario_funcionario FROM funcionarios WHERE id_funcionario_funcionario = ?";
+        const sql = "SELECT nome_funcionario_funcionario, foto_url FROM funcionarios WHERE id_funcionario_funcionario = ?";
         const [rows] = await conectar.query(sql, [id]);
         const funcionario = rows[0]; // Pegar o primeiro resultado
         return funcionario; 

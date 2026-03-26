@@ -225,6 +225,18 @@ class sidebarPages {
     }
 }
 
+class add_funcionario {
+    static async adicionar() {
+        const btn_addfunc = document.getElementById("add_func");
+        btn_addfunc.addEventListener("click", (evt) => {
+            evt.preventDefault();
+            location.assign("/novofuncionario")
+        })
+    }
+}
+
+
 gerir_funcionarios.int();
 sidebarPages.int();
 preview.int();
+add_funcionario.adicionar();
