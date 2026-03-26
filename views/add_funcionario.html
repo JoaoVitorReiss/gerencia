@@ -8,10 +8,6 @@
     <title>Adicionar novo funcionario</title>
 </head>
 <body>
-        <nav>
-        <a href="dashboard_adm" title="Voltar para a Dashboard"> <svg xmlns="http://www.w3.org/2000/svg" height="45px" viewBox="0 -960 960 960" width="45px" fill="#325088"><path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"/></svg></a>
-    </nav>
-
     <!-- HEADER -->
     <div class="header">
         <h1>Adicionar Novo Funcionário</h1>
@@ -20,9 +16,8 @@
         </button>
     </div>
 
-    <!-- FORMULÁRIO -->
     <div class="container">
-        <form id="form-funcionario" onsubmit="handleSubmit(event)">
+        <form id="form-funcionario">
             
             <div class="form-header">
                 <h2>Dados do Funcionário</h2>
@@ -30,19 +25,6 @@
             </div>
 
             <div class="form-body">
-
-                <!-- FOTO -->
-                <div class="foto-container">
-                    <div class="foto-preview" id="foto-preview">
-                        <span class="placeholder">👤</span>
-                    </div>
-                    <div class="foto-upload">
-                        <label for="foto">Foto do funcionário (opcional)</label>
-                        <input type="file" id="foto" accept="image/*" onchange="previewFoto(event)">
-                        <input type="hidden" id="foto_url" name="foto_url">
-                        <small>Será salva como URL após upload</small>
-                    </div>
-                </div>
 
                 <!-- NOME -->
                 <div class="campo-grupo">
@@ -72,15 +54,15 @@
                         <label for="senha_funcionario">Senha *</label>
                         <div class="senha-wrapper">
                             <input type="password" id="senha_funcionario" name="senha_funcionario" required>
-                            <button type="button" class="toggle-senha" onclick="toggleSenha(this)">👁️</button>
+                            <button type="button" class="toggle-senha" >👁️</button>
                         </div>
                     </div>
 
                     <div class="campo-grupo">
                         <label for="confirmar_senha">Confirmar senha *</label>
                         <div class="senha-wrapper">
-                            <input type="password" id="confirmar_senha" required>
-                            <button type="button" class="toggle-senha" onclick="toggleSenha(this)">👁️</button>
+                            <input type="password" id="confirmar_senha">
+                            <button type="button" class="toggle-senha">👁️</button>
                         </div>
                     </div>
                 </div>
@@ -105,12 +87,28 @@
                     </div>
                 </div>
 
+                <!-- FOTO -->
+                 <form id="formFuncionario" enctype="multipart/form-data">
+                    <div class="foto-container">
+                        <div class="foto-preview" id="foto-preview">
+                            <span class="placeholder">👤</span>
+                        </div>
+                        <div class="foto-upload">
+                            <label for="foto">Foto do funcionário</label>
+                            <input type="file" id="foto" name="foto_funcionario" accept="image/*">
+                            
+                            <small>A imagem será processada pelo servidor</small>
+                        </div>
+                    </div>
+                </form>
+
+<!-- 
                 <div class="campo-grupo">
                     <label for="data_demissao">Data de demissão 
                         <span style="font-weight:normal;color:#888">(opcional)</span>
                     </label>
                     <input type="date" id="data_demissao" name="data_demissao">
-                </div>
+                </div> -->
 
             </div>
 
@@ -119,14 +117,12 @@
                 <button type="button" onclick="window.history.back()" class="btn btn-cancelar">
                     Cancelar
                 </button>
-                <button type="submit" class="btn btn-salvar">
+                <button type="button" id="btn_salvar" class="btn btn-salvar">
                     💾 Salvar Funcionário
                 </button>
             </div>
         </form>
     </div>
-
-
 
 
     <script type="module" src="/js/add_funcionario.js"></script>

@@ -996,6 +996,76 @@ app.get("/novofuncionario", authenticateJWT, requireAdm, async (req, res) => {
 })
 
 
+// Rota para validar e salvar os dados dos novos funcionarios no banco de dados
+const multer = require('multer');
+
+
+// 1. Configuração básica do Multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/img/funcionarios'); // Garanta que essa pasta exista!
+    },
+    filename: (req, file, cb) => {
+        // Nome único para evitar sobrescrever arquivos
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
+
+// 2. A Rota Corrigida
+const bcrypt = require('bcryptjs');
+
+app.post("/cadastrar-funcionario", authenticateJWT, requireAdm, upload.single("foto_funcionario"), async (req, res) => {
+    try {
+        const { nome, email, cpf, tipo, senha, data_admissao, salario } = req.body;
+
+        // 1. Validação de Campos Obrigatórios
+        if (!nome || !email || !cpf || !senha) {
+            return res.status(400).json({ mensagem: "Campos obrigatórios faltando!" });
+        }
+
+        // 2. Validação de CPF (Mínimo de caracteres)
+        if (cpf.length < 11) {
+            return res.status(400).json({ mensagem: "CPF inválido!" });
+        }
+
+        // 3. Criptografia da Senha (Usando sua lógica)
+        const salt = await bcrypt.genSalt(10);
+        const senhaCriptografada = await bcrypt.hash(senha, salt);
+
+        // 4. Preparação do caminho da foto
+        const foto_url = req.file ? `img/funcionarios/${req.file.filename}` : 'img/funcionarios/default.png';
+
+        // 5. Chamar a função do Banco de Dados (que vamos criar abaixo)
+        const resultado = await db.cadastrarFuncionario({
+            nome,
+            email,
+            cpf,
+            tipo,
+            senha: senhaCriptografada, // Enviamos o HASH, não a senha pura
+            data_admissao,
+            salario: salario || 0,
+            foto_url
+        });
+
+        res.status(201).json({ mensagem: "Funcionário cadastrado com sucesso!", id: resultado.insertId });
+
+    } catch (error) {
+        // Tratar erro de duplicidade (CPF ou Email já cadastrados)
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ mensagem: "E-mail ou CPF já cadastrado no sistema!" });
+        }
+        
+        console.error("Erro no cadastro:", error);
+        res.status(500).json({ mensagem: "Erro interno ao cadastrar funcionário." });
+    }
+});
+
+
+
+
+
 
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
     try {

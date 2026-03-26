@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 
 // // Função para HASHAR a senha antes de salvar
+//const bcrypt = require('bcryptjs');
 // const hashSenha = async (senhaEmTextoPuro) => {
 //     const saltRounds = await bcrypt.genSalt(); 
 //     const hash = await bcrypt.hash(senhaEmTextoPuro, saltRounds);

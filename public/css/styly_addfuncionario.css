@@ -210,6 +210,12 @@ body {
 
 .hidden { display: none; }
 
+
+
+.erro{
+    border: 2px solid rgb(243, 9, 9) !important;
+}
+
 /* RESPONSIVO */
 @media (max-width: 640px) {
     .linha-dupla { 

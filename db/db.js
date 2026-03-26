@@ -830,6 +830,43 @@ const restaurar_item = async (idItem, idUsuario) => {
     }
 };
 
+
+
+// Essa função é para adcionar novos usuarios no nosso base dados
+
+const cadastrarFuncionario = async (dados) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            INSERT INTO funcionarios (
+                nome_funcionario_funcionario, 
+                email_funcionario_funcionario, 
+                senha_funcionario_funcionario, 
+                tipo_funcionario_funcionario, 
+                cpf_funcionario, 
+                salario_funcionario, 
+                data_admissao, 
+                foto_url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        const [resultado] = await conectar.query(sql, [
+            dados.nome,
+            dados.email,
+            dados.senha, // Aqui entra o Hash do bcrypt
+            dados.tipo,
+            dados.cpf,
+            dados.salario,
+            dados.data_admissao,
+            dados.foto_url
+        ]);
+
+        return resultado;
+    } catch (erro) {
+        console.error("Erro na Query de Cadastro:", erro);
+        throw erro; // Lançamos para a rota tratar o erro (como o ER_DUP_ENTRY)
+    }
+};
+
 module.exports = { 
     //verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -860,6 +897,7 @@ module.exports = {
     buscarHistoricoDeletados,
     exclusaoDefinitiva,
     restaurar_item,
-    pesquisarProdutos
+    pesquisarProdutos,
+    cadastrarFuncionario
     //dados_vendedor
 };
