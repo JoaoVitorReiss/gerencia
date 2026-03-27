@@ -845,9 +845,10 @@ const cadastrarFuncionario = async (dados) => {
                 tipo_funcionario_funcionario, 
                 cpf_funcionario, 
                 salario_funcionario, 
+                telefone_funcionario,
                 data_admissao, 
                 foto_url
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const [resultado] = await conectar.query(sql, [
             dados.nome,
@@ -856,6 +857,7 @@ const cadastrarFuncionario = async (dados) => {
             dados.tipo,
             dados.cpf,
             dados.salario,
+            dados.telefone,
             dados.data_admissao,
             dados.foto_url
         ]);

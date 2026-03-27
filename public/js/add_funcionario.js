@@ -1,96 +1,36 @@
-// // Função para HASHAR a senha antes de salvar
-
-
-
-
-
 const configValidacao = false;
-// Função para validar so numeros reais
-
-
 
 function processarTelefone(telefone, validarReal = configValidacao) {
-  // 1. Limpeza: Remove parênteses, espaços e traços
   const numeros = telefone.replace(/\D/g, '');
-
-  // 2. Validação de tamanho (Fixo: 10, Celular: 11)
   if (numeros.length < 10 || numeros.length > 11) {
     return "Erro: Telefone deve ter 10 ou 11 dígitos (com DDD).";
   }
-
-  // 3. Se for apenas para teste (validarReal = false), retorna os números limpos
-  if (!validarReal) {
-    return numeros;
-  }
-
-  // 4. Validação "Real" básica (DDD e Nono Dígito)
+  if (!validarReal) return numeros;
   const ddd = parseInt(numeros.substring(0, 2));
-  
-  // Lista básica de DDDs válidos no Brasil (11 a 99)
-  if (ddd < 11 || ddd > 99) {
-    return "Erro: DDD inválido.";
-  }
-
-  // Se tiver 11 dígitos, o primeiro dígito após o DDD deve ser 9
-  if (numeros.length === 11 && numeros[2] !== '9') {
-    return "Erro: Celular deve começar com 9.";
-  }
-
-  // Impede sequências óbvias como "1111111111"
-  if (/^(\d)\1{9,10}$/.test(numeros)) {
-    return "Erro: Número de telefone inválido.";
-  }
-
+  if (ddd < 11 || ddd > 99) return "Erro: DDD inválido.";
+  if (numeros.length === 11 && numeros[2] !== '9') return "Erro: Celular deve começar com 9.";
+  if (/^(\d)\1{9,10}$/.test(numeros)) return "Erro: Número de telefone inválido.";
   return numeros;
 }
 
-
-// Essa funçãválida o telefone
 function processarCPF(cpf, validarReal = configValidacao) {
-
-  // 1. Limpeza: Remove tudo que não for número
   const numerosApenas = cpf.replace(/\D/g, '');
-
-  // 2. Validação básica de tamanho (ajuda a filtrar erros grosseiros antes de tudo)
-  if (numerosApenas.length !== 11) {
-    return "Erro: CPF deve conter 11 dígitos.";
-  }
-
-  // 3. Se validarReal for FALSE, apenas retorna os números (já passou no teste de 11 dígitos)
-  if (!validarReal) {
-    return numerosApenas;
-  }
-
-  // 4. Validação Real
-  // Bloqueia números repetidos como 111.111.111-11
-  if (/^(\d)\1{10}$/.test(numerosApenas)) {
-    return "Erro: CPF com dígitos repetidos é inválido.";
-  }
-
+  if (numerosApenas.length !== 11) return "Erro: CPF deve conter 11 dígitos.";
+  if (!validarReal) return numerosApenas;
+  if (/^(\d)\1{10}$/.test(numerosApenas)) return "Erro: CPF com dígitos repetidos é inválido.";
   let soma = 0;
   let resto;
-
-  // Cálculo do 1º dígito verificador
   for (let i = 1; i <= 9; i++) soma += parseInt(numerosApenas.substring(i - 1, i)) * (11 - i);
   resto = (soma * 10) % 11;
   if ((resto === 10) || (resto === 11)) resto = 0;
   if (resto !== parseInt(numerosApenas.substring(9, 10))) return "Erro: CPF matematicamente inválido.";
-
-  // Cálculo do 2º dígito verificador
   soma = 0;
   for (let i = 1; i <= 10; i++) soma += parseInt(numerosApenas.substring(i - 1, i)) * (12 - i);
   resto = (soma * 10) % 11;
   if ((resto === 10) || (resto === 11)) resto = 0;
   if (resto !== parseInt(numerosApenas.substring(10, 11))) return "Erro: CPF matematicamente inválido.";
-
-  // Se chegou até aqui e validarReal era true, o CPF é quente!
   return numerosApenas;
 }
-
-
-
-
-
 
 const nome_funcionario = document.getElementById("nome_funcionario");
 const CPF_funcionario = document.getElementById("cpf_funcionario");
@@ -155,14 +95,65 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// Máscara para CPF: 000.000.000-00
+CPF_funcionario.addEventListener('input', (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 11) value = value.slice(0, 11);
+    
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    e.target.value = value;
+});
+
+// Máscara para Telefone: (00) 00000-0000
+tel_funcionario.addEventListener('input', (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 11) value = value.slice(0, 11);
+
+    if (value.length > 10) {
+        // Celular: (00) 90000-0000
+        value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+    } else if (value.length > 5) {
+        // Fixo: (00) 0000-0000
+        value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+    } else if (value.length > 2) {
+        value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+    } else if (value.length > 0) {
+        value = value.replace(/^(\d*)/, '($1');
+    }
+    e.target.value = value;
+});
+
 btn_salvar.addEventListener("click", (evt) => {
     evt.preventDefault(); // Impede o recarregamento da página
+
+    // Validações
+    const cpfLimpo = processarCPF(CPF_funcionario.value);
+    if (cpfLimpo.startsWith("Erro")) {
+        alert(cpfLimpo);
+        CPF_funcionario.focus();
+        return;
+    }
+
+    const telLimpo = processarTelefone(tel_funcionario.value);
+    if (telLimpo.startsWith("Erro")) {
+        alert(telLimpo);
+        tel_funcionario.focus();
+        return;
+    }
 
     // 1. Validação básica de senha ainda no Front (opcional, mas bom)
     if (senha_funcionario.value !== confSenha_funcionario.value) {
         erroPass.forEach(err => err.classList.add("erro"));
-        console.log("As senhas não coincidem!");
+        alert("As senhas não coincidem!");
         return; // Para a execução aqui
+    }
+
+    if (!salario_funcionario.value || parseFloat(salario_funcionario.value) <= 0) {
+        alert("Por favor, insira um salário válido.");
+        salario_funcionario.focus();
+        return;
     }
 
     // 2. Criar o "Envelope" FormData
@@ -171,9 +162,11 @@ btn_salvar.addEventListener("click", (evt) => {
     // 3. Adicionar os campos de texto
     formData.append("nome", nome_funcionario.value);
     formData.append("email", email_funcionario.value);
-    formData.append("cpf", CPF_funcionario.value);
+    formData.append("cpf", cpfLimpo); // Enviamos o CPF limpo (apenas números)
+    formData.append("telefone", telLimpo); // Enviamos o telefone limpo
     formData.append("tipo", tipo_funcionario.value);
     formData.append("senha", senha_funcionario.value);
+    formData.append("salario", salario_funcionario.value);
     formData.append("data_admissao", data_admissao_funcionario.value);
 
     // 4. Adicionar a IMAGEM (O pulo do gato)
@@ -190,12 +183,16 @@ btn_salvar.addEventListener("click", (evt) => {
     })
     .then(res => res.json())
     .then(data => {
-        console.log("Sucesso:", data);
-        alert("Funcionário cadastrado!");
-        window.location.reload()
+        if (data.mensagem.includes("Erro") || data.mensagem.includes("já cadastrado")) {
+            alert(data.mensagem);
+        } else {
+            console.log("Sucesso:", data);
+            alert("Funcionário cadastrado com sucesso!");
+            window.location.reload();
+        }
     })
     .catch(erro => {
         console.error("Erro ao enviar:", erro);
+        alert("Erro ao cadastrar funcionário. Verifique o console.");
     });
 });
-

@@ -17,7 +17,7 @@
     </div>
 
     <div class="container">
-        <form id="form-funcionario">
+        <form id="form-funcionario" enctype="multipart/form-data">
             
             <div class="form-header">
                 <h2>Dados do Funcionário</h2>
@@ -88,19 +88,17 @@
                 </div>
 
                 <!-- FOTO -->
-                 <form id="formFuncionario" enctype="multipart/form-data">
-                    <div class="foto-container">
-                        <div class="foto-preview" id="foto-preview">
-                            <span class="placeholder">👤</span>
-                        </div>
-                        <div class="foto-upload">
-                            <label for="foto">Foto do funcionário</label>
-                            <input type="file" id="foto" name="foto_funcionario" accept="image/*">
-                            
-                            <small>A imagem será processada pelo servidor</small>
-                        </div>
+                <div class="foto-container">
+                    <div class="foto-preview" id="foto-preview">
+                        <span class="placeholder">👤</span>
                     </div>
-                </form>
+                    <div class="foto-upload">
+                        <label for="foto">Foto do funcionário</label>
+                        <input type="file" id="foto" name="foto_funcionario" accept="image/*">
+                        
+                        <small>A imagem será processada pelo servidor</small>
+                    </div>
+                </div>
 
 <!-- 
                 <div class="campo-grupo">
@@ -114,7 +112,7 @@
 
             <!-- FOOTER -->
             <div class="form-footer">
-                <button type="button" onclick="window.history.back()" class="btn btn-cancelar">
+                <button type="button" class="btn btn-cancelar" onclick="window.location.href = '/dashboard_adm'">
                     Cancelar
                 </button>
                 <button type="button" id="btn_salvar" class="btn btn-salvar">

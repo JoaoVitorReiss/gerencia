@@ -1018,7 +1018,7 @@ const bcrypt = require('bcryptjs');
 
 app.post("/cadastrar-funcionario", authenticateJWT, requireAdm, upload.single("foto_funcionario"), async (req, res) => {
     try {
-        const { nome, email, cpf, tipo, senha, data_admissao, salario } = req.body;
+        const { nome, email, cpf, tipo, senha, data_admissao, salario, telefone } = req.body;
 
         // 1. Validação de Campos Obrigatórios
         if (!nome || !email || !cpf || !senha) {
@@ -1035,7 +1035,7 @@ app.post("/cadastrar-funcionario", authenticateJWT, requireAdm, upload.single("f
         const senhaCriptografada = await bcrypt.hash(senha, salt);
 
         // 4. Preparação do caminho da foto
-        const foto_url = req.file ? `img/funcionarios/${req.file.filename}` : 'img/funcionarios/default.png';
+        const foto_url = req.file ? `/img/funcionarios/${req.file.filename}` : '/img/funcionarios/default.png';
 
         // 5. Chamar a função do Banco de Dados (que vamos criar abaixo)
         const resultado = await db.cadastrarFuncionario({
@@ -1046,6 +1046,7 @@ app.post("/cadastrar-funcionario", authenticateJWT, requireAdm, upload.single("f
             senha: senhaCriptografada, // Enviamos o HASH, não a senha pura
             data_admissao,
             salario: salario || 0,
+            telefone,
             foto_url
         });
 
@@ -1101,6 +1102,7 @@ app.use(authRoutes);
 app.get("/logout", (req, res) => {
     res.cookie('jwt', '', { maxAge: 1 }); // Expira o cookie imediatamente (1 milissegundo)
     res.redirect('/login'); // Redireciona para a página de login
+    
 });
 
 app.listen(porta, () => {
