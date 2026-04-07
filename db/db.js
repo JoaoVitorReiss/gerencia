@@ -833,7 +833,6 @@ const restaurar_item = async (idItem, idUsuario) => {
 
 
 // Essa função é para adcionar novos usuarios no nosso base dados
-
 const cadastrarFuncionario = async (dados) => {
     try {
         const conectar = await conecta_banco();
@@ -869,6 +868,34 @@ const cadastrarFuncionario = async (dados) => {
     }
 };
 
+
+// Essa função busca os dados do usuário logado, dados como: Nome, E=mail, CPF...etc
+const buscarFuncionarioLogado = async (id) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                nome_funcionario_funcionario AS nome_funcionario,
+                email_funcionario_funcionario AS email_funcionario,
+                cpf_funcionario AS cpf_funcionario,
+                telefone_funcionario AS telefone_funcionario,
+                salario_funcionario AS salario_funcionario,
+                DATE_FORMAT(data_admissao, '%Y-%m-%d') AS data_admissao,
+                foto_url
+            FROM funcionarios
+            WHERE id_funcionario_funcionario = ?;
+        `;
+
+        const [linhas] = await conectar.query(sql, [id]);
+
+        // Retorna o primeiro funcionário encontrado ou null se não existir
+        return linhas.length > 0 ? linhas[0] : null;
+
+    } catch (erro) {
+        console.error("Erro ao buscar detalhes do funcionário:", erro);
+        throw erro;
+    }
+};
 module.exports = { 
     //verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -900,6 +927,7 @@ module.exports = {
     exclusaoDefinitiva,
     restaurar_item,
     pesquisarProdutos,
-    cadastrarFuncionario
+    cadastrarFuncionario,
+    buscarFuncionarioLogado
     //dados_vendedor
 };

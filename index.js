@@ -831,8 +831,8 @@ app.post("/historico_deletados", authenticateJWT, requireAdm, async (req, res) =
 // Rota para Restaurar item excluido
 app.post("/restaurar_item", authenticateJWT, requireAdm, async (req, res) => {
     try {
-        const { id, id_user } = req.body;
-        await db.restaurar_item(id, id_user);
+        const { id } = req.body;
+        await db.restaurar_item(id, req.user.id);
         res.status(200).json({ mensagem: "Item restaurado com sucesso!" });
     } catch(err) {
         res.status(500).json({ mensagem: "Erro ao restaurar item." });
@@ -842,8 +842,8 @@ app.post("/restaurar_item", authenticateJWT, requireAdm, async (req, res) => {
 // Rota para Excluir definitivamente
 app.post("/exclusao_definitiva", authenticateJWT, requireAdm, async (req, res) => {
     try {
-        const { id, id_user } = req.body;
-        await db.exclusaoDefinitiva(id, id_user);
+        const { id } = req.body;
+        await db.exclusaoDefinitiva(id, req.user.id);
         res.status(200).json({ mensagem: "Item excluído definitivamente!" });
     } catch(err) {
         if (err.code === 'ER_ROW_IS_REFERENCED_2' || err.code === 'ER_ROW_IS_REFERENCED') {
@@ -884,7 +884,7 @@ app.post("/dell_item", authenticateJWT, requireAdm, async (req, res) => {
     try{
 
         const  id_item  = req.body;
-        const dell = await db.dell_item(id_item.id, id_item.id_user);
+        const dell = await db.dell_item(id_item.id, req.user.id);
 
         res.status(200).json({ mensagem: "Item inativado com sucesso." });
 
@@ -899,7 +899,7 @@ app.post("/dell_item", authenticateJWT, requireAdm, async (req, res) => {
 // Rota para atualizar item e adicionar dados no estoque_log
 app.post("/atualiza_item", authenticateJWT, requireAdm,  async (req, res) => {
     try{
-        const dados =  req.body;
+        const dados = { ...req.body, id_usuario: req.user.id };
         const atualiza_comLog = await db.atualizarComLog(dados);
 
         res.status(200).json({
@@ -917,7 +917,7 @@ app.post("/atualiza_item", authenticateJWT, requireAdm,  async (req, res) => {
 // Rota para adicionar um novo item, caso esse itém ja exixta, "atualizar" o preço ou o estouque e adicionado dados no estoque_log
 app.post("/additem", authenticateJWT, requireAdm, async (req, res) => {
     try{
-        const payload = req.body;
+        const payload = { ...req.body, id_user: req.user.id };
         const add_item = db.adicionarOuReporComLog(payload)
 
         res.status(200).json({
@@ -1065,7 +1065,27 @@ app.post("/cadastrar-funcionario", authenticateJWT, requireAdm, upload.single("f
 
 
 
-
+// Rota para exibir os dados do usuario logado (para a dashboard de perfil)
+app.post("/dadosUserLogado", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const id = req.body.id_usuario
+        if(id){
+            const dadosUser = await db.buscarFuncionarioLogado(id);
+            res.status(200).json({
+                dados: dadosUser
+            })
+        }else {
+            res.status(400).json({
+                mensagem: "ID do usuário não informado"
+            })
+        }
+        
+    }catch (error) {
+        res.status(500).json({
+            mensagem: "Erro interno ao buscar dados do usuário."
+        })
+    }
+})
 
 
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {

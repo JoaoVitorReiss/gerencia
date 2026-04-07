@@ -118,6 +118,7 @@ body {
     color: white;
     border: none;
     padding: 10px 20px;
+    margin-bottom: 10px;
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
@@ -172,3 +173,135 @@ svg {
     transition: width 0.3s ease;
 }
 
+
+
+
+/* ====================== MODAL VISUALIZAR FUNCIONÁRIO ====================== */
+
+#modal-overlay-visualizar {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(3px);
+}
+
+#modal-visualizar-container {
+    background: white;
+    width: 180%;
+    height: 100%;
+    max-width: 460px;
+    max-height: 800px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 20px 25px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #325088;
+    font-size: 1.4rem;
+}
+
+#fechar-modal-visualizar {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+    line-height: 1;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.foto-perfil-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+.foto-perfil {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 4px solid #325088;
+    background: #f8f9fa;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.foto-perfil img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.foto-perfil .placeholder {
+    font-size: 4.5rem;
+    color: #ccc;
+}
+
+.info-grupo {
+    margin-bottom: 18px;
+}
+
+.info-grupo label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.info-grupo p {
+    font-size: 1.05rem;
+    color: #333;
+    background: #f9f9f9;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin: 0;
+}
+
+.linha-dupla {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.modal-footer {
+    padding: 20px 25px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+    text-align: right;
+}
+
+.btn-fechar {
+    background: #6c757d;
+    color: white;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    cursor: pointer;
+}
+
+.btn-fechar:hover {
+    background: #5a6268;
+}

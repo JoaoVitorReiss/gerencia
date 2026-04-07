@@ -1,3 +1,96 @@
+const usuarioLogado = window.usuarioLogado.id;
+class ModalVisualizarFuncionario {
+
+    static abrir(funcionario) {
+
+        if (!funcionario) {
+            funcionario = {
+                nome_funcionario: "undefined",
+                email_funcionario: "undefined",
+                cpf_funcionario: "undefined",
+                telefone_funcionario: "undefined",
+                foto_url: null
+            };
+        }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'modal-overlay-visualizar';
+
+        const nivelTexto = funcionario.nivel == 2 ? 'Administrador' : 'Vendedor';
+
+        overlay.innerHTML = `
+            <div id="modal-visualizar-container">
+                <div class="modal-header">
+                    <h2>Perfil do Funcionário</h2>
+                    <button id="fechar-modal-visualizar">&times;</button>
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- FOTO DE PERFIL -->
+                    <div class="foto-perfil-container">
+                        <div class="foto-perfil">
+                            ${funcionario.foto_url 
+                                ? `<img src="${funcionario.foto_url}" alt="Foto de ${funcionario.nome_funcionario}">`
+                                : `<span class="placeholder">👤</span>`
+                            }
+                        </div>
+                    </div>
+
+                    <!-- INFORMAÇÕES -->
+                    <div class="info-grupo">
+                        <label>Nome Completo</label>
+                        <p>${funcionario.nome_funcionario}</p>
+                    </div>
+
+                    <div class="info-grupo">
+                        <label>E-mail</label>
+                        <p>${funcionario.email_funcionario}</p>
+                    </div>
+
+                    <div class="linha-dupla">
+                        <div class="info-grupo">
+                            <label>CPF</label>
+                            <p>${funcionario.cpf_funcionario || 'Não informado'}</p>
+                        </div>
+                        <div class="info-grupo">
+                            <label>Telefone</label>
+                            <p>${funcionario.telefone_funcionario || 'Não informado'}</p>
+                        </div>
+                    </div>
+
+            
+                <div class="modal-footer">
+                    <button type="button" class="btn-fechar" id="btn-fechar-visualizar">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Eventos
+        const fechar = () => overlay.remove();
+
+        document.getElementById('fechar-modal-visualizar').onclick = fechar;
+        document.getElementById('btn-fechar-visualizar').onclick = fechar;
+
+        // Fechar clicando fora
+        overlay.onclick = (e) => {
+            if (e.target === overlay) fechar();
+        };
+
+        // Fechar com ESC
+        document.addEventListener('keydown', function escHandler(e) {
+            if (e.key === 'Escape') {
+                fechar();
+                document.removeEventListener('keydown', escHandler);
+            }
+        });
+    }
+}
+window.ModalVisualizarFuncionario = ModalVisualizarFuncionario;
 class gerir_funcionarios {
 
     static logout() {
@@ -15,23 +108,61 @@ class gerir_funcionarios {
         }
     })
     }
+    static async dadosUsuario() {
+
+        const btn_dadosUser = document.getElementById("btn_dadosuser");
+
+        btn_dadosUser.addEventListener("click", async (evt) => {
+            const dados = JSON.stringify({id_usuario: usuarioLogado});
+            try {
+                const res = await fetch("/dadosUserLogado", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: dados
+                });
+
+                if(res.ok){
+                    const payload = await res.json();
+                    console.log(payload);
+                    ModalVisualizarFuncionario.abrir(payload.dados);
+                }else {
+                    console.log("Resposta falhada")
+                }
+            }catch(erro) {
+                console.log("Erro ao tentar acessar a rota para buscar os dados: " + erro)
+            }
+        })
+
+    }
     static logautStyle() {
         
         const btn_perfil = document.getElementById("perfil");
         const btn_arrowPerfil = document.getElementById("iconArrowPerfil");
-        const btn_logoutClass = document.getElementsByClassName("btn-primary-vendas");
+        const btn_logoutC = document.querySelectorAll(".btn-primary-vendas");
+
+
 
         btn_perfil.addEventListener("click", (evt) => {
             evt.preventDefault();
-            if(btn_logoutClass[0].style.display === "none"){
-                btn_arrowPerfil.style.transform = "rotate(180deg)";
-                btn_logoutClass[0].style.display = "block";
-            }else{
-                btn_logoutClass[0].style.display = "none";
+            if(btn_arrowPerfil.style.transform === "rotate(180deg)"){
                 btn_arrowPerfil.style.transform = "rotate(0deg)";
+                btn_logoutC.forEach((btn) => {
+                    if(btn.style.display === "none"){
+                        btn.style.display = "block";
+                    }else{
+                        btn.style.display = "none";
+                    }
+                })
+            }else{
+                btn_arrowPerfil.style.transform = "rotate(180deg)";
+                btn_logoutC.forEach((btn) => {
+                    if(btn.style.display === "none"){
+                        btn.style.display = "block";
+                    }else{
+                        btn.style.display = "none";
+                    }
+                })
             }
-
-            
         })
     }
     static layout_funcionarios(){
@@ -59,6 +190,7 @@ class gerir_funcionarios {
         this.layout_funcionarios();
         this.logautStyle();
         this.logout();
+        this.dadosUsuario();
     }
 };
 
