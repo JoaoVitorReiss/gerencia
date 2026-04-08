@@ -1,0 +1,1 @@
+console.log("Página acessada! e script carregado")

@@ -1065,6 +1065,24 @@ app.post("/cadastrar-funcionario", authenticateJWT, requireAdm, upload.single("f
 
 
 
+// Parte para a criação das lógicas para lista de funcionarios.
+app.get("/funcionarios", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        let html = await fs.readFile(path.join(__dirname, "views", "lista_funcionario.html"), "utf-8");
+        res.status(200).send(html);
+
+    }catch (erro) {
+        console.error("Erro ao carregar a página de controle de estoque: " + erro);
+        res.status(500).json({
+            mensagem: "Erro interno ao carregar a página de controle de estoque."
+        })
+    }
+})
+
+
+
+
+
 // Rota para exibir os dados do usuario logado (para a dashboard de perfil)
 app.post("/dadosUserLogado", authenticateJWT, requireAdm, async (req, res) => {
     try {

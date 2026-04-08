@@ -72,7 +72,8 @@ module.exports.login_post = async (req, res) => {
             const senhaCorreta = await bcrypt.compare(senha, funcionario.senha_funcionario_funcionario); 
             
             if (senhaCorreta) {
-
+                // 1. Registro no banco que o usuário ACABOU de entrar
+                await db.registrarLogin(funcionario.id_funcionario_funcionario);
                 let papelDoUsuario; 
                                    
                 const token = createToken(funcionario.id_funcionario_funcionario, funcionario.tipo_funcionario_funcionario)

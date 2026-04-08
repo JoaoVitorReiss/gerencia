@@ -1,5 +1,6 @@
 // middlewares/authMiddleware.js
 const jwt = require("jsonwebtoken");
+const db = require('../db/db.js');
 
 // Middleware de AUTENTICAÇÃO: Verifica a validade do JWT e anexa o usuário ao req
 const authenticateJWT = (req, res, next) => { // Renomeado de requireAuth para authenticateJWT
@@ -20,7 +21,9 @@ const authenticateJWT = (req, res, next) => { // Renomeado de requireAuth para a
             // Assim, outros middlewares e rotas podem acessar req.user.id, req.user.tipo, etc.
             req.user = decodedToken; 
             console.log("JWT válido. Usuário decodificado:", req.user.id, "Tipo:", req.user.tipo);
+            db.atualizarAtividade(req.user.id);
             next(); // Continua para o próximo middleware ou rota
+
         }
     });
 };

@@ -896,6 +896,34 @@ const buscarFuncionarioLogado = async (id) => {
         throw erro;
     }
 };
+
+
+
+
+// Função para atualizar o "pulso" de atividade do funcionário
+const atualizarAtividade = async (id) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = "UPDATE funcionarios SET ultima_atividade = NOW() WHERE id_funcionario_funcionario = ?";
+        await conectar.query(sql, [id]);
+    } catch (erro) {
+        console.error("Erro ao atualizar atividade no DB:", erro);
+        // Não lançamos o erro (throw) para não travar a navegação do usuário 
+        // caso o log de atividade falhe por algum motivo momentâneo
+    }
+};
+// Função para registrar o  ultimo login do funcionário
+const registrarLogin = async (id) => {
+    try {
+        const conectar = await conecta_banco();
+        // Atualizamos o login e também a atividade inicial
+        const sql = "UPDATE funcionarios SET ultimo_login = NOW(), ultima_atividade = NOW() WHERE id_funcionario_funcionario = ?";
+        await conectar.query(sql, [id]);
+    } catch (erro) {
+        console.error("Erro ao registrar data de login:", erro);
+    }
+};
+
 module.exports = { 
     //verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -928,6 +956,9 @@ module.exports = {
     restaurar_item,
     pesquisarProdutos,
     cadastrarFuncionario,
-    buscarFuncionarioLogado
+    buscarFuncionarioLogado,
+    atualizarAtividade,
+    registrarLogin
+    
     //dados_vendedor
 };
