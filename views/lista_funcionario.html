@@ -11,14 +11,38 @@
     <nav>
         <a href="dashboard_adm" title="Voltar para a Dashboard"> <svg xmlns="http://www.w3.org/2000/svg" height="45px" viewBox="0 -960 960 960" width="45px" fill="#325088"><path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"/></svg></a>
     </nav>
-    <h1>Lista de Funcionários</h1>
+    
+    <div class="container">
+        <div class="toolbar">
+            <input type="text" id="busca" placeholder="Buscar por nome, email ou CPF..." onkeyup="filtrarTabela()">
+            <select id="filtro-status" onchange="filtrarTabela()">
+                <option value="">Todos os status</option>
+                <option value="online">🟢 Online</option>
+                <option value="ausente">🟠 Ausente</option>
+                <option value="offline">🔴 Offline</option>
+            </select>
+        </div>
 
+        <table id="tabela-funcionarios">
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Telefone</th>
+                    <th>Nível</th>
+                    <th>Salário</th>
+                    <th>Status</th>
+                    <th>Última Atividade</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-funcionarios">
+                <!-- Preenchido via JavaScript -->
+            </tbody>
+        </table>
+    </div>
 
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Vitae consequatur quo dolores alias voluptatibus fugiat harum hic repellat aliquam. Culpa cupiditate laboriosam dolore sapiente ipsum nulla nihil dicta laborum suscipit. Lorem ipsum dolor sit amet consectetur adipisicing elit. Reprehenderit molestiae illo quibusdam dolorem officiis debitis iste eaque delectus nihil? At quos quis laboriosam repellat quod alias temporibus saepe voluptas magni! Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo tempore, odit asperiores laborum dolore enim molestias ipsam numquam, dolores minus repellendus nesciunt voluptatibus aperiam! Optio pariatur esse enim saepe corporis. Lorem ipsum dolor sit amet consectetur adipisicing elit. Vitae quibusdam numquam ducimus. Fugiat fuga dolorum impedit error aliquid numquam repellat sequi atque! Laudantium animi, ducimus consectetur sequi at quisquam incidunt. Lorem ipsum dolor sit amet consectetur adipisicing elit. Perferendis at illum ducimus, inventore sit impedit beatae. Repellat, ex fuga, beatae minus delectus voluptate hic dignissimos rerum adipisci doloribus quam eos?</p>
-    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui dolores natus eos quo blanditiis. Vitae, ipsa, autem sapiente ea eius nihil est omnis animi in voluptatem recusandae nisi error expedita. Lorem ipsum dolor sit amet consectetur, adipisicing elit. Necessitatibus, illum vitae. Porro rem non ratione cumque qui, fugiat nesciunt, beatae facilis officiis ipsam molestiae odit tempora sint, error dolore accusantium.</p>
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas, vitae cupiditate quis doloribus expedita commodi eius eligendi dolorum, dolores accusamus quibusdam cumque! Excepturi consequuntur consectetur, repellendus harum aspernatur aliquam alias? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, dolore velit qui laboriosam, doloremque iure commodi excepturi cupiditate expedita adipisci nihil quos vitae sunt, a consectetur quam dolorem dolores deleniti. Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta necessitatibus ab quas commodi qui natus! Incidunt temporibus debitis accusamus hic veritatis, sunt eligendi harum impedit ea odit totam dignissimos ipsa. Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus, dolor recusandae error nihil omnis enim esse fugit blanditiis similique? Cumque quibusdam adipisci impedit delectus nobis vel repellendus? Neque, non facere.</p>
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Itaque illo voluptatem inventore porro numquam aspernatur suscipit mollitia quo pariatur delectus laboriosam quam, quisquam velit quasi cupiditate! Amet impedit architecto doloremque. Lorem ipsum dolor, sit amet consectetur adipisicing elit. Vitae sunt quidem ex rem itaque accusamus esse, repellat tenetur, impedit repellendus et mollitia illum earum officia maiores tempora atque consectetur nobis.</p>
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quam odit ratione iste dolorem suscipit modi laudantium soluta, veritatis cupiditate tempore minus cum, vero voluptatum reprehenderit amet numquam, architecto alias ullam.</p>
     <script type="module" src="/js/lista_Funcionarios.js"></script>
 </body>
 </html>

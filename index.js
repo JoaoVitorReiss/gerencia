@@ -1105,6 +1105,31 @@ app.post("/dadosUserLogado", authenticateJWT, requireAdm, async (req, res) => {
     }
 })
 
+// Rota para pegar a lista completa de funcionarios
+app.get("/lista_Cfuncionarios", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const list_funcionarios = await db.lista_funcioarios();
+
+        //console.log(list_funcionarios);
+        
+        if(list_funcionarios) {
+            res.status(200).json({
+                mensagem: "Lista de funcionários obtida com sucesso!",
+                lista: list_funcionarios
+            })       
+        }else {
+            res.status(404).json({
+                mensagem: "Nenhum funcionário encontrado"
+            })
+        }
+    }catch(error) {
+        res.status(500).json({
+            mensagem: "Erro interno ao obter a lista de funcionários."
+        })
+    }
+})
+
+
 
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
     try {
@@ -1138,6 +1163,12 @@ app.use(authRoutes);
 
 // Rota de Logout
 app.get("/logout", (req, res) => {
+    const idUser = req.user;
+  
+        console.log("===============================================================")
+        console.log(idUser);
+        console.log("===============================================================")
+ 
     res.cookie('jwt', '', { maxAge: 1 }); // Expira o cookie imediatamente (1 milissegundo)
     res.redirect('/login'); // Redireciona para a página de login
     

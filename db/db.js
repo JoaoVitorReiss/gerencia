@@ -47,6 +47,30 @@ const buscarFuncionarioPorEmail = async (email) => {
     }
 };
 
+// Função para atualizar o "pulso" de atividade do funcionário
+const atualizarAtividade = async (id) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = "UPDATE funcionarios SET ultima_atividade = NOW() WHERE id_funcionario_funcionario = ?";
+        await conectar.query(sql, [id]);
+    } catch (erro) {
+        console.error("Erro ao atualizar atividade no DB:", erro);
+        // Não lançamos o erro (throw) para não travar a navegação do usuário 
+        // caso o log de atividade falhe por algum motivo momentâneo
+    }
+};
+// Função para registrar o  ultimo login do funcionário
+const registrarLogin = async (id) => {
+    try {
+        const conectar = await conecta_banco();
+        // Atualizamos o login e também a atividade inicial
+        const sql = "UPDATE funcionarios SET ultimo_login = NOW(), ultima_atividade = NOW() WHERE id_funcionario_funcionario = ?";
+        await conectar.query(sql, [id]);
+    } catch (erro) {
+        console.error("Erro ao registrar data de login:", erro);
+    }
+};
+
 // esta função busca o funcionário pelo ID
 const buscarFuncionarioPorId = async (id) => {
     try {
@@ -898,32 +922,19 @@ const buscarFuncionarioLogado = async (id) => {
 };
 
 
-
-
-// Função para atualizar o "pulso" de atividade do funcionário
-const atualizarAtividade = async (id) => {
-    try {
+// Essa função retorna a lista de todos os funcionários cadastrados.
+const lista_funcioarios = async() => {
+    try  {
         const conectar = await conecta_banco();
-        const sql = "UPDATE funcionarios SET ultima_atividade = NOW() WHERE id_funcionario_funcionario = ?";
-        await conectar.query(sql, [id]);
-    } catch (erro) {
-        console.error("Erro ao atualizar atividade no DB:", erro);
-        // Não lançamos o erro (throw) para não travar a navegação do usuário 
-        // caso o log de atividade falhe por algum motivo momentâneo
-    }
-};
-// Função para registrar o  ultimo login do funcionário
-const registrarLogin = async (id) => {
-    try {
-        const conectar = await conecta_banco();
-        // Atualizamos o login e também a atividade inicial
-        const sql = "UPDATE funcionarios SET ultimo_login = NOW(), ultima_atividade = NOW() WHERE id_funcionario_funcionario = ?";
-        await conectar.query(sql, [id]);
-    } catch (erro) {
-        console.error("Erro ao registrar data de login:", erro);
-    }
-};
+        const sql = "SELECT id_funcionario_funcionario, nome_funcionario_funcionario, email_funcionario_funcionario, tipo_funcionario_funcionario, cpf_funcionario, salario_funcionario, data_admissao, data_demissao, telefone_funcionario, foto_url, ultimo_login, ultima_atividade FROM funcionarios";
+        const [linhas] = await conectar.query(sql);
+        return linhas;
 
+    }catch (error) {
+        console.error("Erro ao buscar a lista de funcionários: " + error);
+        throw error
+    }
+}
 module.exports = { 
     //verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -958,7 +969,8 @@ module.exports = {
     cadastrarFuncionario,
     buscarFuncionarioLogado,
     atualizarAtividade,
-    registrarLogin
+    registrarLogin,
+    lista_funcioarios
     
     //dados_vendedor
 };
