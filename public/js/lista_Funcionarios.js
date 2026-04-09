@@ -79,7 +79,7 @@ class GetLista {
                 <td class="acoes">
                     <button class="btn-ver" onclick="verFuncionario(${func.id_funcionario_funcionario})">Ver</button>
                     <button class="btn-edit" onclick="editarFuncionario(${func.id_funcionario_funcionario})">Editar</button>
-                    <button class="btn-excluir" onclick="excluirFuncionario(${func.id_funcionario_funcionario})">Excluir</button>
+                    <!-- <button class="btn-excluir" onclick="excluirFuncionario(${func.id_funcionario_funcionario})">Excluir</button> -->
                 </td>
             `;
             tbody.appendChild(row);
