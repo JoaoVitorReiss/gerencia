@@ -64,12 +64,24 @@ const registrarLogin = async (id) => {
     try {
         const conectar = await conecta_banco();
         // Atualizamos o login e também a atividade inicial
-        const sql = "UPDATE funcionarios SET ultimo_login = NOW(), ultima_atividade = NOW() WHERE id_funcionario_funcionario = ?";
+        const sql = "UPDATE funcionarios SET ultimo_login = NOW(), ultima_atividade = NOW(), status_online = 1 WHERE id_funcionario_funcionario = ?";
         await conectar.query(sql, [id]);
     } catch (erro) {
         console.error("Erro ao registrar data de login:", erro);
     }
 };
+
+// Função para deixar o funcionario ofline após o logout;
+const logoutoffline = async (id) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = "UPDATE funcionarios SET status_online = 0 WHERE id_funcionario_funcionario = ?";
+        await conectar.query(sql, [id]);
+
+    }catch (erro) {
+        console.error("Erro ao deixar o funcionario offline: " + erro);
+    }
+}
 
 // esta função busca o funcionário pelo ID
 const buscarFuncionarioPorId = async (id) => {
@@ -926,7 +938,7 @@ const buscarFuncionarioLogado = async (id) => {
 const lista_funcioarios = async() => {
     try  {
         const conectar = await conecta_banco();
-        const sql = "SELECT id_funcionario_funcionario, nome_funcionario_funcionario, email_funcionario_funcionario, tipo_funcionario_funcionario, cpf_funcionario, salario_funcionario, data_admissao, data_demissao, telefone_funcionario, foto_url, ultimo_login, ultima_atividade FROM funcionarios";
+        const sql = "SELECT id_funcionario_funcionario, nome_funcionario_funcionario, email_funcionario_funcionario, tipo_funcionario_funcionario, cpf_funcionario, salario_funcionario, data_admissao, data_demissao, telefone_funcionario, foto_url, ultimo_login, ultima_atividade, status_online FROM funcionarios";
         const [linhas] = await conectar.query(sql);
         return linhas;
 
@@ -970,7 +982,8 @@ module.exports = {
     buscarFuncionarioLogado,
     atualizarAtividade,
     registrarLogin,
-    lista_funcioarios
+    lista_funcioarios,
+    logoutoffline
     
     //dados_vendedor
 };

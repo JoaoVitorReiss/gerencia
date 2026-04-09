@@ -1162,13 +1162,9 @@ app.use(authRoutes);
 
 
 // Rota de Logout
-app.get("/logout", (req, res) => {
-    const idUser = req.user;
-  
-        console.log("===============================================================")
-        console.log(idUser);
-        console.log("===============================================================")
- 
+app.post("/logout", (req, res) => {
+    const idUser = req.body.id;
+    db.logoutoffline(idUser);
     res.cookie('jwt', '', { maxAge: 1 }); // Expira o cookie imediatamente (1 milissegundo)
     res.redirect('/login'); // Redireciona para a página de login
     

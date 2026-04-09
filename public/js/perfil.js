@@ -181,10 +181,28 @@ class dados_userLogado {
 
                                 });
 
-                                // Evento de logout
+                                // Evento de logou
                                 btnLogout.addEventListener('click', () => {
-                                    window.location.href = '/logout';
-                                });
+                                    const idlogout = resposta_user.id;
+
+                                    if (idlogout) {
+                                        fetch("/logout", {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ id: idlogout })
+                                        })
+                                        .then(resposta => {
+                                            if (resposta.ok) {
+                                                window.location.href = "/login";
+                                            } else {
+                                                console.error("Erro ao fazer logout.");
+                                            }
+                                        })
+                                        .catch(erro => {
+                                            console.error("Erro ao fazer logout: " + erro);
+                                        });
+                                    }
+                                }); 
                             }
                         });
                        

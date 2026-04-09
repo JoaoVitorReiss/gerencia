@@ -100,7 +100,11 @@ class gerir_funcionarios {
     btn_logout.addEventListener("click", async(evt) => {
         evt.preventDefault();
         try{
-            const resposta = await fetch("/logout", {})
+            const resposta = await fetch("/logout", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: usuarioLogado })
+            });
             location.assign('/');
         }catch(err){
             alert("Erro ao fazer o logout")
