@@ -16,6 +16,13 @@
     <div class="relatorio-container">
         <header class="relatorio-header">
             <h1>Relatório de Vendas</h1>
+            <div style="margin: 15px 0; font-size: 0.95em; display: flex; align-items: center; gap: 15px;">
+                <label style="cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="auto-refresh-toggle" checked>
+                    Atualizar automaticamente a cada 3 minutos
+                </label>
+                <span id="last-updated" style="color: #666; font-weight: 500;"></span>
+            </div>
             <div class="filtros-periodo" id="interval_time">
                 <button class="btn-filtro active" value="1">Hoje</button>
                 <button class="btn-filtro" value="7">7 Dias</button>

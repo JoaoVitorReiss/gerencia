@@ -1,39 +1,71 @@
 let instaciaGrafico;
 let instanciaRosca;
+
 class DataSelect {
+    static currentInicio = null;
+    static currentFim = null;
+    static autoRefreshInterval = null;
+
+    static async enviarParaServidor(inicio, fim) {
+        try {
+            const resposta = await fetch("/relatorio_balanco", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inicio, fim })
+            });
+
+            const res = await resposta.json();
+
+            if (resposta.ok) {
+                this.atualizaCard(res.dados);
+                this.desenharGrafico(res.dados.graficoFaturamento);
+                this.desenharGraficoPagamento(res.dados.graficoPagamento);
+                this.renderizarTabelaProdutos(res.dados.produtosTop);
+                this.preencherInsights(res.dados);
+                this.gerarRelatorioEscrito(res.dados);
+
+                // Salva o período atual para o refresh automático
+                this.currentInicio = inicio;
+                this.currentFim = fim;
+                this.updateLastUpdated();
+            }
+        } catch (error) {
+            console.error("Erro no fetch:", error);
+        }
+    }
+
+    static updateLastUpdated() {
+        const el = document.getElementById("last-updated");
+        if (el) {
+            const agora = new Date();
+            el.textContent = `Última atualização: ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+        }
+    }
+
+    static startAutoRefresh() {
+        this.stopAutoRefresh(); // evita múltiplos intervals
+        this.autoRefreshInterval = setInterval(() => {
+            if (this.currentInicio && this.currentFim) {
+                this.enviarParaServidor(this.currentInicio, this.currentFim);
+            }
+        }, 3 * 60 * 1000); // 3 minutos
+    }
+
+    static stopAutoRefresh() {
+        if (this.autoRefreshInterval) {
+            clearInterval(this.autoRefreshInterval);
+            this.autoRefreshInterval = null;
+        }
+    }
+
     static async data_selecionada() {
         const formatarData = (data) => data.toISOString().split('T')[0];
-
-        const enviarParaServidor = async (inicio, fim) => {
-            try {
-                const resposta = await fetch("/relatorio_balanco", {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ inicio, fim })
-                });
-                const res = await resposta.json();
-                if (resposta.ok) {
-
-                    this.atualizaCard(res.dados);
-                    this.desenharGrafico(res.dados.graficoFaturamento);
-                    this.desenharGraficoPagamento(res.dados.graficoPagamento);
-                    this.renderizarTabelaProdutos(res.dados.produtosTop);
-                    this.preencherInsights(res.dados);
-                    this.gerarRelatorioEscrito(res.dados)
-
-                }
-            } catch (error) {
-                console.error("Erro no fetch:", error);
-            };
-        };
 
         // Seletores
         const botoes = document.querySelectorAll(".btn-filtro");
         const inputInicio = document.getElementById("data_inicio");
         const inputFim = document.getElementById("data_fim");
         const btnBuscaManual = document.getElementById("btn_buscar_custom");
-
-
 
         // Lógica dos Botões Rápidos (Hoje, 7d, 30d)
         botoes.forEach(botao => {
@@ -44,7 +76,7 @@ class DataSelect {
                 const hoje = new Date();
                 const dataInicio = new Date();
                 dataInicio.setDate(hoje.getDate() - dias);
-                enviarParaServidor(formatarData(dataInicio), formatarData(hoje));
+                this.enviarParaServidor(formatarData(dataInicio), formatarData(hoje));
             });
         });
 
@@ -54,16 +86,32 @@ class DataSelect {
             const fim = inputFim.value;
 
             if (inicio && fim) {
-                enviarParaServidor(inicio, fim);
+                this.enviarParaServidor(inicio, fim);
             } else {
                 alert("Por favor, selecione as duas datas.");
             }
         });
 
+        // Carregamento inicial (hoje)
         const hojeStr = formatarData(new Date());
-        enviarParaServidor(hojeStr, hojeStr);
+        await this.enviarParaServidor(hojeStr, hojeStr);
+
+        const toggle = document.getElementById("auto-refresh-toggle");
+        if (toggle) {
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    this.startAutoRefresh();
+                } else {
+                    this.stopAutoRefresh();
+                }
+            });
+
+            if (toggle.checked) {
+                this.startAutoRefresh();
+            }
+        }
     }
-    
+
     static atualizaCard(dados) {
         const calcularVariacao = (atual, anterior) => {
             const a = Number(atual) || 0;
@@ -83,12 +131,10 @@ class DataSelect {
         fatValor.innerHTML = `R$ ${Number(dados.atual.faturamento_total).toFixed(2)}`;
         formatarStatus(fatStatus, calcularVariacao(dados.atual.faturamento_total, dados.anterior.faturamento_total));
 
-        
         const vendasValor = document.getElementById("vendas_total");
         const vendasStatus = document.getElementById("vendas_status");
         vendasValor.innerHTML = dados.atual.qtd_vendas;
         formatarStatus(vendasStatus, calcularVariacao(dados.atual.qtd_vendas, dados.anterior.qtd_vendas));
-
 
         const ticketValor = document.getElementById("ticket_total");
         const ticketStatus = document.getElementById("ticket_status");
@@ -97,9 +143,7 @@ class DataSelect {
     };
 
     static desenharGrafico(dadosGrafico) {
-
         const { atual, anterior } = dadosGrafico;
-        //console.log(anterior)
         const ctx = document.getElementById('meuGraficoLinha').getContext('2d');
         if (!dadosGrafico || dadosGrafico.length === 0) {
             console.warn("Nenhum dado encontrado para o gráfico.");
@@ -108,7 +152,6 @@ class DataSelect {
         }
         if (instaciaGrafico) {
             instaciaGrafico.destroy();
-
         }
 
         const labels = atual.map(item => {
@@ -133,7 +176,6 @@ class DataSelect {
             valoresCompletos.push(mapDados.get(str) || 0);
             dataAtual.setDate(dataAtual.getDate() + 1);
         };
-
 
         instaciaGrafico = new Chart(ctx, {
             type: 'line',
@@ -191,6 +233,7 @@ class DataSelect {
             }
         });
     };
+
     static renderizarTabelaProdutos(produtos) {
         const corpoTabela = document.getElementById("corpo-tabela-produtos");
         corpoTabela.innerHTML = ""; // Limpa a tabela anterior
@@ -216,53 +259,50 @@ class DataSelect {
             corpoTabela.innerHTML += linha;
         });
     };
+
     static preencherInsights(dados){
-    const setTexto = (id, texto) => {
-        const elemento = document.getElementById(id);
-        if (elemento) {
-            elemento.innerText = texto;
-        } else {
-            console.warn(`Aviso: Elemento com ID '${id}' não encontrado no HTML.`);
+        const setTexto = (id, texto) => {
+            const elemento = document.getElementById(id);
+            if (elemento) {
+                elemento.innerText = texto;
+            } else {
+                console.warn(`Aviso: Elemento com ID '${id}' não encontrado no HTML.`);
+            }
+        };
+
+        const atualArray = dados.graficoFaturamento.atual || [];
+        const pagamentosArray = dados.graficoPagamento || [];
+        
+        if (atualArray.length > 0) {
+            const melhorDiaObj = [...atualArray].sort((a, b) => b.total - a.total)[0];
+            const dataFormatada = new Date(melhorDiaObj.data + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
+            setTexto("melhor-dia", dataFormatada);
         }
-    };
 
-    const atualArray = dados.graficoFaturamento.atual || [];
-    const pagamentosArray = dados.graficoPagamento || [];
-    
+        if (pagamentosArray.length > 0) {
+            const topMetodo = [...pagamentosArray].sort((a, b) => b.total - a.total)[0];
+            setTexto("metodo-top", topMetodo.metodo || topMetodo.venda_metodo_paga || "N/A");
+        }
 
-    if (atualArray.length > 0) {
-        const melhorDiaObj = [...atualArray].sort((a, b) => b.total - a.total)[0];
-        const dataFormatada = new Date(melhorDiaObj.data + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
-        setTexto("melhor-dia", dataFormatada);
-    }
+        const totalItens = Number(dados.atual.total_itens_vendidos) || 0;
+        const totalVendas = Number(dados.atual.qtd_vendas) || 1;
+        setTexto("itens-por-venda", (totalItens / totalVendas).toFixed(1));
 
-    if (pagamentosArray.length > 0) {
-        const topMetodo = [...pagamentosArray].sort((a, b) => b.total - a.total)[0];
-        setTexto("metodo-top", topMetodo.metodo || topMetodo.venda_metodo_paga || "N/A");
-    }
+        const campoComp = document.getElementById("comparativo-periodo");
+        if (campoComp) {
+            const totalAtual = atualArray.reduce((acc, item) => acc + Number(item.total), 0);
+            const totalAnterior = (dados.graficoFaturamento.anterior || []).reduce((acc, item) => acc + Number(item.total), 0);
 
-    const totalItens = Number(dados.atual.total_itens_vendidos) || 0;
-    const totalVendas = Number(dados.atual.qtd_vendas) || 1;
-    setTexto("itens-por-venda", (totalItens / totalVendas).toFixed(1));
-
-
-    const campoComp = document.getElementById("comparativo-periodo");
-    if (campoComp) {
-        const totalAtual = atualArray.reduce((acc, item) => acc + Number(item.total), 0);
-        const totalAnterior = (dados.graficoFaturamento.anterior || []).reduce((acc, item) => acc + Number(item.total), 0);
-
-        if (totalAnterior > 0) {
-            const variacao = ((totalAtual - totalAnterior) / totalAnterior) * 100;
-            campoComp.innerHTML = `<span style="color: ${variacao >= 0 ? 'green' : 'red'}">${variacao >= 0 ? '↑' : '↓'} ${Math.abs(variacao).toFixed(1)}%</span>`;
-        } else {
-            campoComp.innerText = "Sem histórico";
+            if (totalAnterior > 0) {
+                const variacao = ((totalAtual - totalAnterior) / totalAnterior) * 100;
+                campoComp.innerHTML = `<span style="color: ${variacao >= 0 ? 'green' : 'red'}">${variacao >= 0 ? '↑' : '↓'} ${Math.abs(variacao).toFixed(1)}%</span>`;
+            } else {
+                campoComp.innerText = "Sem histórico";
             }
         }
     }
 
     static gerarRelatorioEscrito(dados) {
-        
-        // 1. Captura de dados 
         const faturamentoAtual = dados.graficoFaturamento?.atual || [];
         const faturamentoAnterior = dados.graficoFaturamento?.anterior || [];
         const produtos = dados.produtosTop || [];
@@ -270,21 +310,16 @@ class DataSelect {
         const itensVenda = document.getElementById("itens-por-venda")?.innerText || "0.0";
         const melhorDia = document.getElementById("melhor-dia")?.innerText || "N/A";
         const metodoDominante = document.getElementById("relatorio-operacional-texto");
-        const datas_perildo =  document.getElementById("periodo-relatorio");
+        const datas_perildo = document.getElementById("periodo-relatorio");
         const data_inicio = dados.datas.data_inicio.split('T')[0];
         const data_fim = dados.datas.data_fim.split('T')[0];
 
-
-        const dadosPg = dados.graficoPagamento
-        console.log(dadosPg)
+        const dadosPg = dados.graficoPagamento;
         const maiorCapital = dadosPg.reduce((a, b) => (a.total > b.total ? a : b), {metodo: "N/A", total: 0});
-
         const maisUtilizado = dadosPg.reduce((a, b) => (a.qtd > b.qtd ? a : b), {metodo: "N/A", qtd: 0});
 
         const metodoDominanteCard = maiorCapital.metodo;
         const popular = maisUtilizado.metodo;
-
-
 
         const totalAtual = faturamentoAtual.reduce((acc, i) => acc + Number(i.total), 0);
         const totalAnterior = faturamentoAnterior.reduce((acc, i) => acc + Number(i.total), 0);
@@ -294,11 +329,11 @@ class DataSelect {
             varPerc = (((totalAtual - totalAnterior) / totalAnterior) * 100).toFixed(1);
         }
 
-        datas_perildo.innerHTML =`
+        datas_perildo.innerHTML = `
             Período: <strong>${data_inicio}</strong> <em>até</em> <strong>${data_fim}</strong>
-        `
+        `;
 
-        //Sumário de Faturamento
+        // Sumário de Faturamento
         const faturamentoTexto = `O faturamento total consolidado foi de R$ ${totalAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. ` +
             (totalAnterior > 0 
                 ? `Este valor apresenta uma variação de ${varPerc}% em relação ao período anterior. ` 
@@ -317,8 +352,7 @@ class DataSelect {
         if (metodoDominanteCard && metodoDominanteCard !== "N/A" && metodoDominanteCard !== "-") {
             metodoDominante.innerHTML = 
                 `A análise de fluxo indica que o método <strong>${metodoDominanteCard}</strong> ` +
-                `é a principal via de entrada de capital. Além disso, o método <strong>${popular}</strong> apresentou a maior frequência de uso. `
-                    +
+                `é a principal via de entrada de capital. Além disso, o método <strong>${popular}</strong> apresentou a maior frequência de uso. ` +
                 `Recomenda-se monitorar as taxas de liquidação e os custos associados a essas modalidades.`;
         } else {
             metodoDominante.innerHTML = 
@@ -326,7 +360,7 @@ class DataSelect {
                 `para uma análise de eficiência operacional.`;
         }
 
-        // Conclusão Tecnica (O diagnóstico final)
+        // Conclusão Técnica
         const campoConclusao = document.getElementById("relatorio-conclusao-texto");
         if (!totalAtual || totalAtual <= 0) {
             campoConclusao.textContent = 
@@ -347,9 +381,10 @@ class DataSelect {
                 "para reverter a tendência de queda.";
         }
     }
-    static async init() {
+
+    static init() {
         this.data_selecionada();
-    };
+    }
 }
 
 DataSelect.init();
