@@ -368,7 +368,7 @@ class acao_Venda {
 
                 //console.log(finalizar_venda_json.redirectUrl);
                 
-                if(finalizar_venda.status === 400){
+                if(finalizar_venda.ok === false){
                     console.log("erro");
                 
                     mostrarMensagem(finalizar_venda_json.mensagem, "erro");
@@ -430,7 +430,7 @@ class acao_Venda {
 
             const finalizar_vendaSacola_json = await finalizar_venda.json();
             
-            if(finalizar_venda.status === 400){
+            if(!finalizar_venda.ok){
                 console.log("erro")
                 mostrarMensagem(finalizar_vendaSacola_json.mensagem, "erro");
             }else{

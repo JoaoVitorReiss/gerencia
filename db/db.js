@@ -170,6 +170,51 @@ const info_user = async (id) => {
     }
 };
 
+// Esta função registra a venda e subtrai o estoque de forma transacional, garantindo que ambos os passos ocorram juntos ou nenhum ocorra em caso de erro
+const registrarVendaTransacao = async (itensVenda) => {
+    const pool = await conecta_banco();
+    const conexao = await pool.getConnection();
+    try {
+        
+        await conexao.beginTransaction();
+        // Para cada item dentro do nosso carrinho (ou item único)
+        for (const item of itensVenda) {
+    
+            //ubtrair o Estoque
+            const sqlEstoque = "UPDATE produtos SET qtd_produto = qtd_produto - ? WHERE id_produto_produto = ?";
+            await conexao.query(sqlEstoque, [item.quantidade_item, item.id_produto]);
+            // inserir o registro da Venda daquele item
+            const sqlVenda = `INSERT INTO vendas (id_produto_venda, id_vendedor_venda, data_venda, data_venda_dia, venda_metodo_paga, venda_valor, venda_troco, venda_data_hora, venda_valor_receb, venda_quantidade_itens, id_transacao, venda_preco_unitario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                
+            await conexao.query(sqlVenda, [
+                item.id_produto,
+                item.id_vendedor,
+                item.data,
+                item.dia_semana,
+                item.metodo,
+                item.valor_total,
+                item.troco,
+                item.hora,
+                item.valor_recebido,
+                item.quantidade_item,
+                item.id_transacao,
+                item.preco_unitario
+            ]);
+        }
+        // Se passar sem erro, confirmamos tudo de uma vez
+        await conexao.commit();
+        return { sucesso: true };
+    } catch (erro) {
+        // Se qualquer etapa do loop der erro, refazemos tudo que estava pendente nessa transação
+        if (conexao) await conexao.rollback();
+        console.error("Transação de venda abortada. Fazendo Rollback! Erro:", erro);
+        throw erro;
+    } finally {
+        // Devolve a conexão principal para a piscina de conexões
+        if (conexao) conexao.release();
+    }
+};
+
 const  subtrair_estoque = async (quantidade_vendidos, id_produto) => {
     try {
         const conectar = await conecta_banco();
@@ -947,6 +992,146 @@ const lista_funcioarios = async() => {
         throw error
     }
 }
+
+
+// Essa função pega o Hitórico/dados detalhado do funcionáario
+const historicoFuncionario = async (idFuncionario) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                f.id_funcionario_funcionario AS id_funcionario,
+                f.nome_funcionario_funcionario AS nome,
+                f.email_funcionario_funcionario AS email,
+                f.telefone_funcionario AS telefone,
+                f.cpf_funcionario AS cpf,
+                f.salario_funcionario AS salario,
+                f.data_admissao,
+                f.data_demissao,
+                f.ultimo_login,
+                f.ultima_atividade,
+                f.status_online,
+                f.foto_url,
+                
+                t.descricao_tiposervico AS tipo_funcionario,
+
+                -- Estatísticas de vendas
+                COALESCE(SUM(v.venda_quantidade_itens), 0) AS quantidade_itens_vendidos,
+                COUNT(DISTINCT v.id_transacao) AS total_vendas_realizadas,
+                COALESCE(SUM(v.venda_valor), 0) AS valor_total_vendido,
+                MAX(v.data_venda) AS data_ultima_venda,
+                MAX(v.venda_data_hora) AS hora_ultima_venda,
+
+                ROUND(
+                    COALESCE(SUM(v.venda_valor) / NULLIF(COUNT(DISTINCT v.id_transacao), 0), 0), 
+                    2
+                ) AS ticket_medio
+
+            FROM funcionarios f
+            LEFT JOIN tiposervico t 
+                ON t.tipo_tiposervico = f.tipo_funcionario_funcionario
+            LEFT JOIN vendas v 
+                ON v.id_vendedor_venda = f.id_funcionario_funcionario
+
+            WHERE f.id_funcionario_funcionario = ?
+            
+            GROUP BY 
+                f.id_funcionario_funcionario,
+                f.nome_funcionario_funcionario,
+                f.email_funcionario_funcionario,
+                f.telefone_funcionario,
+                f.cpf_funcionario,
+                f.salario_funcionario,
+                f.data_admissao,
+                f.data_demissao,
+                f.ultimo_login,
+                f.ultima_atividade,
+                f.status_online,
+                f.foto_url,
+                t.descricao_tiposervico;
+        `;
+
+        const [linhas] = await conectar.query(sql, [idFuncionario]);
+        return linhas[0];   // Retorna apenas 1 objeto (um funcionário)
+        
+    } catch (erro) {
+        console.error("Erro ao buscar histórico do funcionário! ERRO: ", erro);
+        throw erro; 
+    }
+};
+
+
+// // Função para eddição de dados do funcionário
+
+// const getFuncionarioParaEditar = async (idFuncionario) => {
+//     try {
+//         const conectar = await conecta_banco();
+//         const sql = `
+//             SELECT 
+//                 f.id_funcionario_funcionario AS id_funcionario,
+//                 f.nome_funcionario_funcionario AS nome,
+//                 f.email_funcionario_funcionario AS email,
+//                 f.telefone_funcionario AS telefone,
+//                 f.cpf_funcionario AS cpf,
+//                 f.salario_funcionario AS salario,
+//                 f.tipo_funcionario_funcionario AS id_cargo,         
+//                 t.descricao_tiposervico AS cargo_atual,
+//                 f.data_admissao,
+//                 f.foto_url
+//             FROM funcionarios f
+//             LEFT JOIN tiposervico t 
+//                 ON t.tipo_tiposervico = f.tipo_funcionario_funcionario
+//             WHERE f.id_funcionario_funcionario = ?;
+//         `;
+
+//         const [linhas] = await conectar.query(sql, [idFuncionario]);
+//         return linhas[0];   // retorna um único objeto
+//     } catch (erro) {
+//         console.error("Erro ao buscar funcionário para edição! ERRO: ", erro);
+//         throw erro;
+//     }
+// };
+
+
+// //Rota para atualizar os dados do funcionário^
+// const atualizarFuncionario = async (idFuncionario, dados) => {
+//     try {
+//         const conectar = await conecta_banco();
+        
+//         const sql = `
+//             UPDATE funcionarios 
+//             SET 
+//                 nome_funcionario_funcionario = ?,
+//                 email_funcionario_funcionario = ?,
+//                 telefone_funcionario = ?,
+//                 salario_funcionario = ?,
+//                 tipo_funcionario_funcionario = ?,
+//                 foto_url = ?,
+//                 status_online = ?,
+//                 data_demissao = ?
+//             WHERE id_funcionario_funcionario = ?;
+//         `;
+
+//         const valores = [
+//             dados.nome,
+//             dados.email,
+//             dados.telefone || null,
+//             dados.salario,
+//             dados.id_cargo,
+//             dados.foto_url || null,
+//             dados.status_online !== undefined ? dados.status_online : null,
+//             dados.data_demissao || null,
+//             idFuncionario
+//         ];
+
+//         const [resultado] = await conectar.query(sql, valores);
+//         return resultado.affectedRows > 0;
+//     } catch (erro) {
+//         console.error("Erro ao atualizar funcionário! ERRO: ", erro);
+//         throw erro;
+//     }
+// };
+
 module.exports = { 
     //verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -983,7 +1168,11 @@ module.exports = {
     atualizarAtividade,
     registrarLogin,
     lista_funcioarios,
-    logoutoffline
+    logoutoffline,
+    registrarVendaTransacao,
+    historicoFuncionario,
+    //getFuncionarioParaEditar,
+    //atualizarFuncionario
     
     //dados_vendedor
 };

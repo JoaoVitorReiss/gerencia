@@ -12,7 +12,10 @@ const { json } = require("stream/consumers");
 const { notEqual, strictEqual } = require("assert");
 //const { session } = require("passport");
 const session = require('express-session');
-const fs = require('fs').promises; 
+const fs = require('fs').promises;
+
+ 
+const crypto = require('crypto'); 
 
 app.use(session({
     secret: process.env.SECRET_SESSION,
@@ -273,7 +276,7 @@ app.post("/finalizar_venda", authenticateJWT, requireOperario, async (req, res) 
         
         // Simplesmente garante que o campo está presente (você pode expandir esta validação)
         if (!metodo || !total_venda || !data) {
-             return res.status(400).json({ mensagem: "Campos obrigatórios de pagamento ou data ausentes." });
+            return res.status(400).json({ mensagem: "Campos obrigatórios de pagamento ou data ausentes." });
         }
 
         //VALIDAÇÃO LÓGICA (Regras de Negócio) ---
@@ -315,17 +318,29 @@ app.post("/finalizar_venda", authenticateJWT, requireOperario, async (req, res) 
             // --- 3. EXECUÇÃO (Atualizar DB e Registrar Venda) --
             const transactionId = crypto.randomUUID();
             //console.log(transactionId);
-            await db.subtrair_estoque(quantidade, iten);
-
-            //console.log(data['data'], data['diaSemana'], data['hora']);
 
             let dados_unitario = await db.produto_pesquisadoID(dados_venda.iten);
             let nome_produto = dados_unitario[0].descri_produto;
             let preco_unitario = Number(dados_unitario[0].preco_produto);
 
+            // Preparar item para transação
+            let itensVendaArr = [{
+                quantidade_item: dados_venda.quantidade,
+                id_produto: dados_venda.iten,
+                id_vendedor: id_vendedor,
+                data: data['data'],
+                dia_semana: data['diaSemana'],
+                metodo: dados_venda.metodo,
+                valor_total: dados_venda.total_venda,
+                troco: dados_venda.troco,
+                hora: data['hora'],
+                valor_recebido: dados_venda.valor_recebido,
+                id_transacao: transactionId,
+                preco_unitario: preco_unitario
+            }];
 
-            // registrar a venda na tabela de vendas;
-            await db.dados_vendaADD(dados_venda.iten, id_vendedor, data['data'], data['diaSemana'], dados_venda.metodo, dados_venda.total_venda, dados_venda.troco, data['hora'], dados_venda.valor_recebido, dados_venda.quantidade, transactionId, preco_unitario);
+            // registrar a venda na tabela de vendas junto com subtração de estoque em transação
+            await db.registrarVendaTransacao(itensVendaArr);
 
             const vendedorInfo = await db.info_user(id_vendedor); // Buscando o nome do funcionario para enviar no resumo para o frntend
             console.log(dados_venda.metodo);
@@ -460,6 +475,7 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
 
             const itens_sacola = dados_venda.itens;
             const transactionIdSacola = crypto.randomUUID();
+            const itensTransacaoArr = []; // Array para agrupar todas as vendas da sacola
 
             for (let c in itens_sacola) {
 
@@ -497,30 +513,30 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
                 "id_transation", transactionIdSacola,
                 "preco_unitario", preco_unitario
             ]);           
-            // D. Chamada da Função de Registro
-            try {
-                await db.dados_vendaADD(
-                    id_produto_item,        // 1. (Muda)
-                    id_vendedor,            // 2. (Fixo)
-                    dados_venda['data'].data, // 3. (Fixo)
-                    dados_venda['data'].diaSemana, // 4. (Fixo)
-                    metodo,                 // 5. (Fixo)
-                    valor_total_item,       // 6. (Muda: Total *somente do item*)
-                    troco,                  // 7. (Fixo: Troco da transação)
-                    dados_venda['data'].hora, // 8. (Fixo)
-                    valor_recebido,         // 9. (Fixo: Valor recebido total)
-                    quantidade_item,        // 10. (Muda: Quantidade do item)
-                    transactionIdSacola,     // 11. Adicionar esse como ID unico -Proximo passo-
-                    preco_unitario          // 12. (Muda)
-                );
+            // Agrupar itens no formato que a nova transação espera
+            itensTransacaoArr.push({
+                quantidade_item: quantidade_item,
+                id_produto: id_produto_item,
+                id_vendedor: id_vendedor,
+                data: dados_venda['data'].data,
+                dia_semana: dados_venda['data'].diaSemana,
+                metodo: metodo,
+                valor_total: valor_total_item,
+                troco: troco,
+                hora: dados_venda['data'].hora,
+                valor_recebido: valor_recebido,
+                id_transacao: transactionIdSacola,
+                preco_unitario: preco_unitario
+            });
 
-                await db.subtrair_estoque(quantidade_item, id_produto_item);
-
-            } catch (error) {
-                console.error(`Falha ao registrar o item ${id_produto_item}.`, error);
-                throw error; 
-            }
-
+        }
+        
+        // Chamada da Função de Registro Unificada em Transação
+        try {
+            await db.registrarVendaTransacao(itensTransacaoArr);
+        } catch (error) {
+            console.error("Falha ao registrar a sacola usando transação única.", error);
+            throw error; 
         }
         console.log(dadosfinalVenda_sacola.length);
         
@@ -1030,7 +1046,7 @@ app.post("/cadastrar-funcionario", authenticateJWT, requireAdm, upload.single("f
             return res.status(400).json({ mensagem: "CPF inválido!" });
         }
 
-        // 3. Criptografia da Senha (Usando sua lógica)
+        // 3. Criptografia da Senha 
         const salt = await bcrypt.genSalt(10);
         const senhaCriptografada = await bcrypt.hash(senha, salt);
 
@@ -1129,6 +1145,123 @@ app.get("/lista_Cfuncionarios", authenticateJWT, requireAdm, async (req, res) =>
     }
 })
 
+
+// Rota para exibir os dados detalhados do funcionário clicado:
+
+app.post("/dados_detalhados", authenticateJWT, requireAdm,  async (req, res) => {
+    try {
+        const id = req.body.id;
+        if(id) {
+            const dados_funcionario = await db.historicoFuncionario(id);
+            res.status(200).json(dados_funcionario)
+        }else {
+            res.status(400).json({
+                mensagem: "ID do funcionário não informado"
+            })
+        }
+    }catch  (error) {
+        res.status(500).json({
+            mensagem: "Erro interno ao obter os dados detalhados do funcionário: " + error
+        })
+    }
+})
+
+
+// // Rota para enviar as informações do funcionário clicado para edição:
+// app.post("/editar_dados", authenticateJWT, requireAdm,  async (req, res) => {
+//     try {
+//         const id = req.body.id;
+//         if(id) {
+//             const dados_funcionario = await db.getFuncionarioParaEditar(id);
+//             res.status(200).json(dados_funcionario)
+//         }else {
+//             res.status(400).json({
+//                 mensagem: "ID do funcionário não informado"
+//             })
+//         }
+//     }catch  (error) {
+//         res.status(500).json({
+//             mensagem: "Erro interno ao obter os dados e realizar a edição: " + error
+//         })
+//     }
+// })
+
+
+// // rota para atualizar/editar os dados do funcionário clicado:
+// app.put("/editar-funcionario/:id", authenticateJWT, requireAdm, upload.single("foto_funcionario"), async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         const { 
+//             nome, 
+//             email, 
+//             cpf, 
+//             id_cargo,        // mudou de "tipo" para "id_cargo"
+//             nova_senha,      // agora aceita o nome que vem do frontend
+//             data_admissao, 
+//             salario, 
+//             telefone 
+//         } = req.body;
+
+//         // 1. Validação de Campos Obrigatórios
+//         if (!id || !nome || !email || !cpf || !id_cargo) {
+//             return res.status(400).json({ 
+//                 mensagem: "Campos obrigatórios faltando! (nome, email, cpf, id_cargo)" 
+//             });
+//         }
+
+//         // 2. Validação básica de CPF
+//         if (cpf.length < 11) {
+//             return res.status(400).json({ mensagem: "CPF inválido!" });
+//         }
+
+//         // 3. Preparação da foto (se enviada)
+//         let foto_url = null;
+//         if (req.file) {
+//             foto_url = `/img/funcionarios/${req.file.filename}`;
+//         }
+
+//         // 4. Preparar os dados para o db.js
+//         const dadosAtualizacao = {
+//             nome: nome.trim(),
+//             email: email.trim(),
+//             cpf: cpf.trim(),
+//             tipo: parseInt(id_cargo),           // nome da coluna no banco
+//             data_admissao: data_admissao || null,
+//             salario: parseFloat(salario) || 0,
+//             telefone: telefone ? telefone.trim() : null,
+//             foto_url
+//         };
+
+//         // 5. Tratamento da senha (opcional)
+//         if (nova_senha && nova_senha.trim() !== "") {
+//             const salt = await bcrypt.genSalt(10);
+//             const senhaCriptografada = await bcrypt.hash(nova_senha.trim(), salt);
+//             dadosAtualizacao.senha = senhaCriptografada;
+//         }
+
+//         // 6. Atualizar no banco
+//         const resultado = await db.atualizarFuncionario(id, dadosAtualizacao);
+
+//         if (resultado) {
+//             res.status(200).json({ 
+//                 mensagem: "Funcionário atualizado com sucesso!",
+//                 id: id 
+//             });
+//         } else {
+//             res.status(404).json({ mensagem: "Funcionário não encontrado!" });
+//         }
+
+//     } catch (error) {
+//         if (error.code === 'ER_DUP_ENTRY') {
+//             return res.status(409).json({ 
+//                 mensagem: "E-mail ou CPF já cadastrado por outro funcionário!" 
+//             });
+//         }
+        
+//         console.error("Erro ao atualizar funcionário:", error);
+//         res.status(500).json({ mensagem: "Erro interno ao atualizar funcionário." });
+//     }
+// });
 
 
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
