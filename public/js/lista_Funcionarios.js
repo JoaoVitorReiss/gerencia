@@ -136,11 +136,11 @@ class ModalDetalhesFuncionario {
                         <p class="email">${dados.email || '-'}</p>
                     </div>
 
-                    <div class="status-atual">
+                    <!--<div class="status-atual">
                         <span class="status ${statusInfo.status}">
                             ${statusInfo.cor} ${statusInfo.texto}
                         </span>
-                    </div>
+                    </div> -->
 
                     <div class="detalhes-grid">
                         <div class="info-item">
@@ -237,161 +237,157 @@ class ModalDetalhesFuncionario {
     }
 }
 
-// class ModalEditarFuncionario {
+class ModalEditarFuncionario {
 
-//     static abrir(dados) {
-//         if (!dados) {
-//             alert("Erro: Nenhum dado recebido para edição.");
-//             return;
-//         }
+    static abrir(dados) {
+        if (!dados) {
+            alert("Erro: Nenhum dado recebido para edição.");
+            return;
+        }
 
-//         const overlay = document.createElement('div');
-//         overlay.id = 'modal-overlay-editar';
+        const overlay = document.createElement('div');
+        overlay.id = 'modal-overlay-editar';
 
-//         overlay.innerHTML = `
-//             <div id="modal-editar-container">
-//                 <div class="modal-header">
-//                     <h2>Editar Funcionário</h2>
-//                     <button id="fechar-modal-editar">&times;</button>
-//                 </div>
+        overlay.innerHTML = `
+            <div id="modal-editar-container">
+                <div class="modal-header">
+                    <h2>Editar Funcionário</h2>
+                    <button id="fechar-modal-editar">&times;</button>
+                </div>
 
-//                 <div class="modal-body">
-//                     <form id="form-editar-funcionario">
+                <div class="modal-body">
+                    <form id="form-editar-funcionario">
 
-//                         <!-- Foto -->
-//                         <div class="foto-container">
-//                             <div class="foto-preview" id="foto-preview-edit">
-//                                 ${dados.foto_url 
-//                                     ? `<img src="${dados.foto_url}" alt="Foto atual">`
-//                                     : `<span class="placeholder">👤</span>`
-//                                 }
-//                             </div>
-//                             <div>
-//                                 <label for="foto-edit">Alterar foto (opcional)</label>
-//                                 <input type="file" id="foto-edit" accept="image/*">
-//                                 <input type="hidden" id="foto_url_atual" value="${dados.foto_url || ''}">
-//                             </div>
-//                         </div>
+                        <!-- Foto -->
+                        <div class="foto-container">
+                            <div class="foto-preview" id="foto-preview-edit">
+                                ${dados.foto_url 
+                                    ? `<img src="${dados.foto_url}" alt="Foto atual">`
+                                    : `<span class="placeholder">👤</span>`
+                                }
+                            </div>
+                            <div>
+                                <label for="foto-edit">Alterar foto (opcional)</label>
+                                <input type="file" id="foto-edit" accept="image/*">
+                                <input type="hidden" id="foto_url_atual" value="${dados.foto_url || ''}">
+                            </div>
+                        </div>
 
-//                         <div class="campo-grupo">
-//                             <label for="nome-edit">Nome Completo *</label>
-//                             <input type="text" id="nome-edit" value="${dados.nome || ''}" required>
-//                         </div>
+                        <div class="campo-grupo">
+                            <label for="nome-edit">Nome Completo *</label>
+                            <input type="text" id="nome-edit" value="${dados.nome || ''}" required>
+                        </div>
 
-//                         <div class="linha-dupla">
-//                             <div class="campo-grupo">
-//                                 <label for="email-edit">E-mail *</label>
-//                                 <input type="email" id="email-edit" value="${dados.email || ''}" required>
-//                             </div>
-//                             <div class="campo-grupo">
-//                                 <label for="telefone-edit">Telefone</label>
-//                                 <input type="tel" id="telefone-edit" value="${dados.telefone || ''}">
-//                             </div>
-//                         </div>
+                        <div class="linha-dupla">
+                            <div class="campo-grupo">
+                                <label for="email-edit">E-mail *</label>
+                                <input type="email" id="email-edit" value="${dados.email || ''}" required>
+                            </div>
+                            <div class="campo-grupo">
+                                <label for="telefone-edit">Telefone</label>
+                                <input type="tel" id="telefone-edit" value="${dados.telefone || ''}">
+                            </div>
+                        </div>
 
-//                         <div class="linha-dupla">
-//                             <div class="campo-grupo">
-//                                 <label for="cpf-edit">CPF</label>
-//                                 <input type="text" id="cpf-edit" value="${dados.cpf || ''}" maxlength="14">
-//                             </div>
-//                             <div class="campo-grupo">
-//                                 <label for="salario-edit">Salário (R$)</label>
-//                                 <input type="number" id="salario-edit" step="0.01" value="${dados.salario || ''}">
-//                             </div>
-//                         </div>
+                        <div class="linha-dupla">
+                            <div class="campo-grupo">
+                                <label for="cpf-edit">CPF</label>
+                                <input type="text" id="cpf-edit" value="${dados.cpf || ''}" maxlength="14">
+                            </div>
+                            <div class="campo-grupo">
+                                <label for="salario-edit">Salário (R$)</label>
+                                <input type="number" id="salario-edit" step="0.01" value="${dados.salario || ''}">
+                            </div>
+                        </div>
 
-//                         <div class="campo-grupo">
-//                             <label for="cargo-edit">Cargo / Nível</label>
-//                             <select id="cargo-edit">
-//                                 <option value="2" ${dados.id_cargo == 2 ? 'selected' : ''}>Administrador</option>
-//                                 <option value="1" ${dados.id_cargo == 1 ? 'selected' : ''}>Vendedor</option>
-//                             </select>
-//                         </div>
+                        <div class="campo-grupo">
+                            <label for="cargo-edit">Cargo / Nível</label>
+                            <select id="cargo-edit">
+                                <option value="2" ${dados.id_cargo == 2 ? 'selected' : ''}>Administrador</option>
+                                <option value="1" ${dados.id_cargo == 1 ? 'selected' : ''}>Vendedor</option>
+                            </select>
+                        </div>
 
-//                         <!-- Troca de Senha -->
-//                         <div class="campo-grupo">
-//                             <label>Nova Senha (deixe em branco se não quiser alterar)</label>
-//                             <input type="password" id="nova-senha" placeholder="Digite a nova senha">
-//                         </div>
+                        <!-- Troca de Senha -->
+                        <div class="campo-grupo">
+                            <label>Nova Senha (deixe em branco se não quiser alterar)</label>
+                            <input type="password" id="nova-senha" placeholder="Digite a nova senha">
+                        </div>
 
-//                         <div class="modal-footer">
-//                             <button type="button" class="btn-cancelar" id="btn-cancelar-edit">Cancelar</button>
-//                             <button type="button" class="btn-salvar" id="btn-salvar-edit">Salvar Alterações</button>
-//                         </div>
-//                     </form>
-//                 </div>
-//             </div>
-//         `;
+                        <div class="modal-footer">
+                            <button type="button" class="btn-cancelar" id="btn-cancelar-edit">Cancelar</button>
+                            <button type="button" class="btn-salvar" id="btn-salvar-edit">Salvar Alterações</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
 
-//         document.body.appendChild(overlay);
+        document.body.appendChild(overlay);
 
-//         // Eventos
-//         const fechar = () => overlay.remove();
+        const fechar = () => overlay.remove();
 
-//         document.getElementById('fechar-modal-editar').onclick = fechar;
-//         document.getElementById('btn-cancelar-edit').onclick = fechar;
+        document.getElementById('fechar-modal-editar').onclick = fechar;
+        document.getElementById('btn-cancelar-edit').onclick = fechar;
 
-//         // Salvar
-//         document.getElementById('btn-salvar-edit').onclick = () => {
-//             this.salvarAlteracoes(dados.id_funcionario, fechar);
-//         };
+        document.getElementById('btn-salvar-edit').onclick = () => {
+            this.salvarAlteracoes(dados.id_funcionario, fechar);
+        };
 
-//         // Fechar ao clicar fora
-//         overlay.onclick = (e) => {
-//             if (e.target === overlay) fechar();
-//         };
-//     }
+        overlay.onclick = (e) => {
+            if (e.target === overlay) fechar();
+        };
+    }
 
-//    static async salvarAlteracoes(id, fecharCallback) {
-//     const payload = {
-//         nome: document.getElementById('nome-edit').value.trim(),
-//         email: document.getElementById('email-edit').value.trim(),
-//         telefone: document.getElementById('telefone-edit').value.trim() || null,
-//         cpf: document.getElementById('cpf-edit').value.trim(),
-//         salario: parseFloat(document.getElementById('salario-edit').value) || 0,
-//         id_cargo: parseInt(document.getElementById('cargo-edit').value),
-//         nova_senha: document.getElementById('nova-senha').value.trim() || null
-//         // foto_url NÃO vai aqui (é enviada via FormData se houver upload)
-//     };
+   static async salvarAlteracoes(id, fecharCallback) {
+    const payload = {
+        nome: document.getElementById('nome-edit').value.trim(),
+        email: document.getElementById('email-edit').value.trim(),
+        telefone: document.getElementById('telefone-edit').value.trim() || null,
+        cpf: document.getElementById('cpf-edit').value.trim(),
+        salario: parseFloat(document.getElementById('salario-edit').value) || 0,
+        id_cargo: parseInt(document.getElementById('cargo-edit').value),
+        nova_senha: document.getElementById('nova-senha').value.trim() || null
+        // foto_url NÃO vai aqui (é enviada via FormData se houver upload)
+    };
 
-//     // Validação básica
-//     if (!payload.nome || !payload.email || !payload.cpf) {
-//         alert("Nome, E-mail e CPF são obrigatórios!");
-//         return;
-//     }
+    if (!payload.nome || !payload.email || !payload.cpf) {
+        alert("Nome, E-mail e CPF são obrigatórios!");
+        return;
+    }
 
-//     if (isNaN(payload.id_cargo) || payload.id_cargo <= 0) {
-//         alert("Selecione um cargo válido!");
-//         return;
-//     }
+    if (isNaN(payload.id_cargo) || payload.id_cargo <= 0) {
+        alert("Selecione um cargo válido!");
+        return;
+    }
 
-//     try {
-//         // Se você NÃO estiver enviando foto, pode usar JSON normal:
-//         const response = await fetch(`/editar-funcionario/${id}`, {
-//             method: "PUT",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify(payload)
-//         });
+    try {
+        
+        const response = await fetch(`/editar-funcionario/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
 
-//         const resultado = await response.json();
+        const resultado = await response.json();
 
-//         if (response.ok) {
-//             alert("✅ Funcionário atualizado com sucesso!");
-//             GetLista.lista_funcionarios();   // Atualiza a lista
-//             if (fecharCallback) fecharCallback();
-//         }
-//     } catch (error) {
-//         console.error("Erro na requisição:", error);
-//         alert("Erro de conexão ao salvar as alterações.");
-//     }
-// }
-// }
+        if (response.ok) {
+            alert("✅ Funcionário atualizado com sucesso!");
+            GetLista.lista_funcionarios();   // Atualiza a lista
+            if (fecharCallback) fecharCallback();
+        }
+    } catch (error) {
+        console.error("Erro na requisição:", error);
+        alert("Erro de conexão ao salvar as alterações.");
+    }
+}
+}
 
 
 
 
 
-// ====================== FUNÇÕES GLOBAIS ======================
+// FUNÇÕES GLOBAIS 
 
 function filtrarTabela() {
     const buscaInput = document.getElementById('busca');
@@ -446,33 +442,33 @@ function acaverInfo(){
 }
 
 
-// function acaoEditar() {
-//     const bntsVer = document.querySelectorAll(".btn-edit");
-//     bntsVer.forEach(btn => {
-//         btn.addEventListener("click", async(evt) => {
-//             const id = Number(evt.target.id.split('"')[0]);
-//             console.log(id)
-//             try {
-//                 const enviarID = await fetch("/editar_dados", {
-//                     method: "POST",
-//                     headers: {"Content-Type": "application/json"},
-//                     body: JSON.stringify({ id: id })
-//                 });
+function acaoEditar() {
+    const bntsVer = document.querySelectorAll(".btn-edit");
+    bntsVer.forEach(btn => {
+        btn.addEventListener("click", async(evt) => {
+            const id = Number(evt.target.id.split('"')[0]);
+            console.log(id)
+            try {
+                const enviarID = await fetch("/editar_dados", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ id: id })
+                });
 
-//                 const resposta = await enviarID.json();
+                const resposta = await enviarID.json();
 
-//                 if(enviarID.ok){
-//                     //console.log(resposta)
-//                     ModalEditarFuncionario.abrir(resposta);
-//                 }else {
-//                     console.error("Erro ao obter dados vindo do servidor: " + resposta)
-//                 }
-//             } catch (error) {
-//                 console.error("Erro ao buscar dados para edição:", error);
-//             }
-//         })
-//     })
-// }
+                if(enviarID.ok){
+                    //console.log(resposta)
+                    ModalEditarFuncionario.abrir(resposta);
+                }else {
+                    console.error("Erro ao obter dados vindo do servidor: " + resposta)
+                }
+            } catch (error) {
+                console.error("Erro ao buscar dados para edição:", error);
+            }
+        })
+    })
+}
 
 
 if (document.readyState === 'loading') {
@@ -482,4 +478,4 @@ if (document.readyState === 'loading') {
 }
 
 window.ModalDetalhesFuncionario = ModalDetalhesFuncionario;
-// window.ModalEditarFuncionario = ModalEditarFuncionario;
+window.ModalEditarFuncionario = ModalEditarFuncionario;

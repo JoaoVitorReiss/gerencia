@@ -1061,76 +1061,116 @@ const historicoFuncionario = async (idFuncionario) => {
 };
 
 
-// // Função para eddição de dados do funcionário
+// Função para eddição de dados do funcionário
 
-// const getFuncionarioParaEditar = async (idFuncionario) => {
-//     try {
-//         const conectar = await conecta_banco();
-//         const sql = `
-//             SELECT 
-//                 f.id_funcionario_funcionario AS id_funcionario,
-//                 f.nome_funcionario_funcionario AS nome,
-//                 f.email_funcionario_funcionario AS email,
-//                 f.telefone_funcionario AS telefone,
-//                 f.cpf_funcionario AS cpf,
-//                 f.salario_funcionario AS salario,
-//                 f.tipo_funcionario_funcionario AS id_cargo,         
-//                 t.descricao_tiposervico AS cargo_atual,
-//                 f.data_admissao,
-//                 f.foto_url
-//             FROM funcionarios f
-//             LEFT JOIN tiposervico t 
-//                 ON t.tipo_tiposervico = f.tipo_funcionario_funcionario
-//             WHERE f.id_funcionario_funcionario = ?;
-//         `;
+const getFuncionarioParaEditar = async (idFuncionario) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                f.id_funcionario_funcionario AS id_funcionario,
+                f.nome_funcionario_funcionario AS nome,
+                f.email_funcionario_funcionario AS email,
+                f.telefone_funcionario AS telefone,
+                f.cpf_funcionario AS cpf,
+                f.salario_funcionario AS salario,
+                f.tipo_funcionario_funcionario AS id_cargo,         
+                t.descricao_tiposervico AS cargo_atual,
+                f.data_admissao,
+                f.foto_url
+            FROM funcionarios f
+            LEFT JOIN tiposervico t 
+                ON t.tipo_tiposervico = f.tipo_funcionario_funcionario
+            WHERE f.id_funcionario_funcionario = ?;
+        `;
 
-//         const [linhas] = await conectar.query(sql, [idFuncionario]);
-//         return linhas[0];   // retorna um único objeto
-//     } catch (erro) {
-//         console.error("Erro ao buscar funcionário para edição! ERRO: ", erro);
-//         throw erro;
-//     }
-// };
+        const [linhas] = await conectar.query(sql, [idFuncionario]);
+        return linhas[0];
+    } catch (erro) {
+        console.error("Erro ao buscar funcionário para edição! ERRO: ", erro);
+        throw erro;
+    }
+};
 
 
-// //Rota para atualizar os dados do funcionário^
-// const atualizarFuncionario = async (idFuncionario, dados) => {
-//     try {
-//         const conectar = await conecta_banco();
-        
-//         const sql = `
-//             UPDATE funcionarios 
-//             SET 
-//                 nome_funcionario_funcionario = ?,
-//                 email_funcionario_funcionario = ?,
-//                 telefone_funcionario = ?,
-//                 salario_funcionario = ?,
-//                 tipo_funcionario_funcionario = ?,
-//                 foto_url = ?,
-//                 status_online = ?,
-//                 data_demissao = ?
-//             WHERE id_funcionario_funcionario = ?;
-//         `;
+//Rota para atualizar os dados do funcionário
+const atualizarFuncionario = async (idFuncionario, dados, idUsuarioResponsavel, motivo = "Atualização de dados") => {
+    try {
+        const conectar = await conecta_banco();
 
-//         const valores = [
-//             dados.nome,
-//             dados.email,
-//             dados.telefone || null,
-//             dados.salario,
-//             dados.id_cargo,
-//             dados.foto_url || null,
-//             dados.status_online !== undefined ? dados.status_online : null,
-//             dados.data_demissao || null,
-//             idFuncionario
-//         ];
+        const [dadosAntigosArray] = await conectar.query(
+            `SELECT nome_funcionario_funcionario, email_funcionario_funcionario, telefone_funcionario,
+                    cpf_funcionario, salario_funcionario, tipo_funcionario_funcionario, foto_url
+             FROM funcionarios WHERE id_funcionario_funcionario = ?`,
+            [idFuncionario]
+        );
 
-//         const [resultado] = await conectar.query(sql, valores);
-//         return resultado.affectedRows > 0;
-//     } catch (erro) {
-//         console.error("Erro ao atualizar funcionário! ERRO: ", erro);
-//         throw erro;
-//     }
-// };
+        if (dadosAntigosArray.length === 0) return false;
+
+        const anterior = dadosAntigosArray[0];
+
+        const sqlUpdate = `
+            UPDATE funcionarios 
+            SET 
+                nome_funcionario_funcionario = ?,
+                email_funcionario_funcionario = ?,
+                telefone_funcionario = ?,
+                cpf_funcionario = ?,
+                salario_funcionario = ?,
+                tipo_funcionario_funcionario = ?,
+                foto_url = ?,
+                senha_funcionario_funcionario = COALESCE(?, senha_funcionario_funcionario)
+            WHERE id_funcionario_funcionario = ?;
+        `;
+
+        const valores = [
+            dados.nome,
+            dados.email,
+            dados.telefone,
+            dados.cpf,
+            dados.salario,
+            dados.tipo,
+            dados.foto_url,
+            dados.senha || null,
+            idFuncionario
+        ];
+
+        const [resultado] = await conectar.query(sqlUpdate, valores);
+
+        if (resultado.affectedRows > 0) {
+            await registrarLogFuncionario(idFuncionario, idUsuarioResponsavel, anterior, dados, motivo);
+            return true;
+        }
+        return false;
+    } catch (erro) {
+        console.error("Erro ao atualizar funcionário:", erro);
+        throw erro;
+    }
+};
+
+
+const registrarLogFuncionario = async (idFuncionario, idUsuarioResponsavel, anterior, novo, motivo) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            INSERT INTO funcionario_logs 
+                (id_funcionario_log, id_usuario_log, anterior, novo, motivo)
+            VALUES (?, ?, ?, ?, ?);
+        `;
+
+        const valores = [
+            idFuncionario,
+            idUsuarioResponsavel,
+            JSON.stringify(anterior),  
+            JSON.stringify(novo),
+            motivo
+        ];
+
+        await conectar.query(sql, valores);
+    } catch (erro) {
+        console.error("Erro ao registrar log de funcionário:", erro);
+    }
+};
 
 module.exports = { 
     //verifica_tipo, 
@@ -1171,8 +1211,8 @@ module.exports = {
     logoutoffline,
     registrarVendaTransacao,
     historicoFuncionario,
-    //getFuncionarioParaEditar,
-    //atualizarFuncionario
+    getFuncionarioParaEditar,
+    atualizarFuncionario
     
     //dados_vendedor
 };

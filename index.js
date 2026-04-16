@@ -1147,7 +1147,6 @@ app.get("/lista_Cfuncionarios", authenticateJWT, requireAdm, async (req, res) =>
 
 
 // Rota para exibir os dados detalhados do funcionário clicado:
-
 app.post("/dados_detalhados", authenticateJWT, requireAdm,  async (req, res) => {
     try {
         const id = req.body.id;
@@ -1167,101 +1166,98 @@ app.post("/dados_detalhados", authenticateJWT, requireAdm,  async (req, res) => 
 })
 
 
-// // Rota para enviar as informações do funcionário clicado para edição:
-// app.post("/editar_dados", authenticateJWT, requireAdm,  async (req, res) => {
-//     try {
-//         const id = req.body.id;
-//         if(id) {
-//             const dados_funcionario = await db.getFuncionarioParaEditar(id);
-//             res.status(200).json(dados_funcionario)
-//         }else {
-//             res.status(400).json({
-//                 mensagem: "ID do funcionário não informado"
-//             })
-//         }
-//     }catch  (error) {
-//         res.status(500).json({
-//             mensagem: "Erro interno ao obter os dados e realizar a edição: " + error
-//         })
-//     }
-// })
+//Rota para enviar as informações do funcionário clicado para edição:
+app.post("/editar_dados", authenticateJWT, requireAdm,  async (req, res) => {
+    try {
+        const id = req.body.id;
+        if(id) {
+            const dados_funcionario = await db.getFuncionarioParaEditar(id);
+            res.status(200).json(dados_funcionario)
+        }else {
+            res.status(400).json({
+                mensagem: "ID do funcionário não informado"
+            })
+        }
+    }catch  (error) {
+        res.status(500).json({
+            mensagem: "Erro interno ao obter os dados e realizar a edição: " + error
+        })
+    }
+})
 
 
-// // rota para atualizar/editar os dados do funcionário clicado:
-// app.put("/editar-funcionario/:id", authenticateJWT, requireAdm, upload.single("foto_funcionario"), async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const { 
-//             nome, 
-//             email, 
-//             cpf, 
-//             id_cargo,        // mudou de "tipo" para "id_cargo"
-//             nova_senha,      // agora aceita o nome que vem do frontend
-//             data_admissao, 
-//             salario, 
-//             telefone 
-//         } = req.body;
+// rota para atualizar/editar os dados do funcionário clicado:
+app.put("/editar-funcionario/:id", authenticateJWT, requireAdm, upload.single("foto_funcionario"), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { 
+            nome, email, cpf, id_cargo, nova_senha, 
+            data_admissao, salario, telefone 
+        } = req.body;
 
-//         // 1. Validação de Campos Obrigatórios
-//         if (!id || !nome || !email || !cpf || !id_cargo) {
-//             return res.status(400).json({ 
-//                 mensagem: "Campos obrigatórios faltando! (nome, email, cpf, id_cargo)" 
-//             });
-//         }
+        if (!id || !nome || !email || !cpf || !id_cargo) {
+            return res.status(400).json({ mensagem: "Campos obrigatórios faltando!" });
+        }
 
-//         // 2. Validação básica de CPF
-//         if (cpf.length < 11) {
-//             return res.status(400).json({ mensagem: "CPF inválido!" });
-//         }
+        if (cpf.length < 11) {
+            return res.status(400).json({ mensagem: "CPF inválido!" });
+        }
 
-//         // 3. Preparação da foto (se enviada)
-//         let foto_url = null;
-//         if (req.file) {
-//             foto_url = `/img/funcionarios/${req.file.filename}`;
-//         }
+        let foto_url = null;
 
-//         // 4. Preparar os dados para o db.js
-//         const dadosAtualizacao = {
-//             nome: nome.trim(),
-//             email: email.trim(),
-//             cpf: cpf.trim(),
-//             tipo: parseInt(id_cargo),           // nome da coluna no banco
-//             data_admissao: data_admissao || null,
-//             salario: parseFloat(salario) || 0,
-//             telefone: telefone ? telefone.trim() : null,
-//             foto_url
-//         };
+        if (req.file) {
+            foto_url = `/img/funcionarios/${req.file.filename}`;
+        } else {
+            const dadosAtuais = await db.getFuncionarioParaEditar(id);
+            if (dadosAtuais) {
+                foto_url = dadosAtuais.foto_url;
+            }
+        }
 
-//         // 5. Tratamento da senha (opcional)
-//         if (nova_senha && nova_senha.trim() !== "") {
-//             const salt = await bcrypt.genSalt(10);
-//             const senhaCriptografada = await bcrypt.hash(nova_senha.trim(), salt);
-//             dadosAtualizacao.senha = senhaCriptografada;
-//         }
+        const dadosAtualizacao = {
+            nome: nome.trim(),
+            email: email.trim(),
+            cpf: cpf.trim(),
+            tipo: parseInt(id_cargo),
+            data_admissao: data_admissao || null,
+            salario: parseFloat(salario) || 0,
+            telefone: telefone ? telefone.trim() : null,
+            foto_url
+        };
 
-//         // 6. Atualizar no banco
-//         const resultado = await db.atualizarFuncionario(id, dadosAtualizacao);
 
-//         if (resultado) {
-//             res.status(200).json({ 
-//                 mensagem: "Funcionário atualizado com sucesso!",
-//                 id: id 
-//             });
-//         } else {
-//             res.status(404).json({ mensagem: "Funcionário não encontrado!" });
-//         }
+        if (nova_senha && nova_senha.trim() !== "") {
+            const salt = await bcrypt.genSalt(10);
+            dadosAtualizacao.senha = await bcrypt.hash(nova_senha.trim(), salt);
+        }
 
-//     } catch (error) {
-//         if (error.code === 'ER_DUP_ENTRY') {
-//             return res.status(409).json({ 
-//                 mensagem: "E-mail ou CPF já cadastrado por outro funcionário!" 
-//             });
-//         }
+        const resultado = await db.atualizarFuncionario(
+            id, 
+            dadosAtualizacao, 
+            req.user?.id || req.usuario?.id,
+            "Atualização de dados do funcionário"
+        );
+
+        if (resultado) {
+            res.status(200).json({ 
+                mensagem: "Funcionário atualizado com sucesso!", 
+                id: parseInt(id) 
+            });
+        } else {
+            res.status(404).json({ mensagem: "Funcionário não encontrado!" });
+        }
+
+    } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ 
+                mensagem: "E-mail ou CPF já cadastrado por outro funcionário!" 
+            });
+        }
         
-//         console.error("Erro ao atualizar funcionário:", error);
-//         res.status(500).json({ mensagem: "Erro interno ao atualizar funcionário." });
-//     }
-// });
+        console.error("Erro ao atualizar funcionário:", error);
+        res.status(500).json({ mensagem: "Erro interno ao atualizar funcionário." });
+    }
+});
 
 
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
