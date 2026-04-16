@@ -330,6 +330,22 @@ class ModalEditarFuncionario {
         document.getElementById('fechar-modal-editar').onclick = fechar;
         document.getElementById('btn-cancelar-edit').onclick = fechar;
 
+        const fotoEdit = document.getElementById('foto-edit');
+        if (fotoEdit) {
+            fotoEdit.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const preview = document.getElementById('foto-preview-edit');
+                        if (preview) {
+                            preview.innerHTML = `<img src="${event.target.result}" alt="Nova foto">`;
+                        }
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+
         document.getElementById('btn-salvar-edit').onclick = () => {
             this.salvarAlteracoes(dados.id_funcionario, fechar);
         };
@@ -340,33 +356,42 @@ class ModalEditarFuncionario {
     }
 
    static async salvarAlteracoes(id, fecharCallback) {
-    const payload = {
-        nome: document.getElementById('nome-edit').value.trim(),
-        email: document.getElementById('email-edit').value.trim(),
-        telefone: document.getElementById('telefone-edit').value.trim() || null,
-        cpf: document.getElementById('cpf-edit').value.trim(),
-        salario: parseFloat(document.getElementById('salario-edit').value) || 0,
-        id_cargo: parseInt(document.getElementById('cargo-edit').value),
-        nova_senha: document.getElementById('nova-senha').value.trim() || null
-        // foto_url NÃO vai aqui (é enviada via FormData se houver upload)
-    };
+    const nome = document.getElementById('nome-edit').value.trim();
+    const email = document.getElementById('email-edit').value.trim();
+    const telefone = document.getElementById('telefone-edit').value.trim();
+    const cpf = document.getElementById('cpf-edit').value.trim();
+    const salario = parseFloat(document.getElementById('salario-edit').value) || 0;
+    const id_cargo = parseInt(document.getElementById('cargo-edit').value);
+    const nova_senha = document.getElementById('nova-senha').value.trim();
 
-    if (!payload.nome || !payload.email || !payload.cpf) {
+    if (!nome || !email || !cpf) {
         alert("Nome, E-mail e CPF são obrigatórios!");
         return;
     }
 
-    if (isNaN(payload.id_cargo) || payload.id_cargo <= 0) {
+    if (isNaN(id_cargo) || id_cargo <= 0) {
         alert("Selecione um cargo válido!");
         return;
     }
 
+    const formData = new FormData();
+    formData.append("nome", nome);
+    formData.append("email", email);
+    if (telefone) formData.append("telefone", telefone);
+    formData.append("cpf", cpf);
+    formData.append("salario", salario);
+    formData.append("id_cargo", id_cargo);
+    if (nova_senha) formData.append("nova_senha", nova_senha);
+
+    const fotoInput = document.getElementById('foto-edit');
+    if (fotoInput && fotoInput.files.length > 0) {
+        formData.append("foto_funcionario", fotoInput.files[0]);
+    }
+
     try {
-        
         const response = await fetch(`/editar-funcionario/${id}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: formData
         });
 
         const resultado = await response.json();
@@ -375,6 +400,8 @@ class ModalEditarFuncionario {
             alert("✅ Funcionário atualizado com sucesso!");
             GetLista.lista_funcionarios();   // Atualiza a lista
             if (fecharCallback) fecharCallback();
+        } else {
+            alert(resultado.mensagem || "Erro ao salvar alterações.");
         }
     } catch (error) {
         console.error("Erro na requisição:", error);
@@ -440,6 +467,8 @@ function acaverInfo(){
         })
     })
 }
+
+
 
 
 function acaoEditar() {
