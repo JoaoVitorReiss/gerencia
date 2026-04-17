@@ -521,6 +521,19 @@ body {
     font-weight: 500;
     transition: var(--transition);
 }
+.btn-excluir{
+    background: var(--danger);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+}
+.btn-excluir:hover{
+    background: #c82333;
+}
 
 .btn-cancelar:hover {
     background: #5a6268;
@@ -631,4 +644,53 @@ body {
     .acoes button {
         flex: 1 0 40%;
     }
+}
+
+
+.textarea-motivo {
+    width: 100%;
+    padding: 12px 14px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    border: 1.5px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 90px;
+    transition: var(--transition);
+    background: white;
+}
+
+.textarea-motivo:focus {
+    border-color: var(--danger);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+}
+
+.btn-desligar {
+    background-color: var(--danger);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 8px;
+    width: auto;
+    align-self: flex-start;
+}
+
+.btn-desligar:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+}
+
+/* Alinha corretamente dentro do fluxo do modal */
+#modal-editar-container .modal-body .btn-desligar,
+#modal-editar-container .modal-body .textarea-motivo {
+    display: block;
 }

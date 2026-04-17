@@ -91,7 +91,21 @@ class GetLista {
         acaoEditar();
 
     }
-
+    static async desligarFuncionario(id, motivo) {
+        if(id){
+            try {
+                const resposta = await fetch(`/desligar-funcionario`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id, motivo })
+                });
+                // const dados = await resposta.json();
+                // console.log(dados);
+            } catch (error) {
+                console.error("Erro ao desligar funcionário:", error);
+            }
+        }
+    }
     static init() {
         this.lista_funcionarios(); 
 
@@ -315,8 +329,11 @@ class ModalEditarFuncionario {
                         </div>
 
                         <div class="modal-footer">
+
                             <button type="button" class="btn-cancelar" id="btn-cancelar-edit">Cancelar</button>
                             <button type="button" class="btn-salvar" id="btn-salvar-edit">Salvar Alterações</button>
+                            <button type="button" class="btn-excluir" id="btn-excluir">Desligar Funcionário</button>
+
                         </div>
                     </form>
                 </div>
@@ -330,6 +347,34 @@ class ModalEditarFuncionario {
         document.getElementById('fechar-modal-editar').onclick = fechar;
         document.getElementById('btn-cancelar-edit').onclick = fechar;
 
+        document.getElementById('btn-excluir').onclick = () => {
+            const modalBody = document.querySelector('#modal-editar-container .modal-body');
+
+            const campoMotivo = document.createElement('textarea');
+            campoMotivo.classList.add('textarea-motivo');
+            campoMotivo.placeholder = "Digite o motivo do desligamento";
+
+            const confirmarDesligamento = document.createElement('button');
+            confirmarDesligamento.textContent = "Confirmar Desligamento";
+            confirmarDesligamento.classList.add('btn-desligar');
+
+            modalBody.appendChild(campoMotivo);
+            modalBody.appendChild(confirmarDesligamento);
+            setTimeout(() => {
+                confirmarDesligamento.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 50);
+
+            confirmarDesligamento.onclick = () => {
+                const motivo = campoMotivo.value.trim();
+                if (!motivo) {
+                    alert("Por favor, informe o motivo do desligamento.");
+                    return;
+                }
+                GetLista.desligarFuncionario(dados.id_funcionario, motivo);
+                fechar();
+            };
+
+        }
         const fotoEdit = document.getElementById('foto-edit');
         if (fotoEdit) {
             fotoEdit.addEventListener('change', (e) => {

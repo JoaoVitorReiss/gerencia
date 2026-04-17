@@ -37,16 +37,26 @@ const conecta_banco = async () => {
 const buscarFuncionarioPorEmail = async (email) => {
     try {
         const conectar = await conecta_banco();
-        // Selecione TODAS as colunas necessárias, incluindo a senha hash e o tipo/papel
-        const sql = "SELECT id_funcionario_funcionario, nome_funcionario_funcionario, email_funcionario_funcionario, senha_funcionario_funcionario, tipo_funcionario_funcionario FROM funcionarios WHERE email_funcionario_funcionario = ?";
-        const [rows] = await conectar.query(sql, [email]);
-        return rows[0]; // Retorna o primeiro (e único) funcionário encontrado, ou undefined
+        const sql = `
+            SELECT 
+                id_funcionario_funcionario,
+                nome_funcionario_funcionario,
+                email_funcionario_funcionario,
+                senha_funcionario_funcionario,
+                tipo_funcionario_funcionario,
+                ativo,                    -- ← ESSA COLUNA É IMPORTANTE
+                data_demissao
+            FROM funcionarios 
+            WHERE email_funcionario_funcionario = ?;
+        `;
+
+        const [linhas] = await conectar.query(sql, [email]);
+        return linhas[0];   // retorna o funcionário ou undefined
     } catch (erro) {
-        console.error("Erro ao buscar funcionário por email! ERRO: ", erro);
+        console.error("Erro ao buscar funcionário por email:", erro);
         throw erro;
     }
 };
-
 // Função para atualizar o "pulso" de atividade do funcionário
 const atualizarAtividade = async (id) => {
     try {
@@ -983,7 +993,7 @@ const buscarFuncionarioLogado = async (id) => {
 const lista_funcioarios = async() => {
     try  {
         const conectar = await conecta_banco();
-        const sql = "SELECT id_funcionario_funcionario, nome_funcionario_funcionario, email_funcionario_funcionario, tipo_funcionario_funcionario, cpf_funcionario, salario_funcionario, data_admissao, data_demissao, telefone_funcionario, foto_url, ultimo_login, ultima_atividade, status_online FROM funcionarios";
+        const sql = "SELECT id_funcionario_funcionario, nome_funcionario_funcionario, email_funcionario_funcionario, tipo_funcionario_funcionario, cpf_funcionario, salario_funcionario, data_admissao, data_demissao, telefone_funcionario, foto_url, ultimo_login, ultima_atividade, status_online FROM funcionarios where ativo = 1";
         const [linhas] = await conectar.query(sql);
         return linhas;
 
@@ -1172,6 +1182,50 @@ const registrarLogFuncionario = async (idFuncionario, idUsuarioResponsavel, ante
     }
 };
 
+//Essa irá desativar/demitir um funcionário, mas sem excluir os dados dele do banco, apenas dando um UPDATE na data_demissão e no status_online
+const desligarFuncionario = async (idFuncionario, motivo, idUsuarioResponsavel) => {
+    try {
+        const conectar = await conecta_banco();
+
+        // Atualiza o funcionário (desliga)
+        const sqlUpdate = `
+            UPDATE funcionarios 
+            SET 
+                ativo = 0,
+                data_demissao = CURRENT_DATE(),
+                status_online = 0,
+                ultimo_login = NULL
+            WHERE id_funcionario_funcionario = ? 
+              AND ativo = 1;   -- evita desligar duas vezes
+        `;
+
+        const [resultado] = await conectar.query(sqlUpdate, [idFuncionario]);
+
+        if (resultado.affectedRows > 0) {
+            // Registra o log de demissão (simplificado)
+            const sqlLog = `
+                INSERT INTO funcionario_logs 
+                    (id_funcionario_log, id_usuario_log, anterior, novo, motivo)
+                VALUES (?, ?, ?, ?, ?);
+            `;
+
+            await conectar.query(sqlLog, [
+                idFuncionario,
+                idUsuarioResponsavel,
+                "Funcionário estava ativo",           // anterior
+                "Funcionário desligado (ativo = 0)",  // novo
+                `Desligamento: ${motivo}`             // motivo
+            ]);
+
+            return true;
+        }
+        return false; // funcionário não encontrado ou já estava desligado
+    } catch (erro) {
+        console.error("Erro ao desligar funcionário:", erro);
+        throw erro;
+    }
+};
+
 module.exports = { 
     //verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -1212,7 +1266,8 @@ module.exports = {
     registrarVendaTransacao,
     historicoFuncionario,
     getFuncionarioParaEditar,
-    atualizarFuncionario
+    atualizarFuncionario,
+    desligarFuncionario
     
     //dados_vendedor
 };

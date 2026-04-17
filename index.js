@@ -1260,6 +1260,35 @@ app.put("/editar-funcionario/:id", authenticateJWT, requireAdm, upload.single("f
 });
 
 
+// Funçãoo para desativar um  ficionário, deixar ele inativo/demitido
+app.post("/desligar-funcionario", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const { id, motivo } = req.body;
+
+        if (!id || !motivo) {
+            return res.status(400).json({ mensagem: "ID e motivo são obrigatórios" });
+        }
+
+        const sucesso = await db.desligarFuncionario(
+            id, 
+            motivo, 
+            req.user?.id || req.usuario?.id   // ID do admin que está desligando
+        );
+
+        if (sucesso) {
+            res.status(200).json({ 
+                mensagem: "Funcionário desligado com sucesso!",
+                id 
+            });
+        } else {
+            res.status(404).json({ mensagem: "Funcionário não encontrado" });
+        }
+    } catch (error) {
+        console.error("Erro ao desligar funcionário:", error);
+        res.status(500).json({ mensagem: "Erro interno ao desligar funcionário" });
+    }
+});
+
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
     try {
         req.session.dadosSacolaNota = [];

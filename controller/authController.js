@@ -52,7 +52,7 @@ module.exports.login_post = async (req, res) => {
     try {
         const { email, senha } = req.body; 
 
-        // 2. Validação de campos vazios
+        // Validação de campos vazios
         if (!email || !senha) {
             return res.status(400).json({
                 success: false,
@@ -60,59 +60,73 @@ module.exports.login_post = async (req, res) => {
             });
         }
 
+        // Busca o funcionário
         const funcionario = await db.buscarFuncionarioPorEmail(email);
 
-        // 4. Verificação se o funcionário foi encontrado (ÓTIMO!)
+        // 1. Verifica se o funcionário existe
         if (!funcionario) {
             return res.status(401).json({
                 success: false,
                 mensagem: "Credenciais inválidas! Email e/ou senha incorretos."
             });
-        } else {
-            const senhaCorreta = await bcrypt.compare(senha, funcionario.senha_funcionario_funcionario); 
-            
-            if (senhaCorreta) {
-                // 1. Registro no banco que o usuário ACABOU de entrar
-                await db.registrarLogin(funcionario.id_funcionario_funcionario);
-                
-                let papelDoUsuario; 
-                                   
-                const token = createToken(funcionario.id_funcionario_funcionario, funcionario.tipo_funcionario_funcionario)
-                    res.cookie('jwt', token, {
-                        httpOnly: true, 
-                        maxAge: maxAge * 1000
-                });
-
-                if (funcionario.tipo_funcionario_funcionario === 2) {
-                    papelDoUsuario = 'administrador'; 
-                } else {
-                    papelDoUsuario = 'operario'; 
-
-                };
-                // Retorna a resposta de sucesso com os dados do usuário
-                // Envindo os dados para o FrontEnd
-                return res.status(200).json({
-                    success: true,
-                    message: "Login realizado com sucesso!",
-                    user: {
-                        id: funcionario.id_funcionario_funcionario,
-                        nome: funcionario.nome_funcionario_funcionario,
-                        email: funcionario.email_funcionario_funcionario,
-                        cargo: papelDoUsuario
-                    }
-                });
-
-            } else {
-                // Senha INCORRETA!
-                return res.status(401).json({ 
-                    success: false, 
-                    message: "Credenciais inválidas! Email e/ou senha incorretos." 
-                });
-            }
         }
+
+
+        if (funcionario.ativo === 0 || funcionario.ativo === false) {
+            return res.status(403).json({
+                success: false,
+                mensagem: "Acesso negado. Seu cadastro foi desativado ou você foi desligado da empresa."
+            });
+        }
+    
+
+        // 3. Verifica a senha
+        const senhaCorreta = await bcrypt.compare(senha, funcionario.senha_funcionario_funcionario); 
+        
+        if (senhaCorreta) {
+
+            await db.registrarLogin(funcionario.id_funcionario_funcionario);
+            
+            let papelDoUsuario = funcionario.tipo_funcionario_funcionario === 2 
+                ? 'administrador' 
+                : 'operario';
+
+            const token = createToken(
+                funcionario.id_funcionario_funcionario, 
+                funcionario.tipo_funcionario_funcionario
+            );
+
+            res.cookie('jwt', token, {
+                httpOnly: true, 
+                maxAge: maxAge * 1000
+            });
+
+            // Resposta de sucesso
+            return res.status(200).json({
+                success: true,
+                message: "Login realizado com sucesso!",
+                user: {
+                    id: funcionario.id_funcionario_funcionario,
+                    nome: funcionario.nome_funcionario_funcionario,
+                    email: funcionario.email_funcionario_funcionario,
+                    cargo: papelDoUsuario
+                }
+            });
+
+        } else {
+            // Senha incorreta
+            return res.status(401).json({ 
+                success: false, 
+                message: "Credenciais inválidas! Email e/ou senha incorretos." 
+            });
+        }
+
     } catch (error) {
         console.error("Erro no processo de login: ", error); 
-        return res.status(500).json({ success: false, message: "Erro interno do servidor." });
+        return res.status(500).json({ 
+            success: false, 
+            message: "Erro interno do servidor." 
+        });
     }
 };
 
