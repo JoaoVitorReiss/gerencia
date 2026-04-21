@@ -1228,12 +1228,35 @@ const desligarFuncionario = async (idFuncionario, motivo, idUsuarioResponsavel) 
 
 
 //Essa funcão restanar a lista de todos funcionários que foram desativados, ou seja demitidos;
-
-
 const lista_funcionarios_demitidos = async() => {
     try{
         const conectar = await conecta_banco();
-        const sql = "SELECT id_funcionario_funcionario, nome_funcionario_funcionario, email_funcionario_funcionario, tipo_funcionario_funcionario, cpf_funcionario, salario_funcionario, data_admissao, data_demissao, telefone_funcionario, foto_url FROM funcionarios where ativo = 0 ";
+                const sql = `
+            SELECT 
+                f.id_funcionario_funcionario, 
+                f.nome_funcionario_funcionario, 
+                f.email_funcionario_funcionario, 
+                f.tipo_funcionario_funcionario, 
+                f.cpf_funcionario, 
+                f.salario_funcionario, 
+                f.data_admissao, 
+                f.data_demissao, 
+                f.telefone_funcionario, 
+                f.foto_url,
+                l.motivo AS motivo_desligamento,
+                resp.nome_funcionario_funcionario AS usuario_responsavel
+            FROM funcionarios f
+            -- Fazemos o JOIN nos logs onde a ação foi especificamente a de desligamento
+            LEFT JOIN funcionario_logs l 
+                ON f.id_funcionario_funcionario = l.id_funcionario_log 
+               AND l.novo = 'Funcionário desligado (ativo = 0)'
+            -- Fazemos outro JOIN para descobrir _quem_ foi o responsável pelo desligamento
+            LEFT JOIN funcionarios resp 
+                ON l.id_usuario_log = resp.id_funcionario_funcionario
+            WHERE f.ativo = 0
+            ORDER BY f.data_demissao DESC
+        `;
+        
         const [linhas] = await conectar.query(sql);
         return linhas;
     } catch (error) {
