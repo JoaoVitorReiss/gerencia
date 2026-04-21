@@ -694,3 +694,112 @@ body {
 #modal-editar-container .modal-body .textarea-motivo {
     display: block;
 }
+
+
+/* ========== CARD DE HISTÓRICO ========== */
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    transition: var(--transition);
+    border: 1px solid var(--border-color);
+}
+
+.card section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.card h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+/* Botão de pesquisa/filtro */
+#btn_show {
+    background: var(--gray-light);
+    border: 1px solid rgba(0, 0, 0, 0.185);
+    border-radius: 40px;           /* formato arredondado/pílula */
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 0;
+}
+
+#btn_show:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(50, 80, 136, 0.15);
+}
+
+#btn_show:hover svg {
+    fill: white;
+}
+
+#btn_show svg {
+    
+    display: block;
+    width:48px;
+    height: 48px;
+    fill: #5a6a7a;
+    transition: fill 0.2s ease;
+}
+
+/* Versão alternativa: botão com texto (caso queira) */
+#btn_show.btn-text {
+    width: auto;
+    height: auto;
+    padding: 10px 20px;
+    gap: 8px;
+    border-radius: 30px;
+    background: white;
+    font-weight: 500;
+    color: var(--primary);
+}
+
+#btn_show.btn-text svg {
+    fill: var(--primary);
+}
+
+#btn_show.btn-text:hover {
+    background: var(--primary);
+    color: white;
+}
+
+#btn_show.btn-text:hover svg {
+    fill: white;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+    .card {
+        padding: 16px;
+    }
+
+    .card h2 {
+        font-size: 1.1rem;
+    }
+
+    #btn_show {
+        width: 40px;
+        height: 40px;
+    }
+
+    #btn_show svg {
+        width: 20px;
+        height: 20px;
+    }
+}

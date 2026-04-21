@@ -1289,6 +1289,23 @@ app.post("/desligar-funcionario", authenticateJWT, requireAdm, async (req, res) 
     }
 });
 
+
+// Função para listar os funcinarios desligados/demitidos
+app.get("/ex-funcionarios", authenticateJWT, requireAdm, async (req, res) => {
+    try{
+        const lista_exFuncionarios = await db.lista_funcionarios_demitidos();
+        if(lista_exFuncionarios){
+            console.log(lista_exFuncionarios);
+            res.status(200).json(lista_exFuncionarios);
+        }else{
+            res.status(404).json({ mensagem: "Nenhum funcionário desligado encontrado" });
+        }
+    }catch(error){
+        console.error("Erro ao lista os funcionários desligados: " + error);
+        res.status(500).json({ mensagem: "Erro interno ao listar os funcionários desligados" });
+    }
+});
+
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
     try {
         req.session.dadosSacolaNota = [];

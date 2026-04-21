@@ -108,6 +108,7 @@ class GetLista {
     }
     static init() {
         this.lista_funcionarios(); 
+        exfuncionario.btn_show();
 
         setInterval(() => {
             if (!document.hidden) {
@@ -167,7 +168,7 @@ class ModalDetalhesFuncionario {
                         </div>
                         <div class="info-item">
                             <label>Telefone</label>
-                            <p>${dados.telefone || 'Não informado'}</p>
+                            <p style="font-weight: bold; text-decoration: underline;">${dados.telefone || 'Não informado'}</p>
                         </div>
                         <div class="info-item">
                             <label>Salário</label>
@@ -193,6 +194,12 @@ class ModalDetalhesFuncionario {
                         </div>
 
                         <!-- Datas -->
+                        <div class="info-item">
+                            <label>Data da admissão</label>
+                            <p style="font-weight: bold;">${dados.data_admissao 
+                                ? new Date(dados.data_admissao).toLocaleDateString('pt-BR') 
+                                : 'Não informada'}</p>
+                        </div>
                         <div class="info-item">
                             <label>Última Venda</label>
                             <p>${dados.data_ultima_venda 
@@ -542,6 +549,35 @@ function acaoEditar() {
             }
         })
     })
+}
+
+class exfuncionario{
+
+    static btn_show(){
+        const btn_show = document.getElementById("btn_show");
+        if(btn_show){
+            btn_show.addEventListener("click", evt => {
+                evt.preventDefault();
+                this.lista();
+            })
+        }
+    }
+
+    static async lista(){
+        try {
+            const resposta =  await fetch("/ex-funcionarios", {
+                method: "GET",
+                headers: {"Content-Type": "application/json"}
+            })
+
+            if(resposta.ok){
+                const lista = await resposta.json();
+                console.log(lista)
+            }
+        }catch (error){
+            console.error("Erro ao obter lista de ex-funcionarios: " + error);
+        }
+    }
 }
 
 

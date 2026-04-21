@@ -989,7 +989,7 @@ const buscarFuncionarioLogado = async (id) => {
 };
 
 
-// Essa função retorna a lista de todos os funcionários cadastrados.
+// Essa função retorna a lista de todos os funcionários cadastrados, caso eles estejam ativos.
 const lista_funcioarios = async() => {
     try  {
         const conectar = await conecta_banco();
@@ -1226,6 +1226,22 @@ const desligarFuncionario = async (idFuncionario, motivo, idUsuarioResponsavel) 
     }
 };
 
+
+//Essa funcão restanar a lista de todos funcionários que foram desativados, ou seja demitidos;
+
+
+const lista_funcionarios_demitidos = async() => {
+    try{
+        const conectar = await conecta_banco();
+        const sql = "SELECT id_funcionario_funcionario, nome_funcionario_funcionario, email_funcionario_funcionario, tipo_funcionario_funcionario, cpf_funcionario, salario_funcionario, data_admissao, data_demissao, telefone_funcionario, foto_url FROM funcionarios where ativo = 0 ";
+        const [linhas] = await conectar.query(sql);
+        return linhas;
+    } catch (error) {
+        console.error("Erro ao buscar a lista de funcionários demitidos: " + error);
+        throw error;
+    }
+}
+
 module.exports = { 
     //verifica_tipo, 
     buscarFuncionarioPorEmail, 
@@ -1267,7 +1283,8 @@ module.exports = {
     historicoFuncionario,
     getFuncionarioParaEditar,
     atualizarFuncionario,
-    desligarFuncionario
+    desligarFuncionario,
+    lista_funcionarios_demitidos
     
     //dados_vendedor
 };
