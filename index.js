@@ -1295,7 +1295,7 @@ app.get("/ex-funcionarios", authenticateJWT, requireAdm, async (req, res) => {
     try{
         const lista_exFuncionarios = await db.lista_funcionarios_demitidos();
         if(lista_exFuncionarios){
-            console.log(lista_exFuncionarios);
+            //console.log(lista_exFuncionarios);
             res.status(200).json(lista_exFuncionarios);
         }else{
             res.status(404).json({ mensagem: "Nenhum funcionário desligado encontrado" });

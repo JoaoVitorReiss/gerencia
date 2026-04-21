@@ -550,35 +550,282 @@ function acaoEditar() {
         })
     })
 }
+class exfuncionario {
 
-class exfuncionario{
-
-    static btn_show(){
+    static btn_show() {
         const btn_show = document.getElementById("btn_show");
-        if(btn_show){
-            btn_show.addEventListener("click", evt => {
+        if (btn_show) {
+            btn_show.addEventListener("click", async (evt) => {
                 evt.preventDefault();
-                this.lista();
-            })
+                try {
+                    const lista = await exfuncionario.lista();
+                    abrirModalListaHistorico(lista);
+                } catch (error) {
+                    console.error("Erro ao carregar lista:", error);
+                    alert("Não foi possível carregar o histórico. Tente novamente.");
+                }
+            });
         }
     }
 
-    static async lista(){
+    static async lista() {
         try {
-            const resposta =  await fetch("/ex-funcionarios", {
+            const resposta = await fetch("/ex-funcionarios", {
                 method: "GET",
-                headers: {"Content-Type": "application/json"}
-            })
+                headers: { "Content-Type": "application/json" }
+            });
 
-            if(resposta.ok){
+            if (resposta.ok) {
                 const lista = await resposta.json();
-                console.log(lista)
+                console.log(lista);
+                return lista;
+            } else {
+                console.error("Erro na resposta:", resposta.status);
+                return [];
             }
-        }catch (error){
+        } catch (error) {
             console.error("Erro ao obter lista de ex-funcionarios: " + error);
+            return [];
         }
     }
 }
+
+
+
+let dadosHistoricosOriginais = [];
+
+
+function abrirModalDetalhesHistorico(dados) {
+    if (!dados) return;
+
+    const overlay = document.getElementById('modal-overlay-historico');
+    const containerConteudo = document.getElementById('historico-conteudo');
+
+    const dataAdmissao = dados.data_admissao 
+        ? new Date(dados.data_admissao).toLocaleDateString('pt-BR') 
+        : '—';
+    const dataDemissao = dados.data_demissao 
+        ? new Date(dados.data_demissao).toLocaleDateString('pt-BR') 
+        : '—';
+    const cpfFormatado = dados.cpf_funcionario 
+        ? dados.cpf_funcionario.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') 
+        : '—';
+    const telefoneFormatado = dados.telefone_funcionario 
+        ? dados.telefone_funcionario.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3') 
+        : '—';
+    const salarioFormatado = dados.salario_funcionario 
+        ? Number(dados.salario_funcionario).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
+        : '—';
+    const tipoMap = { 1: 'Efetivo', 2: 'Temporário', 3: 'Estagiário' };
+    const tipoFuncionario = tipoMap[dados.tipo_funcionario_funcionario] || '—';
+    const html = `
+        <div class="historico-foto-nome">
+            <div class="historico-foto">
+                ${dados.foto_url 
+                    ? `<img src="${dados.foto_url}" alt="${dados.nome_funcionario_funcionario}">` 
+                    : `<span class="placeholder">👤</span>`
+                }
+            </div>
+            <div class="historico-nome">
+                <h3>${dados.nome_funcionario_funcionario || '—'}</h3>
+                <div class="historico-email">${dados.email_funcionario_funcionario || '—'}</div>
+            </div>
+        </div>
+
+        <div class="historico-grid">
+            <div class="historico-item">
+                <label>ID Funcionário</label>
+                <p>#${dados.id_funcionario_funcionario || '—'}</p>
+            </div>
+            <div class="historico-item">
+                <label>CPF</label>
+                <p>${cpfFormatado}</p>
+            </div>
+            <div class="historico-item">
+                <label>Telefone</label>
+                <p>${telefoneFormatado}</p>
+            </div>
+            <div class="historico-item">
+                <label>Tipo</label>
+                <p>${tipoFuncionario}</p>
+            </div>
+            <div class="historico-item">
+                <label>Salário</label>
+                <p>${salarioFormatado}</p>
+            </div>
+            <div class="historico-item">
+                <label>Data Admissão</label>
+                <p>${dataAdmissao}</p>
+            </div>
+            <div class="historico-item">
+                <label>Data Demissão</label>
+                <p>${dataDemissao}</p>
+            </div>
+        </div>
+
+        <div class="historico-motivo">
+            <label>📝 Motivo do Desligamento</label>
+            <p>${dados.motivo_desligamento || 'Motivo não informado.'}</p>
+        </div>
+
+        <div class="historico-responsavel">
+            <span>Desligamento registrado por:</span>
+            <strong>${dados.usuario_responsavel || 'Sistema'}</strong>
+        </div>
+    `;
+
+    containerConteudo.innerHTML = html;
+    overlay.removeAttribute('hidden');
+}
+
+function fecharModalDetalhesHistorico() {
+    document.getElementById('modal-overlay-historico').setAttribute('hidden', '');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const overlayDetalhes = document.getElementById('modal-overlay-historico');
+    const btnFecharDetalhes = document.getElementById('fechar-modal-historico');
+    const btnFecharFooterDetalhes = document.getElementById('btn-fechar-historico');
+
+    if (overlayDetalhes) {
+        const fechar = () => overlayDetalhes.setAttribute('hidden', '');
+        if (btnFecharDetalhes) btnFecharDetalhes.addEventListener('click', fechar);
+        if (btnFecharFooterDetalhes) btnFecharFooterDetalhes.addEventListener('click', fechar);
+        overlayDetalhes.addEventListener('click', (e) => {
+            if (e.target === overlayDetalhes) fechar();
+        });
+    }
+});
+
+window.abrirModalDetalhesHistorico = abrirModalDetalhesHistorico;
+
+function renderizarTabelaHistorico(dados) {
+    const tbody = document.getElementById('historico-tbody');
+    const divVazio = document.getElementById('historico-vazio');
+    
+    if (!dados || dados.length === 0) {
+        tbody.innerHTML = '';
+        divVazio.style.display = 'block';
+        return;
+    }
+    
+    divVazio.style.display = 'none';
+    
+    let html = '';
+    dados.forEach(item => {
+    
+        const dataAdmissao = item.data_admissao 
+            ? new Date(item.data_admissao).toLocaleDateString('pt-BR') 
+            : '—';
+        const dataDemissao = item.data_demissao 
+            ? new Date(item.data_demissao).toLocaleDateString('pt-BR') 
+            : '—';
+        
+        // Formata CPF
+        const cpfFormatado = item.cpf_funcionario 
+            ? item.cpf_funcionario.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') 
+            : '—';
+        
+
+        const motivoResumido = item.motivo_desligamento 
+            ? item.motivo_desligamento.length > 40 
+                ? item.motivo_desligamento.substring(0, 40) + '…' 
+                : item.motivo_desligamento
+            : '—';
+        
+        const fotoHtml = item.foto_url 
+            ? `<img src="${item.foto_url}" class="mini-foto" alt="${item.nome_funcionario_funcionario}">` 
+            : `<span class="placeholder-mini">👤</span>`;
+        
+        html += `
+            <tr data-id="${item.id_funcionario_funcionario}">
+                <td>
+                    <div class="historico-funcionario-cell">
+                        ${fotoHtml}
+                        <div>
+                            <div class="historico-info-nome">${item.nome_funcionario_funcionario || '—'}</div>
+                            <div class="historico-info-email">${item.email_funcionario_funcionario || '—'}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${cpfFormatado}</td>
+                <td>${dataAdmissao}</td>
+                <td>${dataDemissao}</td>
+                <td class="motivo-resumo" title="${item.motivo_desligamento || ''}">${motivoResumido}</td>
+                <td class="historico-acoes">
+                    <button class="btn-detalhes-historico" data-id="${item.id_funcionario_funcionario}">Ver detalhes</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+    
+    document.querySelectorAll('.btn-detalhes-historico').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.getAttribute('data-id');
+            const funcionario = dadosHistoricosOriginais.find(f => f.id_funcionario_funcionario == id);
+            if (funcionario) {
+                abrirModalDetalhesHistorico(funcionario);
+            }
+        });
+    });
+}
+
+function abrirModalListaHistorico(lista) {
+    dadosHistoricosOriginais = lista || [];
+    renderizarTabelaHistorico(dadosHistoricosOriginais);
+    
+    const overlay = document.getElementById('modal-overlay-historico-lista');
+    overlay.removeAttribute('hidden');
+    
+    const searchInput = document.getElementById('search-historico');
+    if (searchInput) searchInput.value = '';
+}
+
+function fecharModalListaHistorico() {
+    document.getElementById('modal-overlay-historico-lista').setAttribute('hidden', '');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Modal de lista
+    const overlay = document.getElementById('modal-overlay-historico-lista');
+    const btnFechar = document.getElementById('fechar-modal-historico-lista');
+    const btnFecharFooter = document.getElementById('btn-fechar-historico-lista');
+    const searchInput = document.getElementById('search-historico');
+    
+    if (overlay) {
+        function fechar() {
+            overlay.setAttribute('hidden', '');
+        }
+        if (btnFechar) btnFechar.addEventListener('click', fechar);
+        if (btnFecharFooter) btnFecharFooter.addEventListener('click', fechar);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) fechar();
+        });
+    }
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const termo = e.target.value.toLowerCase().trim();
+            if (!termo) {
+                renderizarTabelaHistorico(dadosHistoricosOriginais);
+                return;
+            }
+            
+            const filtrados = dadosHistoricosOriginais.filter(item => {
+                const nome = (item.nome_funcionario_funcionario || '').toLowerCase();
+                const email = (item.email_funcionario_funcionario || '').toLowerCase();
+                const cpf = (item.cpf_funcionario || '').toLowerCase();
+                const motivo = (item.motivo_desligamento || '').toLowerCase();
+                
+                return nome.includes(termo) || email.includes(termo) || cpf.includes(termo) || motivo.includes(termo);
+            });
+            
+            renderizarTabelaHistorico(filtrados);
+        });
+    }
+});
+
 
 
 if (document.readyState === 'loading') {
@@ -586,6 +833,5 @@ if (document.readyState === 'loading') {
 } else {
     GetLista.init();
 }
-
 window.ModalDetalhesFuncionario = ModalDetalhesFuncionario;
 window.ModalEditarFuncionario = ModalEditarFuncionario;
