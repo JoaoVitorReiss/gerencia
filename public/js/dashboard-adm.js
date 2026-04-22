@@ -393,7 +393,7 @@ class acaomenu {
             evt.preventDefault();
             
             acaoMesagem.forEach((element) => {  
-                element.innerHTML = MensagemModal.mensagemHome();
+                //element.innerHTML = MensagemModal.mensagemHome();
             });
         })
     }

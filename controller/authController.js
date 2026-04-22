@@ -2,22 +2,6 @@ const db = require('../db/db.js');
 const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 
-// // Função para HASHAR a senha antes de salvar
-//const bcrypt = require('bcryptjs');
-// const hashSenha = async (senhaEmTextoPuro) => {
-//     const saltRounds = await bcrypt.genSalt(); 
-//     const hash = await bcrypt.hash(senhaEmTextoPuro, saltRounds);
-//     return hash;
-// };
-
-// class novasenha{
-//     static async newsenha(){
-//         const senha = 'teste1234';
-//         const senhaHash = await hashSenha(senha);
-//         console.log(senhaHash)
-//     }
-// }
-// novasenha.newsenha();
 
 
 const maxAge = 60 * 60 * 24; // Definido o tempo de ação do JWT em segundos (1 dia)

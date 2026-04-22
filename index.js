@@ -31,6 +31,57 @@ app.use(express.json());
 app.use(cookieParser());
 
 
+const http = require('http');
+const { Server } = require('socket.io');
+const cookie = require('cookie'); // <--- ADICIONE ESTA LINHA
+const server = http.createServer(app);
+const io = new Server(server);
+
+
+io.use((socket, next) => {
+    // 1. Extrair cookies do header da requisição
+    const cookies = socket.handshake.headers.cookie;
+    
+    if (!cookies) return next(new Error("Autenticação necessária"));
+
+    const parsedCookies = cookie.parse(cookies);
+    const token = parsedCookies.jwt; // Nome do cookie que você definiu no authController
+
+    if (!token) return next(new Error("Token não encontrado"));
+
+    // 2. Verificar o JWT usando sua SECRET
+    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+        if (err) return next(new Error("Token inválido"));
+
+        // 3. Anexar os dados ao socket (id e tipo que você colocou no createToken)
+        socket.user = decodedToken; 
+        next();
+    });
+});
+
+io.on('connection', (socket) => {
+    console.log(`Funcionário ${socket.user.id} conectado ao chat`);
+
+    // Cada funcionário entra em uma sala única baseada no ID dele
+    socket.join(`user_${socket.user.id}`);
+
+    // Evento de envio de mensagem privada
+    socket.on('enviar_mensagem', async (dados) => {
+        const { destinatario_id, texto } = dados;
+        
+        const mensagemCompleta = {
+            remetente_id: socket.user.id,
+            texto: texto,
+            timestamp: new Date()
+        };
+
+        // Envia para a "sala" do destinatário
+        io.to(`user_${destinatario_id}`).emit('receber_mensagem', mensagemCompleta);
+        
+        // TODO: Salvar no banco de dados aqui (próximo passo)
+    });
+});
+
 
 // Rota Raiz: Redireciona se autenticado, serve login caso contrário
 app.get("/", (req, res, next) => {
@@ -1345,6 +1396,10 @@ app.post("/logout", (req, res) => {
     
 });
 
-app.listen(porta, () => {
-    console.log("Servidor rodando");
+// app.listen(porta, () => {
+//     console.log("Servidor rodando");
+// });
+// NO FINAL DO ARQUIVO, USE ASSIM:
+server.listen(porta, () => {
+    console.log(`Servidor rodando com Chat na porta ${porta}`);
 });

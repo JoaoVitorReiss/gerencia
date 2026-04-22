@@ -91,7 +91,34 @@
         </div>
     </main>
 </div>
+
     <script type="module" src="/js/dashboard-adm.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        // Agora o 'io' estará definido porque o script acima o criou
+        const socket = io(); 
+
+        // ... restante do código de receber/enviar mensagens ...
+                socket.on('receber_mensagem', (dados) => {
+            console.log(`--- NOVA MENSAGEM RECEBIDA ---`);
+            console.log(`De (ID): ${dados.remetente_id}`);
+            console.log(`Texto: ${dados.texto}`);
+            console.log(`Hora: ${dados.timestamp}`);
+            
+            // Alerta simples para testar visualmente
+            alert(`Mensagem de ${dados.remetente_id}: ${dados.texto}`);
+        });
+
+        // 2. Função global para você disparar do console
+        window.enviarPara = function(idDestino, mensagem) {
+            socket.emit('enviar_mensagem', {
+                destinatario_id: idDestino,
+                texto: mensagem
+            });
+            console.log(`Tentando enviar para o ID ${idDestino}...`);
+        };
+    </script>
 
 </body>
 </html>
