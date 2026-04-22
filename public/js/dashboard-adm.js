@@ -1,4 +1,7 @@
+import { MensagemModal } from "./mensagem_modal.js";
 const usuarioLogado = window.usuarioLogado.id;
+const pageHome = document.getElementById("home");
+
 class ModalVisualizarFuncionario {
 
     static abrir(funcionario) {
@@ -91,6 +94,7 @@ class ModalVisualizarFuncionario {
     }
 }
 window.ModalVisualizarFuncionario = ModalVisualizarFuncionario;
+
 class gerir_funcionarios {
 
     static logout() {
@@ -340,6 +344,7 @@ class preview {
         this.previewFaturamento();
         this.previewVendasRegistradas();
         this.previewProdutosFalta();
+        acaomenu.mensagem();
     };
 };
 
@@ -371,6 +376,28 @@ class add_funcionario {
     }
 }
 
+
+class acaomenu {
+    static async home() {
+        const btn_home = document.getElementById("home");
+        btn_home.addEventListener("click", (evt) => {
+            evt.preventDefault();
+            preview.int();
+        })
+    }
+
+    static  async mensagem() {
+        const acaoMesagem = document.querySelectorAll(".acaoS");
+        const btn_mensagem = document.getElementById("mensagem");
+        btn_mensagem.addEventListener("click", (evt) => {
+            evt.preventDefault();
+            
+            acaoMesagem.forEach((element) => {  
+                element.innerHTML = MensagemModal.mensagemHome();
+            });
+        })
+    }
+}
 
 gerir_funcionarios.int();
 sidebarPages.int();
