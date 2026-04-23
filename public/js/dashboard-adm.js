@@ -390,14 +390,20 @@ class acaomenu {
         const acaoMesagem = document.querySelectorAll(".acaoS");
         const btn_mensagem = document.getElementById("mensagem");
         btn_mensagem.addEventListener("click", (evt) => {
-            evt.preventDefault();
-            
-            acaoMesagem.forEach((element) => {  
-                //element.innerHTML = MensagemModal.mensagemHome();
-            });
-        })
+        evt.preventDefault();
+        
+        // Injeta o HTML
+        acaoMesagem.forEach((element) => {  
+            element.innerHTML = MensagemModal.mensagemHome();
+        });
+
+        // Ativa os botões e eventos do modal que acabamos de criar
+        MensagemModal.configurarEventos();
+        MensagemModal.io_socket(); // Inicia o ouvinte de mensagens
+    });
     }
 }
+
 
 gerir_funcionarios.int();
 sidebarPages.int();

@@ -1,6 +1,22 @@
+let socket;
 export class MensagemModal {
+    static io_socket() {
+        if (!socket) {
+            socket = io(); 
+            console.log("Socket iniciado");
+
+            // MUDANÇA AQUI: Usando Arrow Function (dados) => { ... }
+            socket.on('receber_mensagem', (dados) => {
+                console.log("Mensagem recebida:", dados);
+                
+                // Agora o 'this' funciona porque a Arrow Function não cria um novo escopo
+                this.renderizarNovaBolha(dados);
+            });
+        }
+        return socket;
+    }
     static mensagemHome() {
-        const modal = `
+                const modal = `
             <div class="msg-container">
                 <style>
                     /* Variáveis de cor fornecidas por você + algumas auxiliares */
@@ -317,8 +333,8 @@ export class MensagemModal {
                         </div>
 
                         <div class="msg-input-area">
-                            <input type="text" placeholder="Digite sua mensagem aqui...">
-                            <button>Enviar</button>
+                            <input type="text" id="msg-input" placeholder="Digite sua mensagem aqui...">
+                            <button id="btn-enviar-msg">Enviar</button>
                         </div>
 
                     </div>
@@ -327,4 +343,60 @@ export class MensagemModal {
         `;
         return modal;
     }
+    static configurarEventos() {
+        const btn = document.getElementById('btn-enviar-msg');
+        const input = document.getElementById('msg-input');
+
+        const dispararEnvio = () => {
+            const texto = input.value;
+            if (texto.trim() !== "") {
+                // 1. Enviamos via Socket (Usando o ID 10 como teste por enquanto)
+                this.enviarMensagem(10, texto);
+                
+                // 2. Limpamos o input
+                input.value = "";
+                input.focus();
+            }
+        };
+
+        if (btn) btn.addEventListener('click', dispararEnvio);
+        
+        if (input) {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') dispararEnvio();
+            });
+        }
+    }
+
+    static enviarMensagem(idDestinatario, texto) {
+        const socket = this.io_socket(); // Garante que temos a conexão
+        
+        const dados = {
+            destinatario_id: idDestinatario,
+            texto: texto,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        socket.emit('enviar_mensagem', dados);
+
+        // Renderiza a nossa própria bolha (lado direito - sent)
+        this.renderizarBolha(dados, 'sent');
+    }
+
+    static renderizarNovaBolha(dados) {
+        const history = document.querySelector('.msg-history');
+        if (history) {
+            // Criamos a estrutura da bolha recebida
+            const div = document.createElement('div');
+            div.className = 'msg-bubble received';
+            div.innerHTML = `
+                ${dados.texto}
+                <span class="msg-bubble-time">${dados.timestamp || 'agora'}</span>
+            `;
+            
+            history.appendChild(div);
+            history.scrollTop = history.scrollHeight; // Scroll para o final
+        }
+    }
+
 }
