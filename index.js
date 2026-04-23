@@ -39,20 +39,21 @@ const io = new Server(server);
 
 
 io.use((socket, next) => {
+    // 1. Extrair cookies do header da requisição
     const cookies = socket.handshake.headers.cookie;
     
     if (!cookies) return next(new Error("Autenticação necessária"));
 
     const parsedCookies = cookie.parse(cookies);
-    const token = parsedCookies.jwt; 
+    const token = parsedCookies.jwt; // Nome do cookie que você definiu no authController
 
     if (!token) return next(new Error("Token não encontrado"));
 
-
+    // 2. Verificar o JWT usando sua SECRET
     jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
         if (err) return next(new Error("Token inválido"));
 
-        // anexa os dados ao socket (id e tipo que você colocou no createToken)
+        // 3. Anexar os dados ao socket (id e tipo que você colocou no createToken)
         socket.user = decodedToken; 
         next();
     });
@@ -64,12 +65,14 @@ io.on('connection', (socket) => {
     // Cada funcionário entra em uma sala única baseada no ID dele
     socket.join(`user_${socket.user.id}`);
 
+    // Avisa os outros que este usuário entrou
     socket.broadcast.emit('usuario_status', {
         id: socket.user.id,
         status: 'online',
         timestamp: new Date().toISOString()
     });
 
+    // Evento de envio de mensagem privada
     socket.on('enviar_mensagem', async (dados) => {
         const { destinatario_id, texto } = dados;
 
@@ -86,16 +89,49 @@ io.on('connection', (socket) => {
         };
 
         // Salvar no banco de dados
+        let id_mensagem = null;
         try {
-            await db.salvarMensagem(remetente_id, destinatario_id, texto.trim());
+            const result = await db.salvarMensagem(remetente_id, destinatario_id, texto.trim());
+            id_mensagem = result.insertId;
         } catch (err) {
             console.error('Erro ao salvar mensagem no DB:', err);
+            return;
         }
 
+        mensagemCompleta.id_mensagem = id_mensagem;
+
+        // Entregar para o destinatário (sala do destinatário)
         io.to(`user_${destinatario_id}`).emit('receber_mensagem', mensagemCompleta);
+        
+        // Confirmar envio para o remetente com o ID real
+        if (dados.temp_id) {
+            socket.emit('mensagem_enviada_ok', { temp_id: dados.temp_id, id_mensagem, timestamp: mensagemCompleta.timestamp });
+        }
+    });
+
+    // Evento de exclusão de mensagem
+    socket.on('excluir_mensagem', async (dados) => {
+        const { id_mensagem, id_destinatario } = dados;
+        if (!id_mensagem) return;
+
+        const remetente_id = socket.user.id;
+        try {
+            const excluiu = await db.excluirMensagem(id_mensagem, remetente_id);
+            if (excluiu) {
+                // Remove da tela do remetente
+                socket.emit('mensagem_apagada', { id_mensagem });
+                // Remove da tela do destinatário se ele estiver conectado
+                if (id_destinatario) {
+                    io.to(`user_${id_destinatario}`).emit('mensagem_apagada', { id_mensagem });
+                }
+            }
+        } catch (err) {
+            console.error('Erro ao excluir mensagem via socket:', err);
+        }
     });
 
     socket.on('disconnect', () => {
+        // Avisa os outros que este usuário saiu
         socket.broadcast.emit('usuario_status', {
             id: socket.user.id,
             status: 'offline',
@@ -1422,15 +1458,7 @@ app.post("/logout", (req, res) => {
 // app.listen(porta, () => {
 //     console.log("Servidor rodando");
 // });
-
-
-
-
-
-
-
-
-//  Rotas de Mensagens
+// ─── Rotas de Mensagens ─────────────────────────────────────────────────────
 
 // Retorna a lista de contatos (funcionários ativos) com prévia da última mensagem
 app.get("/contatos_msg", authenticateJWT, async (req, res) => {
@@ -1449,7 +1477,11 @@ app.get("/conversa/:id_contato", authenticateJWT, async (req, res) => {
         const id_contato = parseInt(req.params.id_contato);
         if (!id_contato) return res.status(400).json({ mensagem: "ID inválido." });
 
+        // Marcar como lidas as mensagens recebidas deste contato
         await db.marcarComoLida(id_contato, req.user.id);
+        
+        // Avisar o contato que suas mensagens foram lidas
+        io.to(`user_${id_contato}`).emit('mensagens_lidas', { by_user: req.user.id });
 
         const mensagens = await db.buscarConversa(req.user.id, id_contato);
         res.status(200).json({ mensagens });
@@ -1465,6 +1497,10 @@ app.post("/msg_lida", authenticateJWT, async (req, res) => {
         const { id_remetente } = req.body;
         if (!id_remetente) return res.status(400).json({ mensagem: "ID do remetente obrigatório." });
         await db.marcarComoLida(id_remetente, req.user.id);
+        
+        // Avisar o remetente que suas mensagens foram lidas
+        io.to(`user_${id_remetente}`).emit('mensagens_lidas', { by_user: req.user.id });
+
         res.status(200).json({ mensagem: "Mensagens marcadas como lidas." });
     } catch (error) {
         res.status(500).json({ mensagem: "Erro interno." });

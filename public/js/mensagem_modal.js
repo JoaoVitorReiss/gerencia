@@ -1,7 +1,10 @@
 let socket;
-let contatoAtivoId = null;
+let contatoAtivoId = null; // ID do contato cuja conversa está aberta
 
 export class MensagemModal {
+
+    // ─── Socket ───────────────────────────────────────────────────────────────
+
     static io_socket() {
         if (!socket) {
             socket = io();
@@ -10,6 +13,7 @@ export class MensagemModal {
             socket.on('receber_mensagem', (dados) => {
                 console.log("Mensagem recebida:", dados);
 
+                // Tenta reproduzir o som de notificação e exibir no SO
                 this.tocarSomNotificacao();
                 
                 let nomeRemetente = "Novo contato";
@@ -18,10 +22,12 @@ export class MensagemModal {
                     if (c) nomeRemetente = c.nome;
                 }
                 
+                // Exibe a notificação de sistema operacional (se permitido e se não estiver com o chat dele aberto/em foco)
                 if (contatoAtivoId !== dados.remetente_id || document.hidden) {
                     this.mostrarNotificacaoBrowser(nomeRemetente, dados.texto);
                 }
 
+                // Se a mensagem é de quem está na conversa aberta, renderiza direto
                 if (contatoAtivoId !== null && dados.remetente_id === contatoAtivoId) {
                     this.renderizarBolha({ texto: dados.texto, timestamp: dados.timestamp }, 'received');
                     // Marcar como lida imediatamente
@@ -30,26 +36,64 @@ export class MensagemModal {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id_remetente: dados.remetente_id })
                     }).catch(() => {});
+                    // Removido incrementarBadge daqui pois passamos a verificar na cláusula fora do if
                 }
 
+                // Atualiza a prévia na sidebar para o contato remetente
                 this.atualizarPreviewSidebar(dados.remetente_id, dados.texto);
 
+                // Se não está na conversa ativa, incrementa as notificações
                 if (contatoAtivoId !== dados.remetente_id) {
+                    // O incrementarBadge atualiza o visual da sidebar
                     this.incrementarBadge(dados.remetente_id);
 
+                    // Incrementa a notificação global no header
                     this._totalNaoLidas = (this._totalNaoLidas || 0) + 1;
                     this.atualizarBadgeGlobalUI();
                 }
             });
 
+            // Escuta a mudança de status (online/offline) dos contatos
             socket.on('usuario_status', (dados) => {
                 this.atualizarStatusTempoReal(dados);
+            });
+
+            // Escuta mensagens marcadas como lidas
+            socket.on('mensagens_lidas', (dados) => {
+                if (contatoAtivoId == dados.by_user) {
+                    this.marcarMensagensLidasUI();
+                }
+            });
+
+            // Confirmação de envio (para poder excluir depois)
+            socket.on('mensagem_enviada_ok', (dados) => {
+                const bubble = document.querySelector(`.msg-bubble.sent[data-temp-id="${dados.temp_id}"]`);
+                if (bubble) {
+                    bubble.dataset.idMsg = dados.id_mensagem;
+                    delete bubble.dataset.tempId;
+                }
+            });
+
+            // Remove a mensagem apagada da tela
+            socket.on('mensagem_apagada', (dados) => {
+                const bubble = document.querySelector(`.msg-bubble[data-id-msg="${dados.id_mensagem}"]`);
+                if (bubble) bubble.remove();
             });
         }
         return socket;
     }
 
-    // Sons
+    static marcarMensagensLidasUI() {
+        const history = document.getElementById('msg-history');
+        if (!history) return;
+        const ticks = history.querySelectorAll('.msg-ticks.unread');
+        ticks.forEach(t => {
+            t.className = 'msg-ticks read';
+            t.innerHTML = '✓✓';
+        });
+    }
+
+    // ─── Sons e Alertas ───────────────────────────────────────────────────────
 
     static tocarSomNotificacao() {
         try {
@@ -60,6 +104,7 @@ export class MensagemModal {
             const gainNode = audioCtx.createGain();
             
             oscillator.type = 'sine';
+            // Frequência de um "Ding" suave
             oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
             oscillator.frequency.exponentialRampToValueAtTime(880.00, audioCtx.currentTime + 0.1); // A5
             
@@ -83,7 +128,7 @@ export class MensagemModal {
         const titulo = `Nova mensagem de ${nomeRemetente}`;
         const opcoes = {
             body: texto,
-            icon: '/img/icon/icon.png' // Ícone da empresa
+            icon: '/img/icon/icon.png' // Ícone padrão do seu sistema
         };
 
         if (Notification.permission === "granted") {
@@ -97,6 +142,7 @@ export class MensagemModal {
         }
     }
 
+    // ─── Notificações Globais (fora do chat) ──────────────────────────────────
     
     static async inicializarNotificacoesGlobais() {
         if (this._notificacoesIniciadas) return;
@@ -114,18 +160,19 @@ export class MensagemModal {
             console.error('Erro buscar notificacoes globais:', e);
         }
 
+        // Garante que o socket está escutando mensagens em background
         this.io_socket();
     }
 
     static atualizarBadgeGlobalUI() {
         const botoes = [
-            document.getElementById('btn_mensagem'), // Vendedor
+            document.getElementById('btn_mensagem'), // Vendas
             document.getElementById('mensagem')      // Adm
         ];
 
         botoes.forEach(btn => {
             if (!btn) return;
-            btn.style.position = 'relative'; 
+            btn.style.position = 'relative'; // necessário para posicionar a bolinha
             
             let badge = btn.querySelector('.global-msg-badge');
             if (this._totalNaoLidas > 0) {
@@ -148,7 +195,7 @@ export class MensagemModal {
         this.atualizarBadgeGlobalUI();
     }
 
-    // HTML 
+    // ─── HTML estático do container ───────────────────────────────────────────
 
 static mensagemHome() {
     return `
@@ -172,11 +219,14 @@ static mensagemHome() {
                     display: flex;
                     flex-direction: column;
                     width: 100%;
-                    height: 100%;
+                    height: calc(100vh - 120px); /* Força altura limite para habilitar scroll interno */
+                    min-height: 400px;
                     background: #f0f2f5;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                     color: #1E3C72;
                     overflow: hidden;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                 }
 
                 /* Reaplica variáveis */
@@ -423,6 +473,11 @@ static mensagemHome() {
                     background: var(--primary);
                     color: white;
                     border-bottom-right-radius: 0.25rem;
+                    position: relative;
+                    z-index: 1;
+                }
+                .msg-bubble.sent:hover {
+                    z-index: 999;
                 }
                 .msg-bubble-time {
                     display: block;
@@ -430,6 +485,58 @@ static mensagemHome() {
                     margin-top: 0.3rem;
                     text-align: right;
                     opacity: 0.7;
+                }
+                .msg-ticks {
+                    display: inline-block;
+                    margin-left: 4px;
+                    font-size: 1rem;
+                    letter-spacing: -1px;
+                    text-decoration: underline;
+                    text-decoration-style: solid;
+                    text-decoration-thickness: 2px;
+                }
+                .msg-ticks.read {
+                    color: lime; /* Verde para lida */
+                    text-decoration-color: lime;
+                }
+                .msg-ticks.unread {
+                    color: white; 
+                    text-decoration-color: white;
+                }
+                .msg-options-btn {
+                    display: none;
+                    cursor: pointer;
+                    margin-left: 5px;
+                    font-size: 0.9rem;
+                    color: rgba(255,255,255,0.7);
+                }
+                .msg-bubble.sent:hover .msg-options-btn {
+                    display: inline-block;
+                }
+                .msg-options-btn:hover {
+                    color: white;
+                }
+                .msg-options-menu {
+                    display: none;
+                    position: absolute;
+                    right: 0;
+                    bottom: -30px;
+                    background: white;
+                    color: #e74c3c;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    padding: 5px 10px;
+                    font-size: 0.8rem;
+                    cursor: pointer;
+                    z-index: 100;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                    white-space: nowrap;
+
+                    margin-top: -45px;
+                    position: absolute;
+                }
+                .msg-options-menu:hover {
+                    background: #ffffffff;
                 }
                 .msg-input-area {
                     display: flex;
@@ -488,11 +595,19 @@ static mensagemHome() {
     `;
 }
 
+    // ─── Inicialização após injetar o HTML ────────────────────────────────────
+
     static async configurarEventos() {
         await this.carregarContatos();
         this.configurarBusca();
+        
+        // Fecha menu de opções ao clicar fora
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.msg-options-menu').forEach(m => m.style.display = 'none');
+        });
     }
 
+    // ─── Cálculo de status (Online / Offline / Visto por último) ─────────────────────
 
     static calcularStatus(contato) {
         let textoOffline = 'Offline';
@@ -500,7 +615,7 @@ static mensagemHome() {
             const dataUltima = new Date(contato.ultima_atividade);
             const agora = new Date();
             
-
+            // Zerar horas para comparar apenas os dias
             const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
             const dataAtiv = new Date(dataUltima.getFullYear(), dataUltima.getMonth(), dataUltima.getDate());
             
@@ -533,11 +648,12 @@ static mensagemHome() {
             return { status: 'online', texto: 'Online' };
         }
         
-        // Passou de 15 minutos, offline e mostra a hora
+        // Passou de 15 minutos, consideramos offline e mostramos a hora
         return { status: 'offline', texto: textoOffline };
     }
 
     static atualizarStatusTempoReal({ id, status, timestamp }) {
+        // Atualiza a cache local para que a busca/renderização posterior mantenha o estado
         if (this._todosContatos) {
             const contato = this._todosContatos.find(c => c.id == id);
             if (contato) {
@@ -570,7 +686,7 @@ static mensagemHome() {
         }
     }
 
-    //busca e renderiza a lista de contato
+    // ─── Busca e renderiza a lista de contatos ─────────────────────────────────
 
     static async carregarContatos() {
         const lista = document.getElementById('msg-lista-contatos');
@@ -581,7 +697,7 @@ static mensagemHome() {
             if (!res.ok) throw new Error('Falha ao buscar contatos');
             const { contatos } = await res.json();
 
-            this._todosContatos = contatos;
+            this._todosContatos = contatos; // cache para o filtro de busca
             this.renderizarListaContatos(contatos);
         } catch (err) {
             lista.innerHTML = '<p class="msg-list-loading">Erro ao carregar contatos.</p>';
@@ -647,7 +763,7 @@ static mensagemHome() {
         return item;
     }
 
-    //conversa com um contato
+    // ─── Abre conversa com um contato ─────────────────────────────────────────
 
     static async abrirConversa(id_contato, nome, st, itemEl) {
         contatoAtivoId = id_contato;
@@ -656,12 +772,14 @@ static mensagemHome() {
         document.querySelectorAll('.msg-item').forEach(i => i.classList.remove('active'));
         if (itemEl) itemEl.classList.add('active');
 
+        // Remove badge da sidebar do modal e subtrai do global
         const badge = itemEl?.querySelector('.msg-badge');
         if (badge) {
             const naoLidasSidebar = parseInt(badge.textContent) || 0;
             if (naoLidasSidebar > 0) this.subtrairNaoLidasGlobais(naoLidasSidebar);
             badge.remove();
         } else if (this._todosContatos) {
+            // Caso abriu sem a DOM da sidebar renderizada
             const c = this._todosContatos.find(x => x.id == id_contato);
             if (c && c.nao_lidas > 0) {
                 this.subtrairNaoLidasGlobais(c.nao_lidas);
@@ -703,7 +821,7 @@ static mensagemHome() {
         return avatar ? avatar.innerHTML : '?';
     }
 
-    //Carrega histórico de mensagens
+    // ─── Carrega histórico de mensagens via REST ────────────────────────────────
 
     static async carregarHistorico(id_contato) {
         const history = document.getElementById('msg-history');
@@ -724,7 +842,7 @@ static mensagemHome() {
             const meuId = window.usuarioLogado?.id;
             for (const msg of mensagens) {
                 const tipo = msg.id_remetente === meuId ? 'sent' : 'received';
-                this.renderizarBolha({ texto: msg.mensagem_texto, timestamp: msg.hora }, tipo);
+                this.renderizarBolha({ texto: msg.mensagem_texto, timestamp: msg.hora, lida: msg.lida, id_mensagem: msg.id_mensagem }, tipo);
             }
 
             history.scrollTop = history.scrollHeight;
@@ -734,7 +852,7 @@ static mensagemHome() {
         }
     }
 
-    // Configura envio
+    // ─── Configura envio de mensagem ───────────────────────────────────────────
 
     static configurarEnvio(id_destinatario) {
         const btn = document.getElementById('btn-enviar-msg');
@@ -758,13 +876,15 @@ static mensagemHome() {
         });
     }
 
-    // Envia mensagem via socket
+    // ─── Envia mensagem via Socket ─────────────────────────────────────────────
 
     static enviarMensagem(idDestinatario, texto) {
         const sock = this.io_socket();
         const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const temp_id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
 
         const dados = {
+            temp_id,
             destinatario_id: idDestinatario,
             texto,
             timestamp
@@ -772,16 +892,16 @@ static mensagemHome() {
 
         sock.emit('enviar_mensagem', dados);
 
-        // Renderiza a própria bolha imediatamente
-        this.renderizarBolha({ texto, timestamp }, 'sent');
+        // Renderiza a própria bolha imediatamente (sem esperar o echo)
+        this.renderizarBolha({ texto, timestamp, lida: 0, temp_id }, 'sent');
 
         // Atualiza a prévia na sidebar para o contato destinatário
         this.atualizarPreviewSidebar(idDestinatario, texto);
     }
 
-    // Renderiza uma bolha na área de histórico
+    // ─── Renderiza uma bolha na área de histórico ──────────────────────────────
 
-    static renderizarBolha({ texto, timestamp }, tipo) {
+    static renderizarBolha({ texto, timestamp, lida, id_mensagem, temp_id }, tipo) {
         const history = document.getElementById('msg-history');
         if (!history) return;
 
@@ -789,18 +909,61 @@ static mensagemHome() {
         const placeholder = history.querySelector('.msg-history-loading');
         if (placeholder) placeholder.remove();
 
+        let ticksHtml = '';
+        let optionsHtml = '';
+
+        if (tipo === 'sent') {
+            const isLida = lida === 1 || lida === true;
+            const icon = isLida ? '✓✓' : '✓';
+            const className = isLida ? 'msg-ticks read' : 'msg-ticks unread';
+            ticksHtml = `<span class="${className}">${icon}</span>`;
+            
+            optionsHtml = `
+                <span class="msg-options-btn" title="Opções">⋮</span>
+                <div class="msg-options-menu">Excluir mensagem</div>
+            `;
+        }
+
         const div = document.createElement('div');
         div.className = `msg-bubble ${tipo}`;
+        div.style.position = 'relative'; // Necessário para posicionar o menu
+        if (id_mensagem) div.dataset.idMsg = id_mensagem;
+        if (temp_id) div.dataset.tempId = temp_id;
+
         div.innerHTML = `
             ${this.escaparHTML(texto)}
-            <span class="msg-bubble-time">${timestamp || 'agora'}</span>
+            <span class="msg-bubble-time">${timestamp || 'agora'}${ticksHtml} ${optionsHtml}</span>
         `;
+
+        if (tipo === 'sent') {
+            const btn = div.querySelector('.msg-options-btn');
+            const menu = div.querySelector('.msg-options-menu');
+            if (btn && menu) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isVisible = menu.style.display === 'block';
+                    document.querySelectorAll('.msg-options-menu').forEach(m => m.style.display = 'none');
+                    menu.style.display = isVisible ? 'none' : 'block';
+                });
+                menu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const idMsg = div.dataset.idMsg;
+                    if (idMsg) {
+                        const socket = this.io_socket();
+                        socket.emit('excluir_mensagem', { id_mensagem: idMsg, id_destinatario: contatoAtivoId });
+                        menu.style.display = 'none';
+                    } else {
+                        alert("Aguarde o envio da mensagem para poder excluir.");
+                    }
+                });
+            }
+        }
 
         history.appendChild(div);
         history.scrollTop = history.scrollHeight;
     }
 
-    //  Utilitários
+    // ─── Utilitários de UI ─────────────────────────────────────────────────────
 
     static atualizarPreviewSidebar(id_contato, texto) {
         const item = document.querySelector(`.msg-item[data-id="${id_contato}"]`);

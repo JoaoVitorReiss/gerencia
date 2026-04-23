@@ -1265,7 +1265,7 @@ const lista_funcionarios_demitidos = async() => {
     }
 }
 
-// ─── Mensagens
+// ─── Mensagens ──────────────────────────────────────────────────────────
 
 // Salva uma mensagem na tabela mensagens
 const salvarMensagem = async (id_remetente, id_destinatario, mensagem_texto) => {
@@ -1295,8 +1295,9 @@ const buscarConversa = async (id_usuario_a, id_usuario_b) => {
                 data_envio,
                 lida
             FROM mensagens
-            WHERE (id_remetente = ? AND id_destinatario = ?)
-               OR (id_remetente = ? AND id_destinatario = ?)
+            WHERE ((id_remetente = ? AND id_destinatario = ?)
+               OR (id_remetente = ? AND id_destinatario = ?))
+               AND excluida = 0
             ORDER BY data_envio ASC
             LIMIT 100
         `;
@@ -1322,16 +1323,18 @@ const buscarContatosAtivos = async (id_usuario_atual) => {
                 (
                     SELECT m.mensagem_texto
                     FROM mensagens m
-                    WHERE (m.id_remetente = f.id_funcionario_funcionario AND m.id_destinatario = ?)
-                       OR (m.id_remetente = ? AND m.id_destinatario = f.id_funcionario_funcionario)
+                    WHERE ((m.id_remetente = f.id_funcionario_funcionario AND m.id_destinatario = ?)
+                       OR (m.id_remetente = ? AND m.id_destinatario = f.id_funcionario_funcionario))
+                       AND m.excluida = 0
                     ORDER BY m.data_envio DESC
                     LIMIT 1
                 ) AS ultima_mensagem,
                 (
                     SELECT m.data_envio
                     FROM mensagens m
-                    WHERE (m.id_remetente = f.id_funcionario_funcionario AND m.id_destinatario = ?)
-                       OR (m.id_remetente = ? AND m.id_destinatario = f.id_funcionario_funcionario)
+                    WHERE ((m.id_remetente = f.id_funcionario_funcionario AND m.id_destinatario = ?)
+                       OR (m.id_remetente = ? AND m.id_destinatario = f.id_funcionario_funcionario))
+                       AND m.excluida = 0
                     ORDER BY m.data_envio DESC
                     LIMIT 1
                 ) AS data_ultima_msg,
@@ -1341,6 +1344,7 @@ const buscarContatosAtivos = async (id_usuario_atual) => {
                     WHERE m.id_remetente = f.id_funcionario_funcionario
                       AND m.id_destinatario = ?
                       AND m.lida = 0
+                      AND m.excluida = 0
                 ) AS nao_lidas
             FROM funcionarios f
             WHERE f.id_funcionario_funcionario != ? AND f.ativo = 1
@@ -1371,6 +1375,23 @@ const marcarComoLida = async (id_remetente, id_destinatario) => {
         throw erro;
     }
 };
+
+// Função para soft delete de uma mensagem (só o remetente pode excluir)
+const excluirMensagem = async (id_mensagem, id_remetente) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `UPDATE mensagens SET excluida = 1 WHERE id_mensagem = ? AND id_remetente = ?`;
+        const [resultado] = await conectar.query(sql, [id_mensagem, id_remetente]);
+        return resultado.affectedRows > 0;
+    } catch (erro) {
+        console.error('Erro ao excluir mensagem:', erro);
+        throw erro;
+    }
+};
+
+
+
+
 
 module.exports = {
     buscarFuncionarioPorEmail,
@@ -1417,5 +1438,6 @@ module.exports = {
     salvarMensagem,
     buscarConversa,
     buscarContatosAtivos,
-    marcarComoLida
+    marcarComoLida,
+    excluirMensagem
 };
