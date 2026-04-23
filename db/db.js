@@ -1265,15 +1265,121 @@ const lista_funcionarios_demitidos = async() => {
     }
 }
 
-module.exports = { 
-    //verifica_tipo, 
-    buscarFuncionarioPorEmail, 
+// ─── Mensagens
+
+// Salva uma mensagem na tabela mensagens
+const salvarMensagem = async (id_remetente, id_destinatario, mensagem_texto) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `INSERT INTO mensagens (id_remetente, id_destinatario, mensagem_texto, data_envio, lida)
+                     VALUES (?, ?, ?, NOW(), 0)`;
+        const [resultado] = await conectar.query(sql, [id_remetente, id_destinatario, mensagem_texto]);
+        return resultado;
+    } catch (erro) {
+        console.error('Erro ao salvar mensagem:', erro);
+        throw erro;
+    }
+};
+
+// Busca todas as mensagens trocadas entre dois usuários
+const buscarConversa = async (id_usuario_a, id_usuario_b) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                id_mensagem,
+                id_remetente,
+                id_destinatario,
+                mensagem_texto,
+                DATE_FORMAT(data_envio, '%H:%i') AS hora,
+                data_envio,
+                lida
+            FROM mensagens
+            WHERE (id_remetente = ? AND id_destinatario = ?)
+               OR (id_remetente = ? AND id_destinatario = ?)
+            ORDER BY data_envio ASC
+            LIMIT 100
+        `;
+        const [linhas] = await conectar.query(sql, [id_usuario_a, id_usuario_b, id_usuario_b, id_usuario_a]);
+        return linhas;
+    } catch (erro) {
+        console.error('Erro ao buscar conversa:', erro);
+        throw erro;
+    }
+};
+
+// Busca todos os funcionários ativos para listar como contatos, com a última mensagem trocada com o usuário atual
+const buscarContatosAtivos = async (id_usuario_atual) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT
+                f.id_funcionario_funcionario AS id,
+                f.nome_funcionario_funcionario AS nome,
+                f.foto_url,
+                f.status_online,
+                f.ultima_atividade,
+                (
+                    SELECT m.mensagem_texto
+                    FROM mensagens m
+                    WHERE (m.id_remetente = f.id_funcionario_funcionario AND m.id_destinatario = ?)
+                       OR (m.id_remetente = ? AND m.id_destinatario = f.id_funcionario_funcionario)
+                    ORDER BY m.data_envio DESC
+                    LIMIT 1
+                ) AS ultima_mensagem,
+                (
+                    SELECT m.data_envio
+                    FROM mensagens m
+                    WHERE (m.id_remetente = f.id_funcionario_funcionario AND m.id_destinatario = ?)
+                       OR (m.id_remetente = ? AND m.id_destinatario = f.id_funcionario_funcionario)
+                    ORDER BY m.data_envio DESC
+                    LIMIT 1
+                ) AS data_ultima_msg,
+                (
+                    SELECT COUNT(*)
+                    FROM mensagens m
+                    WHERE m.id_remetente = f.id_funcionario_funcionario
+                      AND m.id_destinatario = ?
+                      AND m.lida = 0
+                ) AS nao_lidas
+            FROM funcionarios f
+            WHERE f.id_funcionario_funcionario != ? AND f.ativo = 1
+            ORDER BY data_ultima_msg DESC, f.nome_funcionario_funcionario ASC
+        `;
+        const [linhas] = await conectar.query(sql, [
+            id_usuario_atual, id_usuario_atual,
+            id_usuario_atual, id_usuario_atual,
+            id_usuario_atual,
+            id_usuario_atual
+        ]);
+        return linhas;
+    } catch (erro) {
+        console.error('Erro ao buscar contatos:', erro);
+        throw erro;
+    }
+};
+
+// Marca como lidas todas as mensagens recebidas de um remetente específico
+const marcarComoLida = async (id_remetente, id_destinatario) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `UPDATE mensagens SET lida = 1
+                     WHERE id_remetente = ? AND id_destinatario = ? AND lida = 0`;
+        await conectar.query(sql, [id_remetente, id_destinatario]);
+    } catch (erro) {
+        console.error('Erro ao marcar mensagens como lidas:', erro);
+        throw erro;
+    }
+};
+
+module.exports = {
+    buscarFuncionarioPorEmail,
     buscarFuncionarioPorId,
     todosProdutos,
-    todos_nomeProdutos,
     produto_pesquisadodb,
-    info_user,
     produto_pesquisadoID,
+    todos_nomeProdutos,
+    info_user,
     subtrair_estoque,
     dados_vendaADD,
     balancoVendas,
@@ -1307,7 +1413,9 @@ module.exports = {
     getFuncionarioParaEditar,
     atualizarFuncionario,
     desligarFuncionario,
-    lista_funcionarios_demitidos
-    
-    //dados_vendedor
+    lista_funcionarios_demitidos,
+    salvarMensagem,
+    buscarConversa,
+    buscarContatosAtivos,
+    marcarComoLida
 };

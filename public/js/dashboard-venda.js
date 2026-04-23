@@ -1,4 +1,5 @@
 // Variáveis e seletores globais
+import { MensagemModal } from "./mensagem_modal.js";
 const section = document.getElementById("section-produtos");
 const containerCards = document.getElementById("container-cards");
 const inputPesquisa = document.getElementById("pesquisa");
@@ -8,6 +9,8 @@ const icon_voltar = document.querySelector("span.icon");
 const numIntens_sacola = document.getElementById("num_itens");
 const sacola = document.getElementById("sacola");
 const conteiner_pesquisa = document.getElementById("controla_oculta");
+const btn_mensagem = document.getElementById("btn_mensagem");
+
 
 
 
@@ -408,9 +411,10 @@ btn_buscar.addEventListener("click", async(evt) => {
 // Event Listeners
 sacola.addEventListener("click", async () => {
     home.style.background = "none";
+    btn_mensagem.style.background = "none";
     conteiner_pesquisa.setAttribute("id", "esconde");
     await SacolaManager.exibirProdutosSacola();
-    SacolaManager.configurarRemoverElementoSacola(); // Configura o listener uma vez
+    SacolaManager.configurarRemoverElementoSacola();
 
 });
 
@@ -418,16 +422,32 @@ sacola.addEventListener("click", async () => {
 home.addEventListener("click", (evt) =>{
     home.style.background = "#325088ff";
     sacola.style.background = "none";
+    btn_mensagem.style.background = "none";
     section.innerHTML = "";
     conteiner_pesquisa.removeAttribute("id", "econde");
+    conteiner_pesquisa.setAttribute("style", "display: block;");
     
-    // Mantenha apenas a exibição dos produtos. 
-    // NÃO chame acao_btnVender() ou acao_btnAdd() aqui!
     selecao_produto.exibirProdutos();
 });
 
 
-    // Inicialização
+class mensagem{
+    static modalMensagem() {
+        btn_mensagem.addEventListener("click", async () => {
+            btn_mensagem.style.background = "#325088ff";
+            home.style.background = "none";
+            sacola.style.background = "none";
+            conteiner_pesquisa.setAttribute("style", "display: none;");
+            section.innerHTML = MensagemModal.mensagemHome();
+            MensagemModal.io_socket(); // Inicia o socket antes de carregar contatos
+            await MensagemModal.configurarEventos(); // Carrega contatos e configura busca
+        });
+    }
+}
+
+// Inicialização
 acao_venda.acao_btnVender();
 acao_venda.acao_btnAdd();
 selecao_produto.exibirProdutos();
+mensagem.modalMensagem();
+MensagemModal.inicializarNotificacoesGlobais();

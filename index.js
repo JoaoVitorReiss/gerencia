@@ -39,21 +39,20 @@ const io = new Server(server);
 
 
 io.use((socket, next) => {
-    // 1. Extrair cookies do header da requisição
     const cookies = socket.handshake.headers.cookie;
     
     if (!cookies) return next(new Error("Autenticação necessária"));
 
     const parsedCookies = cookie.parse(cookies);
-    const token = parsedCookies.jwt; // Nome do cookie que você definiu no authController
+    const token = parsedCookies.jwt; 
 
     if (!token) return next(new Error("Token não encontrado"));
 
-    // 2. Verificar o JWT usando sua SECRET
+
     jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
         if (err) return next(new Error("Token inválido"));
 
-        // 3. Anexar os dados ao socket (id e tipo que você colocou no createToken)
+        // anexa os dados ao socket (id e tipo que você colocou no createToken)
         socket.user = decodedToken; 
         next();
     });
@@ -65,22 +64,46 @@ io.on('connection', (socket) => {
     // Cada funcionário entra em uma sala única baseada no ID dele
     socket.join(`user_${socket.user.id}`);
 
-    // Evento de envio de mensagem privada
+    socket.broadcast.emit('usuario_status', {
+        id: socket.user.id,
+        status: 'online',
+        timestamp: new Date().toISOString()
+    });
+
     socket.on('enviar_mensagem', async (dados) => {
         const { destinatario_id, texto } = dados;
-        
+
+        if (!destinatario_id || !texto || !texto.trim()) return;
+
+        const remetente_id = socket.user.id;
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
         const mensagemCompleta = {
-            remetente_id: socket.user.id,
-            texto: texto,
-            timestamp: new Date()
+            remetente_id,
+            destinatario_id,
+            texto: texto.trim(),
+            timestamp
         };
 
-        // Envia para a "sala" do destinatário
+        // Salvar no banco de dados
+        try {
+            await db.salvarMensagem(remetente_id, destinatario_id, texto.trim());
+        } catch (err) {
+            console.error('Erro ao salvar mensagem no DB:', err);
+        }
+
         io.to(`user_${destinatario_id}`).emit('receber_mensagem', mensagemCompleta);
-        
-        // TODO: Salvar no banco de dados aqui (próximo passo)
+    });
+
+    socket.on('disconnect', () => {
+        socket.broadcast.emit('usuario_status', {
+            id: socket.user.id,
+            status: 'offline',
+            timestamp: new Date().toISOString()
+        });
     });
 });
+
 
 
 // Rota Raiz: Redireciona se autenticado, serve login caso contrário
@@ -1399,7 +1422,55 @@ app.post("/logout", (req, res) => {
 // app.listen(porta, () => {
 //     console.log("Servidor rodando");
 // });
-// NO FINAL DO ARQUIVO, USE ASSIM:
+
+
+
+
+
+
+
+
+//  Rotas de Mensagens
+
+// Retorna a lista de contatos (funcionários ativos) com prévia da última mensagem
+app.get("/contatos_msg", authenticateJWT, async (req, res) => {
+    try {
+        const contatos = await db.buscarContatosAtivos(req.user.id);
+        res.status(200).json({ contatos });
+    } catch (error) {
+        console.error("Erro ao buscar contatos:", error);
+        res.status(500).json({ mensagem: "Erro interno ao buscar contatos." });
+    }
+});
+
+// Retorna o histórico de mensagens entre o usuário logado e outro funcionário
+app.get("/conversa/:id_contato", authenticateJWT, async (req, res) => {
+    try {
+        const id_contato = parseInt(req.params.id_contato);
+        if (!id_contato) return res.status(400).json({ mensagem: "ID inválido." });
+
+        await db.marcarComoLida(id_contato, req.user.id);
+
+        const mensagens = await db.buscarConversa(req.user.id, id_contato);
+        res.status(200).json({ mensagens });
+    } catch (error) {
+        console.error("Erro ao buscar conversa:", error);
+        res.status(500).json({ mensagem: "Erro interno ao buscar conversa." });
+    }
+});
+
+// Marca as mensagens de um remetente como lidas
+app.post("/msg_lida", authenticateJWT, async (req, res) => {
+    try {
+        const { id_remetente } = req.body;
+        if (!id_remetente) return res.status(400).json({ mensagem: "ID do remetente obrigatório." });
+        await db.marcarComoLida(id_remetente, req.user.id);
+        res.status(200).json({ mensagem: "Mensagens marcadas como lidas." });
+    } catch (error) {
+        res.status(500).json({ mensagem: "Erro interno." });
+    }
+});
+
 server.listen(porta, () => {
     console.log(`Servidor rodando com Chat na porta ${porta}`);
 });

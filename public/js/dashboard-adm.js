@@ -386,21 +386,19 @@ class acaomenu {
         })
     }
 
-    static  async mensagem() {
+    static mensagem() {
         const acaoMesagem = document.querySelectorAll(".acaoS");
         const btn_mensagem = document.getElementById("mensagem");
-        btn_mensagem.addEventListener("click", (evt) => {
-        evt.preventDefault();
-        
-        // Injeta o HTML
-        acaoMesagem.forEach((element) => {  
-            element.innerHTML = MensagemModal.mensagemHome();
-        });
+        btn_mensagem.addEventListener("click", async (evt) => {
+            evt.preventDefault();
 
-        // Ativa os botões e eventos do modal que acabamos de criar
-        MensagemModal.configurarEventos();
-        MensagemModal.io_socket(); // Inicia o ouvinte de mensagens
-    });
+            const alvo = acaoMesagem[0];
+            if (!alvo) return;
+            alvo.innerHTML = MensagemModal.mensagemHome();
+
+            MensagemModal.io_socket();
+            await MensagemModal.configurarEventos();
+        });
     }
 }
 
@@ -409,3 +407,4 @@ gerir_funcionarios.int();
 sidebarPages.int();
 preview.int();
 add_funcionario.adicionar();
+MensagemModal.inicializarNotificacoesGlobais();
