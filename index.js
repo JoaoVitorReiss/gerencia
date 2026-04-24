@@ -33,27 +33,24 @@ app.use(cookieParser());
 
 const http = require('http');
 const { Server } = require('socket.io');
-const cookie = require('cookie'); // <--- ADICIONE ESTA LINHA
+const cookie = require('cookie'); 
 const server = http.createServer(app);
 const io = new Server(server);
 
 
 io.use((socket, next) => {
-    // 1. Extrair cookies do header da requisição
     const cookies = socket.handshake.headers.cookie;
     
     if (!cookies) return next(new Error("Autenticação necessária"));
 
     const parsedCookies = cookie.parse(cookies);
-    const token = parsedCookies.jwt; // Nome do cookie que você definiu no authController
+    const token = parsedCookies.jwt; 
 
     if (!token) return next(new Error("Token não encontrado"));
 
-    // 2. Verificar o JWT usando sua SECRET
     jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
         if (err) return next(new Error("Token inválido"));
 
-        // 3. Anexar os dados ao socket (id e tipo que você colocou no createToken)
         socket.user = decodedToken; 
         next();
     });
@@ -65,7 +62,6 @@ io.on('connection', (socket) => {
     // Cada funcionário entra em uma sala única baseada no ID dele
     socket.join(`user_${socket.user.id}`);
 
-    // Avisa os outros que este usuário entrou
     socket.broadcast.emit('usuario_status', {
         id: socket.user.id,
         status: 'online',
@@ -100,10 +96,8 @@ io.on('connection', (socket) => {
 
         mensagemCompleta.id_mensagem = id_mensagem;
 
-        // Entregar para o destinatário (sala do destinatário)
         io.to(`user_${destinatario_id}`).emit('receber_mensagem', mensagemCompleta);
         
-        // Confirmar envio para o remetente com o ID real
         if (dados.temp_id) {
             socket.emit('mensagem_enviada_ok', { temp_id: dados.temp_id, id_mensagem, timestamp: mensagemCompleta.timestamp });
         }
@@ -131,7 +125,6 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        // Avisa os outros que este usuário saiu
         socket.broadcast.emit('usuario_status', {
             id: socket.user.id,
             status: 'offline',
@@ -1458,7 +1451,7 @@ app.post("/logout", (req, res) => {
 // app.listen(porta, () => {
 //     console.log("Servidor rodando");
 // });
-// ─── Rotas de Mensagens ─────────────────────────────────────────────────────
+
 
 // Retorna a lista de contatos (funcionários ativos) com prévia da última mensagem
 app.get("/contatos_msg", authenticateJWT, async (req, res) => {
