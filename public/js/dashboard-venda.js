@@ -11,6 +11,9 @@ const sacola = document.getElementById("sacola");
 const conteiner_pesquisa = document.getElementById("controla_oculta");
 const btn_mensagem = document.getElementById("btn_mensagem");
 
+//Botão para cancelar/estroner item comprado
+const btn_cancelar = document.getElementById("cancelarCompra");
+
 
 
 
@@ -423,6 +426,7 @@ home.addEventListener("click", (evt) =>{
     home.style.background = "#325088ff";
     sacola.style.background = "none";
     btn_mensagem.style.background = "none";
+    btn_cancelar.style.background = "none";
     section.innerHTML = "";
     conteiner_pesquisa.removeAttribute("id", "econde");
     conteiner_pesquisa.setAttribute("style", "display: block;");
@@ -437,11 +441,27 @@ class mensagem{
             btn_mensagem.style.background = "#325088ff";
             home.style.background = "none";
             sacola.style.background = "none";
+            btn_cancelar.style.background = "none";
             conteiner_pesquisa.setAttribute("style", "display: none;");
             section.innerHTML = MensagemModal.mensagemHome();
             MensagemModal.io_socket(); // Inicia o socket antes de carregar contatos
             await MensagemModal.configurarEventos(); // Carrega contatos e configura busca
         });
+    }
+}
+
+
+class cancelar{
+    static estorno(){
+        btn_cancelar.addEventListener("click", evt => {
+            evt.preventDefault();
+            btn_cancelar.style.background = "#325088ff"
+            btn_mensagem.style.background = "none";
+            home.style.background = "none";
+            sacola.style.background = "none";
+            
+            section.innerHTML = `<h1>Ação para devolver, trocrar e reembosar</h1>`;
+        })
     }
 }
 
@@ -451,3 +471,5 @@ acao_venda.acao_btnAdd();
 selecao_produto.exibirProdutos();
 mensagem.modalMensagem();
 MensagemModal.inicializarNotificacoesGlobais();
+cancelar.estorno();
+
