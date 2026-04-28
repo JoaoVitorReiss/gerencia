@@ -1409,6 +1409,21 @@ app.get("/ex-funcionarios", authenticateJWT, requireAdm, async (req, res) => {
     }
 });
 
+
+// Funções para exibir e realizar as ações de reemboso:
+app.get("/busca_idtransacao", authenticateJWT, requireOperario, async (req, res) => {
+    try {
+        const id_transacao = req.id;
+
+        if(id_transacao) {
+            console.log(id_transacao)
+        }
+    }catch (error){
+       console.error("Erro ao buscar transação:", error);
+        res.status(500).json({ mensagem: "Erro interno ao buscar dados." }); 
+    }
+})
+
 app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
     try {
         req.session.dadosSacolaNota = [];
@@ -1447,10 +1462,6 @@ app.post("/logout", (req, res) => {
     res.redirect('/login'); // Redireciona para a página de login
     
 });
-
-// app.listen(porta, () => {
-//     console.log("Servidor rodando");
-// });
 
 
 // Retorna a lista de contatos (funcionários ativos) com prévia da última mensagem

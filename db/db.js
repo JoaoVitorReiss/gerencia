@@ -338,7 +338,7 @@ const balancoPorData = async (dataInicio, dataFim) => {
                 SUM(venda_quantidade_itens) AS total_itens_vendidos,
                 IFNULL(SUM(venda_valor) / NULLIF(COUNT(DISTINCT id_transacao), 0), 0) AS ticket_medio
             FROM vendas
-            WHERE data_venda BETWEEN ? AND ?`;
+            WHERE data_venda BETWEEN ? AND ? AND status_venda = "concluida"`;
 
         const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
         return linhas[0]; 
@@ -358,7 +358,7 @@ const faturamentoGrafico = async (dataInicio, dataFim) => {
                 DATE_FORMAT(data_venda, '%Y-%m-%d') AS data, 
                 SUM(venda_valor) AS total 
                 FROM vendas 
-                WHERE data_venda BETWEEN ? AND ?
+                WHERE data_venda BETWEEN ? AND ? AND status_venda = "concluida"
                 GROUP BY DATE_FORMAT(data_venda, '%Y-%m-%d')
             ORDER BY data ASC;`;
         const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
@@ -379,7 +379,7 @@ const pagamentosGrafico = async (dataInicio, dataFim) => {
                 COUNT(*) AS qtd,
                 SUM(venda_valor) AS total
                     FROM vendas 
-                    WHERE data_venda BETWEEN ? AND ?
+                    WHERE data_venda BETWEEN ? AND ? AND status_venda = "concluida"
                 GROUP BY venda_metodo_paga;`
 
         const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
@@ -392,7 +392,6 @@ const pagamentosGrafico = async (dataInicio, dataFim) => {
 
 
 // Esta função retorna os itens mais vendidos em um perildo de tempo determinado
-
 const topProdutos = async (dataInicio, dataFim) => {
     try {
         const conectar = await conecta_banco();
@@ -403,7 +402,7 @@ const topProdutos = async (dataInicio, dataFim) => {
                 SUM(v.venda_valor) AS faturamento
             FROM vendas v
             INNER JOIN produtos p ON v.id_produto_venda = p.id_produto_produto
-            WHERE v.data_venda BETWEEN ? AND ?
+            WHERE v.data_venda BETWEEN ? AND ? AND status_venda = "concluida"
             GROUP BY v.id_produto_venda
             ORDER BY faturamento DESC
             LIMIT 5;`;
@@ -1390,7 +1389,32 @@ const excluirMensagem = async (id_mensagem, id_remetente) => {
 };
 
 
-
+//Essa função é para  buscar os itens através do id_trasacao:
+async function buscarVendaPorTransacao(id_transacao) {
+    const conn = await conectar(); // sua função de conexão
+    try {
+        // Buscamos os itens da venda e o nome do produto (JOIN)
+        const sql = `
+            SELECT 
+                v.id_transacao,
+                v.data_venda,
+                v.venda_metodo_paga,
+                v.venda_valor as valor_item,
+                v.venda_quantidade_itens as qtd_item,
+                v.venda_preco_unitario,
+                v.venda_status,
+                p.nome_produto_produto as nome_produto,
+                p.id_produto_produto as id_produto
+            FROM vendas v
+            JOIN produtos p ON v.id_produto_venda = p.id_produto_produto
+            WHERE v.id_transacao = ?;
+        `;
+        const [rows] = await conn.query(sql, [id_transacao]);
+        return rows;
+    } catch (error) {
+        throw error;
+    }
+}
 
 
 module.exports = {
@@ -1439,5 +1463,6 @@ module.exports = {
     buscarConversa,
     buscarContatosAtivos,
     marcarComoLida,
-    excluirMensagem
+    excluirMensagem,
+    buscarVendaPorTransacao
 };

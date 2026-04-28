@@ -1,5 +1,6 @@
 // Variáveis e seletores globais
 import { MensagemModal } from "./mensagem_modal.js";
+import { DevolucaoModal } from "./devolucao.js"
 const section = document.getElementById("section-produtos");
 const containerCards = document.getElementById("container-cards");
 const inputPesquisa = document.getElementById("pesquisa");
@@ -455,12 +456,13 @@ class cancelar{
     static estorno(){
         btn_cancelar.addEventListener("click", evt => {
             evt.preventDefault();
+            conteiner_pesquisa.setAttribute("id", "esconde");
             btn_cancelar.style.background = "#325088ff"
             btn_mensagem.style.background = "none";
             home.style.background = "none";
             sacola.style.background = "none";
-            
-            section.innerHTML = `<h1>Ação para devolver, trocrar e reembosar</h1>`;
+            section.innerHTML = "";
+            section.innerHTML = DevolucaoModal.renderHome();;
         })
     }
 }
