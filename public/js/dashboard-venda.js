@@ -463,6 +463,7 @@ class cancelar{
             sacola.style.background = "none";
             section.innerHTML = "";
             section.innerHTML = DevolucaoModal.renderHome();;
+            DevolucaoModal.attachEvents();
         })
     }
 }
@@ -472,6 +473,6 @@ acao_venda.acao_btnVender();
 acao_venda.acao_btnAdd();
 selecao_produto.exibirProdutos();
 mensagem.modalMensagem();
-MensagemModal.inicializarNotificacoesGlobais();
 cancelar.estorno();
+MensagemModal.inicializarNotificacoesGlobais();
 

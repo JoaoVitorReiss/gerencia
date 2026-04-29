@@ -333,15 +333,23 @@ const balancoPorData = async (dataInicio, dataFim) => {
         const conectar = await conecta_banco();
         const sql = `
             SELECT 
-                COUNT(DISTINCT id_transacao) AS qtd_vendas,
-                SUM(venda_valor) AS faturamento_total,
-                SUM(venda_quantidade_itens) AS total_itens_vendidos,
-                IFNULL(SUM(venda_valor) / NULLIF(COUNT(DISTINCT id_transacao), 0), 0) AS ticket_medio
+                COUNT(DISTINCT CASE WHEN status_venda = 'concluida' THEN id_transacao END) AS qtd_vendas,
+                SUM(CASE WHEN status_venda = 'concluida' THEN venda_valor ELSE 0 END) AS faturamento_total,
+                SUM(CASE WHEN status_venda = 'concluida' THEN venda_quantidade_itens ELSE 0 END) AS total_itens_vendidos,
+                SUM(CASE WHEN status_venda IN ('cancelamento', 'devolucao', 'reembolso', 'troca') THEN venda_valor ELSE 0 END) AS valor_estornado
             FROM vendas
-            WHERE data_venda BETWEEN ? AND ? AND status_venda = "concluida"`;
+            WHERE data_venda BETWEEN ? AND ?`;
 
         const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
-        return linhas[0]; 
+        
+        let result = linhas[0] || {};
+        result.faturamento_total = Number(result.faturamento_total) || 0;
+        result.qtd_vendas = Number(result.qtd_vendas) || 0;
+        result.total_itens_vendidos = Number(result.total_itens_vendidos) || 0;
+        result.valor_estornado = Number(result.valor_estornado) || 0;
+        result.ticket_medio = result.qtd_vendas > 0 ? (result.faturamento_total / result.qtd_vendas) : 0;
+
+        return result; 
     } catch (erro) {
         console.error("Erro ao buscar balanço no DB:", erro);
         throw erro;
@@ -356,10 +364,11 @@ const faturamentoGrafico = async (dataInicio, dataFim) => {
         const sql = `
             SELECT 
                 DATE_FORMAT(data_venda, '%Y-%m-%d') AS data, 
-                SUM(venda_valor) AS total 
-                FROM vendas 
-                WHERE data_venda BETWEEN ? AND ? AND status_venda = "concluida"
-                GROUP BY DATE_FORMAT(data_venda, '%Y-%m-%d')
+                SUM(CASE WHEN status_venda = 'concluida' THEN venda_valor ELSE 0 END) AS total,
+                SUM(CASE WHEN status_venda IN ('cancelamento', 'devolucao', 'reembolso', 'troca') THEN venda_valor ELSE 0 END) AS total_estornado
+            FROM vendas 
+            WHERE data_venda BETWEEN ? AND ?
+            GROUP BY DATE_FORMAT(data_venda, '%Y-%m-%d')
             ORDER BY data ASC;`;
         const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
         return linhas;
@@ -1389,32 +1398,99 @@ const excluirMensagem = async (id_mensagem, id_remetente) => {
 };
 
 
-//Essa função é para  buscar os itens através do id_trasacao:
-async function buscarVendaPorTransacao(id_transacao) {
-    const conn = await conectar(); // sua função de conexão
+// Essa função é para buscar os itens através do id_transacao e o funcionário:
+const buscarVendaPorTransacao = async (id_transacao) => {
+    const conn = await conecta_banco();
     try {
-        // Buscamos os itens da venda e o nome do produto (JOIN)
         const sql = `
             SELECT 
                 v.id_transacao,
-                v.data_venda,
+                DATE_FORMAT(v.data_venda, '%d/%m/%Y') AS data_venda,
+                v.venda_data_hora,
                 v.venda_metodo_paga,
                 v.venda_valor as valor_item,
                 v.venda_quantidade_itens as qtd_item,
                 v.venda_preco_unitario,
-                v.venda_status,
-                p.nome_produto_produto as nome_produto,
-                p.id_produto_produto as id_produto
+                v.status_venda,
+                p.descri_produto as nome_produto,
+                p.id_produto_produto as id_produto,
+                f.nome_funcionario_funcionario as vendedor_nome
             FROM vendas v
             JOIN produtos p ON v.id_produto_venda = p.id_produto_produto
+            JOIN funcionarios f ON v.id_vendedor_venda = f.id_funcionario_funcionario
             WHERE v.id_transacao = ?;
         `;
         const [rows] = await conn.query(sql, [id_transacao]);
         return rows;
     } catch (error) {
+        console.error("Erro ao buscar transacao! ERRO: ", error);
         throw error;
     }
-}
+};
+
+const salvarAuditoria = async (dados, id_funcionario) => {
+    const pool = await conecta_banco();
+    const conexao = await pool.getConnection();
+
+    try {
+        await conexao.beginTransaction();
+
+        //Inserir registro na auditoria
+        const sqlAuditoria = `
+            INSERT INTO auditoria_vendas 
+            (id_transacao_ref, id_funcionario_auditor, tipo_acao, valor_estornado, motivo) 
+            VALUES (?, ?, ?, ?, ?)
+        `;
+        
+        await conexao.query(sqlAuditoria, [
+            dados.id_transacao_ref,
+            id_funcionario,
+            dados.tipo_acao,
+            dados.valor_estornado,
+            dados.motivo
+        ]);
+
+        // Se for cancelamento, devolução, troca ou reembolso, verificar estorno e status
+        if (dados.tipo_acao === 'CANCELAMENTO' || dados.tipo_acao === 'DEVOLUCAO' || dados.tipo_acao === 'TROCA' || dados.tipo_acao === 'REEMBOLSO') {
+            
+            if (dados.itens && Array.isArray(dados.itens)) {
+                for (const idProduto of dados.itens) {
+                    
+                    // Busca a quantidade vendida desse produto nessa transação para estornar
+                    const [vendaInfo] = await conexao.query(
+                        "SELECT venda_quantidade_itens FROM vendas WHERE id_transacao = ? AND id_produto_venda = ?", 
+                        [dados.id_transacao_ref, idProduto]
+                    );
+
+                    if (vendaInfo.length > 0) {
+                        const qtdVendida = vendaInfo[0].venda_quantidade_itens;
+
+                        // Estornar estoque (se NÃO for só reembolso financeiro)
+                        if (dados.tipo_acao !== 'REEMBOLSO') {
+                            const sqlEstoque = "UPDATE produtos SET qtd_produto = qtd_produto + ? WHERE id_produto_produto = ?";
+                            await conexao.query(sqlEstoque, [qtdVendida, idProduto]);
+                        }
+
+                        // Atualiza status da venda
+                        const novoStatus = dados.tipo_acao.toLowerCase(); 
+                        const sqlVenda = "UPDATE vendas SET status_venda = ? WHERE id_transacao = ? AND id_produto_venda = ?";
+                        await conexao.query(sqlVenda, [novoStatus, dados.id_transacao_ref, idProduto]);
+                    }
+                }
+            }
+        }
+
+        await conexao.commit();
+        return { sucesso: true };
+
+    } catch (erro) {
+        if (conexao) await conexao.rollback();
+        console.error("Erro na transação de auditoria:", erro);
+        throw erro;
+    } finally {
+        if (conexao) conexao.release();
+    }
+};
 
 
 module.exports = {
@@ -1464,5 +1540,6 @@ module.exports = {
     buscarContatosAtivos,
     marcarComoLida,
     excluirMensagem,
-    buscarVendaPorTransacao
+    buscarVendaPorTransacao,
+    salvarAuditoria
 };

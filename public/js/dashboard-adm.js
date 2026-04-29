@@ -1,4 +1,6 @@
 import { MensagemModal } from "./mensagem_modal.js";
+import { DevolucaoModal } from "./devolucao.js"
+
 const usuarioLogado = window.usuarioLogado.id;
 const pageHome = document.getElementById("home");
 
@@ -402,9 +404,26 @@ class acaomenu {
     }
 }
 
+class cancelarCompra{
+    static auditoriaCancelamentos(){
+        const btn_cancelar = document.getElementById("cancelarCompra");
+        const alvo = document.getElementById("content");
+        btn_cancelar.addEventListener("click", evt => {
+            evt.preventDefault();
+            if(alvo){
+                alvo.innerHTML ="";
+                alvo.innerHTML = DevolucaoModal.renderHome();
+                DevolucaoModal.attachEvents();
+
+            }
+        })
+    }
+}
+
 
 gerir_funcionarios.int();
 sidebarPages.int();
 preview.int();
 add_funcionario.adicionar();
-MensagemModal.inicializarNotificacoesGlobais();
+MensagemModal.inicializarNotificacoesGlobais(); 
+cancelarCompra.auditoriaCancelamentos();

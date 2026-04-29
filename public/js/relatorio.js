@@ -140,6 +140,19 @@ class DataSelect {
         const ticketStatus = document.getElementById("ticket_status");
         ticketValor.innerHTML = `R$ ${Number(dados.atual.ticket_medio).toFixed(2)}`;
         formatarStatus(ticketStatus, calcularVariacao(dados.atual.ticket_medio, dados.anterior.ticket_medio));
+
+        const estornadoValor = document.getElementById("estornado_total");
+        const estornadoStatus = document.getElementById("estornado_status");
+        if (estornadoValor && estornadoStatus) {
+            const estAtual = Number(dados.atual.valor_estornado) || 0;
+            const estAnt = Number(dados.anterior.valor_estornado) || 0;
+            estornadoValor.innerHTML = `R$ ${estAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            const varEst = calcularVariacao(estAtual, estAnt);
+            // Para estorno, aumento é ruim (vermelho), queda é bom (verde)
+            const cor = varEst >= 0 ? "red" : "green";
+            const seta = varEst >= 0 ? "↑" : "↓";
+            estornadoStatus.innerHTML = `<span style="color: ${cor}">${seta} ${Math.abs(varEst).toFixed(2)}% vs anterior</span>`;
+        }
     };
 
     static desenharGrafico(dadosGrafico) {
@@ -154,46 +167,55 @@ class DataSelect {
             instaciaGrafico.destroy();
         }
 
-        const labels = atual.map(item => {
-            const dataObj = new Date(item.data + 'T00:00:00'); 
-            return dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-        });
-        const valores = atual.map(item => item.total);
-
-        const mapDados = new Map(atual.map(item => [item.data, item.total]));
-
         const datas = atual.map(d => d.data).sort();
+        if (datas.length === 0) return;
         const inicio = new Date(datas[0] || new Date());
         const fim    = new Date(datas[datas.length - 1] || new Date());
 
+        const mapDados = new Map(atual.map(item => [item.data, item.total]));
+        const mapEstorno = new Map(atual.map(item => [item.data, item.total_estornado || 0]));
+
         const labelsCompletos = [];
-        const valoresCompletos = [];
+        const valoresFaturamento = [];
+        const valoresEstornado = [];
         
         let dataAtual = new Date(inicio);
         while (dataAtual <= fim) {
             const str = dataAtual.toISOString().split('T')[0];
-            labelsCompletos.push(str);
-            valoresCompletos.push(mapDados.get(str) || 0);
+            const dataObj = new Date(str + 'T00:00:00'); 
+            labelsCompletos.push(dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+            valoresFaturamento.push(mapDados.get(str) || 0);
+            valoresEstornado.push(mapEstorno.get(str) || 0);
             dataAtual.setDate(dataAtual.getDate() + 1);
         };
 
         instaciaGrafico = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labels,
-                datasets: [{
-                    label: labelsCompletos,
-                    data: valoresCompletos,
-                    borderColor: '#325088',
-                    backgroundColor: 'rgba(50, 80, 136, 0.1)', 
-                    borderWidth: 3,
-                    tension: 0.3, 
-                    fill: false,
-                    pointRadius: 5
-                    
-                }]
+                labels: labelsCompletos,
+                datasets: [
+                    {
+                        label: 'Faturamento Concluído',
+                        data: valoresFaturamento,
+                        borderColor: '#325088',
+                        backgroundColor: 'rgba(50, 80, 136, 0.1)', 
+                        borderWidth: 3,
+                        tension: 0.3, 
+                        fill: false,
+                        pointRadius: 5
+                    },
+                    {
+                        label: 'Devoluções/Reembolsos',
+                        data: valoresEstornado,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                        borderWidth: 3,
+                        tension: 0.3, 
+                        fill: false,
+                        pointRadius: 5
+                    }
+                ]
             },
-
             options: {
                 plugins: {
                     tooltip: {
@@ -334,11 +356,16 @@ class DataSelect {
         `;
 
         // Sumário de Faturamento
+        const totalEstornadoAtual = Number(dados.atual?.valor_estornado) || 0;
+        const estornoTexto = totalEstornadoAtual > 0 
+            ? ` Notou-se um volume de estornos/devoluções no valor de R$ ${totalEstornadoAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}.` 
+            : '';
+
         const faturamentoTexto = `O faturamento total consolidado foi de R$ ${totalAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. ` +
             (totalAnterior > 0 
                 ? `Este valor apresenta uma variação de ${varPerc}% em relação ao período anterior. ` 
                 : `Não há dados históricos suficientes para comparação percentual direta. `) +
-            `O pico de demanda foi identificado no dia ${melhorDia}.`;
+            `O pico de demanda foi identificado no dia ${melhorDia}.` + estornoTexto;
         
         document.getElementById("relatorio-faturamento-texto").innerText = faturamentoTexto;
 

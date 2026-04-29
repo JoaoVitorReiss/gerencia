@@ -984,6 +984,7 @@ app.post("/dados_lista", authenticateJWT, requireAdm, async (req, res) => {
     }
 });
 
+
 // Rota de pesquisa global de produtos por nome (sem filtros de data)
 app.post("/pesquisar_produto", authenticateJWT, requireAdm, async (req, res) => {
     try {
@@ -998,7 +999,8 @@ app.post("/pesquisar_produto", authenticateJWT, requireAdm, async (req, res) => 
     }
 });
 
-// Rota para deletar item cllicado lá no frondEnd
+
+// ----------------------------------------------
 app.post("/dell_item", authenticateJWT, requireAdm, async (req, res) => {
     try{
 
@@ -1119,10 +1121,9 @@ app.get("/novofuncionario", authenticateJWT, requireAdm, async (req, res) => {
 const multer = require('multer');
 
 
-// 1. Configuração básica do Multer
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'public/img/funcionarios'); // Garanta que essa pasta exista!
+        cb(null, 'public/img/funcionarios');
     },
     filename: (req, file, cb) => {
         // Nome único para evitar sobrescrever arquivos
@@ -1424,44 +1425,10 @@ app.get("/busca_idtransacao", authenticateJWT, requireOperario, async (req, res)
     }
 })
 
-app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
-    try {
-        req.session.dadosSacolaNota = [];
-        req.session.dadosSacolaNota = null;
-        req.session.save((err) => {
-            if (err) {
-                throw new Error("Erro ao salvar a sessão");
-            }
-            return res.status(200).json({
-                dados_session: req.session.dadosSacolaNota,
-                mensagem: "Sessão de venda limpa com sucesso!"
-            });
-        });
-    }catch (error) {
-        return  res.status(500).json({
-            mensagem: "Erro interno ao limpar a sessão de venda."
-        })
-    }
-})
-
-
-// Rota para exibir a página de login (diretamente)
-app.get("/login", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "login.html"));
-});
-
 // Inclui suas rotas de autenticação (ex: POST /login)
 app.use(authRoutes);
 
 
-// Rota de Logout
-app.post("/logout", (req, res) => {
-    const idUser = req.body.id;
-    db.logoutoffline(idUser);
-    res.cookie('jwt', '', { maxAge: 1 }); // Expira o cookie imediatamente (1 milissegundo)
-    res.redirect('/login'); // Redireciona para a página de login
-    
-});
 
 
 // Retorna a lista de contatos (funcionários ativos) com prévia da última mensagem
@@ -1511,6 +1478,86 @@ app.post("/msg_lida", authenticateJWT, async (req, res) => {
     }
 });
 
+
+
+
+// ROTAS DO MÓDULO DE DEVOLUÇÃO/AUDITORIA 
+app.get("/api/vendas/:id_transacao", authenticateJWT, async (req, res) => {
+    try {
+        const idTransacao = req.params.id_transacao;
+        if (!idTransacao) {
+            return res.status(400).json({ mensagem: "ID da transação não fornecido." });
+        }
+
+        const transacao = await db.buscarVendaPorTransacao(idTransacao);
+        if (!transacao || transacao.length === 0) {
+            return res.status(404).json({ mensagem: "Transação não encontrada." });
+        }
+
+        res.status(200).json({ transacao });
+    } catch (error) {
+        console.error("Erro ao buscar transação (API):", error);
+        res.status(500).json({ mensagem: "Erro interno do servidor." });
+    }
+});
+
+app.post("/api/auditoria", authenticateJWT, async (req, res) => {
+    try {
+        const payload = req.body;
+        if (!payload.id_transacao_ref || !payload.tipo_acao || !payload.motivo) {
+            return res.status(400).json({ mensagem: "Dados obrigatórios da auditoria incompletos." });
+        }
+
+        const idUsuarioLogado = req.user.id; 
+
+        await db.salvarAuditoria(payload, idUsuarioLogado);
+        res.status(200).json({ mensagem: "Operação registrada com sucesso!" });
+    } catch (error) {
+        console.error("Erro ao salvar auditoria (API):", error);
+        res.status(500).json({ mensagem: "Erro interno do servidor ao processar a operação." });
+    }
+});
+
+
+
+
+
 server.listen(porta, () => {
     console.log(`Servidor rodando com Chat na porta ${porta}`);
+});
+
+// Rota para exibir a página de login (diretamente)
+app.get("/login", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+
+app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) => {
+    try {
+        req.session.dadosSacolaNota = [];
+        req.session.dadosSacolaNota = null;
+        req.session.save((err) => {
+            if (err) {
+                throw new Error("Erro ao salvar a sessão");
+            }
+            return res.status(200).json({
+                dados_session: req.session.dadosSacolaNota,
+                mensagem: "Sessão de venda limpa com sucesso!"
+            });
+        });
+    }catch (error) {
+        return  res.status(500).json({
+            mensagem: "Erro interno ao limpar a sessão de venda."
+        })
+    }
+})
+
+
+// Rota de Logout
+app.post("/logout", (req, res) => {
+    const idUser = req.body.id;
+    db.logoutoffline(idUser);
+    res.cookie('jwt', '', { maxAge: 1 }); // Expira o cookie imediatamente (1 milissegundo)
+    res.redirect('/login'); // Redireciona para a página de login
+    
 });

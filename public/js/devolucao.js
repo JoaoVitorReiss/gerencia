@@ -1,15 +1,6 @@
 export class DevolucaoModal {
 
     static renderHome() {
-        // Dados simulados para visualização do layout preenchido
-        const mockData = {
-            // id: "TRX-987654321",
-            // vendedor: "Carlos Silva",
-            // data: "28/04/2026",
-            // hora: "14:30",
-            // pagamento: "Cartão de Crédito",
-            // total: "R$ 150,00"
-        };
         const modal = `
             <div class="devolucao-container">
                 <style>
@@ -96,6 +87,10 @@ export class DevolucaoModal {
                     .dev-search-box button:hover {
                         background: var(--primary-medium);
                     }
+                    .dev-search-box button:disabled {
+                        background: var(--text-light);
+                        cursor: not-allowed;
+                    }
 
                     /* Área de Resultados (Nota) */
                     .dev-result-card {
@@ -115,7 +110,7 @@ export class DevolucaoModal {
                         padding-bottom: 8px;
                     }
 
-                    /* Grid de Informações (Reaproveitado do seu CSS) */
+                    /* Grid de Informações */
                     .info-grid {
                         display: grid;
                         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -160,7 +155,7 @@ export class DevolucaoModal {
 
                     /* Formulário de Ação */
                     .dev-action-area {
-                        background: #fff5f5; /* Fundo levemente avermelhado/alerta */
+                        background: #fff5f5;
                         border: 1px solid #fed7d7;
                         border-radius: 12px;
                         padding: 20px;
@@ -223,110 +218,26 @@ export class DevolucaoModal {
                         transition: opacity 0.2s;
                     }
                     .btn-submit-action:hover { opacity: 0.9; }
+                    .btn-submit-action:disabled { background: var(--text-light); cursor: not-allowed; }
 
                 </style>
 
                 <div class="dev-header">
-                    <h2>Trocas e Reembolsos</h2>
+                    <h2>Auditoria: Trocas e Reembolsos</h2>
                     <p>Busque a transação para iniciar o processo de devolução, troca ou cancelamento de itens.</p>
                 </div>
 
                 <div class="dev-search-box">
                     <div>
-                        <label for="pesq_id">Buscar por ID da Transação ou CPF:</label>
+                        <label for="pesq_id">Buscar por ID da Transação:</label>
                         <input type="search" name="pesq_id" id="pesq_id" placeholder="Ex: TRX-987654321">
                     </div>
-                    <button type="button">Buscar Transação</button>
+                    <button type="button" id="btn-buscar-transacao">Buscar Transação</button>
                 </div>
 
-                <div class="dev-result-card">
-                    <h3 class="dev-result-title">Informações da Venda (${mockData.id})</h3> 
-                    
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="label">Vendedor</span>
-                            <span class="value highlight">${mockData.vendedor}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Data / Hora</span>
-                            <span class="value">${mockData.data} às ${mockData.hora}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Pagamento</span>
-                            <span class="value highlight">${mockData.pagamento}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Valor Total</span>
-                            <span class="value">${mockData.total}</span>
-                        </div>
-                    </div>
-
-                    <h3 class="dev-result-title">Itens da Venda (Selecione os itens)</h3>
-                    <table class="dev-products">
-                        <thead>
-                            <tr>
-                                <th width="50">Sel.</th>
-                                <th>Produto</th>
-                                <th>Qtd.</th>
-                                <th>Valor Unit.</th>
-                                <th>Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><input type="checkbox" class="item-checkbox"></td>
-                                <td>Ração Golden Especial Cães Adultos 15kg</td>
-                                <td>1</td>
-                                <td>R$ 130,00</td>
-                                <td>R$ 130,00</td>
-                            </tr>
-                            <tr>
-                                <td><input type="checkbox" class="item-checkbox"></td>
-                                <td>Shampoo Pet Clean 500ml</td>
-                                <td>1</td>
-                                <td>R$ 20,00</td>
-                                <td>R$ 20,00</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="dev-action-area">
-                        <h3 class="dev-result-title" style="border-bottom-color: #fed7d7;">Ação a ser realizada</h3>
-                        
-                        <div class="dev-form-group">
-                            <label for="tipo_acao">O que você deseja fazer com os itens selecionados?</label>
-                            <select name="tipo_acao" id="tipo_acao" class="dev-select">
-                                <option value="" disabled selected>Selecione uma ação...</option>
-                                <option value="trocar">Trocar item(ns) por outro igual ou de mesmo valor</option>
-                                <option value="substituir">Devolver o item(ns) e solicitar o reembolso do valor</option>
-                            </select>
-                        </div>
-
-                        <div class="dev-form-group">
-                            <label>Qual o motivo desta ação?</label>
-                            <div class="dev-radios">
-                                <label class="dev-radio-item">
-                                    <input type="radio" name="motivo" value="defeito"> Item com defeito ou vencido
-                                </label>
-                                <label class="dev-radio-item">
-                                    <input type="radio" name="motivo" value="desistencia"> Desistência ou arrependimento
-                                </label>
-                                <label class="dev-radio-item">
-                                    <input type="radio" name="motivo" value="erro_sistema"> Erro no sistema ou na operação
-                                </label>
-                                <label class="dev-radio-item">
-                                    <input type="radio" name="motivo" value="outro"> 
-                                    <span>Outro:</span>
-                                    <input type="text" name="motivo_outro" placeholder="Especifique...">
-                                </label>
-                            </div>
-                        </div>
-
-                        <button class="btn-submit-action">Confirmar Operação</button>
-                    </div>
-
-                </div>
-
+                <!-- Container Dinâmico -->
+                <div id="dev-result-container"></div>
+                
             </div>
         `;
 
@@ -334,4 +245,247 @@ export class DevolucaoModal {
 
     }
 
+    static attachEvents() {
+        const btnBuscar = document.getElementById('btn-buscar-transacao');
+        const inputBusca = document.getElementById('pesq_id');
+        const resultContainer = document.getElementById('dev-result-container');
+
+        if (btnBuscar) {
+            btnBuscar.addEventListener('click', async () => {
+                const idTransacao = inputBusca.value.trim();
+                if (!idTransacao) return alert("Por favor, digite o ID da transação.");
+
+                btnBuscar.innerText = "Buscando...";
+                btnBuscar.disabled = true;
+
+                try {
+                    const res = await fetch(`/api/vendas/${idTransacao}`);
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        alert(data.mensagem || "Erro ao buscar transação.");
+                        resultContainer.innerHTML = '';
+                        return;
+                    }
+
+                    DevolucaoModal.renderResultCard(data.transacao, idTransacao);
+                } catch (err) {
+                    console.error(err);
+                    alert("Erro de conexão ao buscar transação.");
+                } finally {
+                    btnBuscar.innerText = "Buscar Transação";
+                    btnBuscar.disabled = false;
+                }
+            });
+        }
+    }
+
+    static renderResultCard(transacaoArray, idTransacao) {
+        const resultContainer = document.getElementById('dev-result-container');
+        
+        const info = transacaoArray[0];
+        const totalCalculado = transacaoArray.reduce((acc, item) => acc + (item.qtd_item * item.venda_preco_unitario), 0);
+
+        let tableRows = transacaoArray.map(item => {
+            const jaEstornado = item.status_venda !== 'concluida';
+            const disableAttr = jaEstornado ? 'disabled' : '';
+            const statusBadge = jaEstornado ? `<span style="font-size: 0.75em; color: var(--danger); display: block; margin-top: 2px;">JÁ ESTORNADO (${item.status_venda.toUpperCase()})</span>` : '';
+            
+            return `
+                <tr ${jaEstornado ? 'style="opacity: 0.6; background-color: #f9f9f9;"' : ''}>
+                    <td><input type="checkbox" class="item-checkbox" ${disableAttr} data-price="${item.qtd_item * item.venda_preco_unitario}" data-id="${item.id_produto}" data-qtd="${item.qtd_item}"></td>
+                    <td>${item.nome_produto} ${statusBadge}</td>
+                    <td>${item.qtd_item}</td>
+                    <td>R$ ${Number(item.venda_preco_unitario).toFixed(2)}</td>
+                    <td>R$ ${(item.qtd_item * item.venda_preco_unitario).toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        const html = `
+            <div class="dev-result-card">
+                <h3 class="dev-result-title">Informações da Venda (${idTransacao})</h3> 
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">Vendedor</span>
+                        <span class="value highlight">${info.vendedor_nome}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Data / Hora</span>
+                        <span class="value">${info.data_venda} às ${info.venda_data_hora}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Pagamento</span>
+                        <span class="value highlight">${info.venda_metodo_paga}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Valor Total</span>
+                        <span class="value">R$ ${totalCalculado.toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <h3 class="dev-result-title">Itens da Venda (Selecione os itens)</h3>
+                <table class="dev-products">
+                    <thead>
+                        <tr>
+                            <th width="50">Sel.</th>
+                            <th>Produto</th>
+                            <th>Qtd.</th>
+                            <th>Valor Unit.</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+
+                <div class="dev-action-area">
+                    <h3 class="dev-result-title" style="border-bottom-color: #fed7d7;">Configurar Ação (${idTransacao})</h3>
+                    
+                    <div class="dev-form-group">
+                        <label for="tipo_acao">Tipo de Operação (Requerido pelo Banco)</label>
+                        <select name="tipo_acao" id="tipo_acao" class="dev-select">
+                            <option value="" disabled selected>Selecione uma ação...</option>
+                            <option value="TROCA">Troca (Substituição por item de mesmo valor)</option>
+                            <option value="DEVOLUCAO">Devolução (Item volta pro estoque, gera crédito)</option>
+                            <option value="REEMBOLSO">Reembolso (Devolução com estorno financeiro)</option>
+                            <option value="CANCELAMENTO">Cancelamento Total (Anula toda a venda)</option>
+                        </select>
+                    </div>
+
+                    <div class="dev-form-group" style="background: white; padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                        <label for="valor_estornado" style="color: var(--danger);">Valor Total a Estornar (R$)</label>
+                        <input type="number" id="valor_estornado" class="dev-select" step="0.01" min="0" placeholder="0.00" style="font-size: 18px; font-weight: bold; color: var(--danger);" readonly>
+                        <small style="color: var(--text-light); margin-top: 5px; display: block;">*O valor é calculado automaticamente ao selecionar os itens acima.</small>
+                    </div>
+
+                    <div class="dev-form-group">
+                        <label>Qual o motivo desta ação?</label>
+                        <div class="dev-radios">
+                            <label class="dev-radio-item">
+                                <input type="radio" name="motivo" value="Produto com defeito ou vencido"> Defeito ou Vencimento
+                            </label>
+                            <label class="dev-radio-item">
+                                <input type="radio" name="motivo" value="Desistência ou arrependimento do cliente"> Desistência do Cliente
+                            </label>
+                            <label class="dev-radio-item">
+                                <input type="radio" name="motivo" value="Erro no sistema operacional / Lançamento incorreto"> Erro de Sistema/Operador
+                            </label>
+                            <label class="dev-radio-item" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="radio" name="motivo" value="outro"> Outro Motivo:
+                                </div>
+                                <input type="text" id="motivo_outro_texto" name="motivo_outro" placeholder="Especifique com detalhes..." style="margin-top: 5px; width: 100%;">
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-submit-action">Registrar Auditoria</button>
+                </div>
+            </div>
+        `;
+
+        resultContainer.innerHTML = html;
+        DevolucaoModal.attachActionEvents(idTransacao);
+    }
+
+    static attachActionEvents(idTransacao) {
+        const checkboxes = document.querySelectorAll('.item-checkbox');
+        const inputEstorno = document.getElementById('valor_estornado');
+        const selectAcao = document.getElementById('tipo_acao');
+        const btnSubmit = document.querySelector('.btn-submit-action');
+
+        const calcularEstorno = () => {
+            let total = 0;
+            checkboxes.forEach(chk => {
+                if(chk.checked) {
+                    total += parseFloat(chk.dataset.price || 0);
+                }
+            });
+            if(inputEstorno) inputEstorno.value = total.toFixed(2);
+        };
+
+        checkboxes.forEach(chk => {
+            chk.addEventListener('change', calcularEstorno);
+        });
+
+        if (selectAcao) {
+            selectAcao.addEventListener('change', (e) => {
+                if(e.target.value === 'CANCELAMENTO') {
+                    checkboxes.forEach(chk => {
+                        if (!chk.disabled) chk.checked = true;
+                    });
+                    calcularEstorno();
+                } else {
+                    checkboxes.forEach(chk => {
+                        if (!chk.disabled) chk.checked = false;
+                    });
+                    calcularEstorno();
+                }
+            });
+        }
+
+        if (btnSubmit) {
+            btnSubmit.addEventListener('click', async () => {
+                const acao = selectAcao ? selectAcao.value : null;
+                if (!acao) return alert("Por favor, selecione o Tipo de Operação.");
+
+                const motivoSelecionado = document.querySelector('input[name="motivo"]:checked');
+                if(!motivoSelecionado) return alert("Por favor, selecione um motivo!");
+
+                const motivoTexto = motivoSelecionado.value === 'outro' 
+                    ? document.getElementById('motivo_outro_texto').value 
+                    : motivoSelecionado.value;
+                
+                if (motivoSelecionado.value === 'outro' && !motivoTexto.trim()) {
+                    return alert("Por favor, especifique o outro motivo.");
+                }
+
+                const itensSelecionados = Array.from(checkboxes)
+                    .filter(chk => chk.checked)
+                    .map(chk => Number(chk.dataset.id)); 
+
+                if (itensSelecionados.length === 0) {
+                    return alert("Selecione pelo menos um item para prosseguir.");
+                }
+
+                const payload = {
+                    id_transacao_ref: idTransacao,
+                    tipo_acao: acao,
+                    valor_estornado: parseFloat(inputEstorno ? inputEstorno.value : 0),
+                    motivo: motivoTexto,
+                    itens: itensSelecionados
+                };
+
+                btnSubmit.innerText = "Processando...";
+                btnSubmit.disabled = true;
+
+                try {
+                    const res = await fetch('/api/auditoria', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        alert(data.mensagem || "Operação registrada com sucesso!");
+                        document.getElementById('dev-result-container').innerHTML = '';
+                        document.getElementById('pesq_id').value = '';
+                    } else {
+                        alert(data.mensagem || "Erro ao registrar auditoria.");
+                    }
+                } catch (err) {
+                    console.error("Erro na requisição POST:", err);
+                    alert("Erro de conexão ao registrar auditoria.");
+                } finally {
+                    btnSubmit.innerText = "Registrar Auditoria";
+                    btnSubmit.disabled = false;
+                }
+            });
+        }
+    }
 }
