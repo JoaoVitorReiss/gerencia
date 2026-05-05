@@ -201,7 +201,7 @@ app.get("/lista_prdts", authenticateJWT, requireOperario,  async (req, res) => {
     const offset = parseInt(req.query.offset) || 0;
     try {
 
-        const allprdts = await db.todosProdutos();
+        const allprdts = await db.todosProdutos_maisvendidos();
         
         // 3. Retorna os produtos em formato JSON.
         res.json(allprdts);

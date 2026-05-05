@@ -108,6 +108,7 @@ const buscarFuncionarioPorId = async (id) => {
     }
 };
 
+
 // Esta função Retornar a lista de todos os Produtos
 const todosProdutos = async () => {
     try {
@@ -120,6 +121,42 @@ const todosProdutos = async () => {
         console.error("Erro ao buscar lista de produtos! ERRO: ", erro);
         throw erro;
     };
+}
+
+// Esta função Retornar a lista de todos os Produtos mais vendidos
+const todosProdutos_maisvendidos = async (limite = 30) => {
+    try {
+            const conectar = await conecta_banco();
+            const sql = `
+                SELECT 
+                    p.id_produto_produto, 
+                    p.descri_produto, 
+                    p.preco_produto, 
+                    p.qtd_produto,
+                    COALESCE(SUM(v.venda_quantidade_itens), 0) AS total_vendido
+                FROM 
+                    produtos p
+                LEFT JOIN 
+                    vendas v ON p.id_produto_produto = v.id_produto_venda
+                WHERE 
+                    p.qtd_produto > 0 
+                    AND p.ativo = 1
+                GROUP BY 
+                    p.id_produto_produto, 
+                    p.descri_produto, 
+                    p.preco_produto, 
+                    p.qtd_produto
+                ORDER BY 
+                    total_vendido DESC
+                LIMIT ?;
+            `;
+            
+            const [linhas] = await conectar.query(sql, [limite]);
+            return linhas;
+        } catch (erro) {
+            console.error("Erro ao buscar os produtos mais vendidos! ERRO: ", erro);
+            throw erro;
+        }
 }
 
 // Esta função retorna os dados do produto pesquisado
@@ -1273,7 +1310,6 @@ const lista_funcionarios_demitidos = async() => {
     }
 }
 
-// ─── Mensagens ──────────────────────────────────────────────────────────
 
 // Salva uma mensagem na tabela mensagens
 const salvarMensagem = async (id_remetente, id_destinatario, mensagem_texto) => {
@@ -1497,6 +1533,7 @@ module.exports = {
     buscarFuncionarioPorEmail,
     buscarFuncionarioPorId,
     todosProdutos,
+    todosProdutos_maisvendidos,
     produto_pesquisadodb,
     produto_pesquisadoID,
     todos_nomeProdutos,
