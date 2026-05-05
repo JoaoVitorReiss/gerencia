@@ -307,10 +307,10 @@ class SacolaManager {
         }
 
         const div_pai_sacola = document.createElement("div");
-        const titulo_pgSacola = document.createElement("h2");
-        titulo_pgSacola.className = "produto-nome"
-        titulo_pgSacola.innerHTML = "Sacola";
-        div_pai_sacola.appendChild(titulo_pgSacola);
+        //const titulo_pgSacola = document.createElement("h2");
+        //titulo_pgSacola.className = "produto-nome"
+        //titulo_pgSacola.innerHTML = "Sacola";
+        //div_pai_sacola.appendChild(titulo_pgSacola);
 
         for (const produto of produtos) {
             const produtoCard = this.criarElementos(produto.nome, produto.preco, produto.quantidade, produto.id);

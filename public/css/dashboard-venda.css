@@ -1,485 +1,519 @@
-/* Reset leve scoped para a dashboard de vendas */
+/* =====================================================
+   DASHBOARD VENDA – LIGHT CLEAN (HEADER MELHORADO)
+   Cores primárias: #2a5298, #1e3c72
+   Mantém todas as classes e IDs originais
+   ===================================================== */
+
+/* Variáveis – paleta clara e suave */
+:root {
+  --bg-page: #f8fafc;
+  --surface: #ffffff;
+  --primary-dark: #1e3c72;
+  --primary: #2a5298;
+  --primary-light: #3b6bc0;
+  --primary-soft: #e8f0fe;
+  --accent: #2f855a;
+  --accent-soft: #e6f4ea;
+  --danger: #e53e3e;
+  --danger-soft: #fee2e2;
+  --text: #1a202c;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 18px rgba(0,0,0,0.08);
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reset suave */
 .dashboard-venda * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Fonte moderna */
-    margin-bottom: -5px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* Corpo principal com fundo leve e gradiente sutil */
 .dashboard-venda {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #f0f4f8, #d9e2ec); 
-    padding: 20px;
+  min-height: 100vh;
+  background: var(--bg-page);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* Header da dashboard */
+/* =============================================
+   HEADER FIXO (STICKY) COM CORES PRIMÁRIAS
+   ============================================= */
 .dashboard-header {
-    display: grid;
-    grid-template-columns: 1fr auto;           /* esquerda (título/nav) | direita (ações) */
-    grid-template-rows: auto auto;             /* linha 1: título | linha 2: nav */
-    grid-template-areas:
-        "title actions"
-        "nav   actions";
-    gap: 10px 20px;
-    
-    padding: 20px;
-    background: #1e3c72;
-    color: #fff;
-    border-radius: 10px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 20px;
+  z-index: 100;
+  width: 100%;
+  max-width: 1280px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-radius: var(--radius-lg);
+  padding: 18px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 10px 25px -5px rgba(30, 60, 114, 0.4);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+/* Título do header */
 .dashboard-header h1 {
-    font-size: 1.8rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* Área do usuário (nome + logout) */
 .user-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .user-actions span {
-    font-size: 1rem;
-    opacity: 0.9;
-}
-
-.dashboard-header nav ul {
-    display: flex;
-    gap: 20px;
-    list-style: none;
-    margin-top: 35px;
-    margin-bottom: 0px;
-}
-
-.dashboard-header nav ul li {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.dashboard-header nav ul li div {
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    transition: background 0.3s ease;
-}
-
-.dashboard-header nav ul li div:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-/* Responsivo: empilha tudo e deixa o nav abaixo do título e das ações */
-@media (max-width: 768px) {
-    .dashboard-header {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        grid-template-areas:
-            "title"
-            "actions"
-            "nav";
-        gap: 10px;
-    }
-    .dashboard-header .user-actions {
-        justify-self: start;  /* ações vão para a esquerda no mobile */
-    }
-}
-
-div.div_pai{
-    overflow: auto;
-    scrollbar-color: #2a5298c9 #dbdee2;
-    max-height: 70vh;
-    padding: 10px;
-    background-color: #d7dfe7;
-    border-radius: 15px;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
 }
 
 #btn-logout {
-    padding: 8px 20px;
-    background: #2a5298;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s ease;
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 40px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  backdrop-filter: blur(4px);
 }
-
 #btn-logout:hover {
-    background: #5a8dec;
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
 }
 
-/* Seção de produtos */
-.produtos-section {
-    max-width: 1200px;
-    margin: 0 auto;
+/* =============================================
+   NAVEGAÇÃO – ABAS COM ÍCONES ALINHADOS
+   ============================================= */
+.dashboard-header nav {
+  /* O nav fica dentro do header, mas no HTML pode estar em uma segunda linha; 
+     para manter a organização, vamos garantir que ele fique bem posicionado */
 }
 
-/* Estilo para o novo container de pesquisa */
-.pesquisa_conteiner {
-    max-width: 1200px;
-    margin: 0 auto 30px; /* Espaçamento inferior para separar da próxima seção */
-    padding: 0 20px;
-    width: 100%; /* Garante que ocupe a largura disponível */
+.dashboard-header nav ul {
+  display: flex;
+  gap: 12px;
+  list-style: none;
+  margin-top: 0;
 }
 
-#esconde {
-    display: none !important;
-}
-/* Container de busca dentro do pesquisa_conteiner */
-.search-container {
-    display: flex;
-    align-items: center;
-    gap: 15px; /* Aumentei o gap para melhor espaçamento */
-    position: relative;
-    width: 100%;
-    flex-wrap: wrap; /* Permite que os elementos quebrem em mobile */
+/* Botões do menu (home, sacola, etc.) */
+#home, #sacola, #btn_mensagem, #cancelarCompra, #perfil {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 40px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
 }
 
-/* Ícone de voltar */
+/* Ícones dentro dos botões de navegação */
+#home svg,
+#sacola svg,
+#btn_mensagem svg,
+#cancelarCompra svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+/* Estado hover */
+#home:hover, #sacola:hover, #btn_mensagem:hover, #cancelarCompra:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Estado ativo (quando o JS define background: #325088ff ou similar) */
+#home[style*="background: rgb(50, 80, 136)"],
+#sacola[style*="background: rgb(50, 80, 136)"],
+#btn_mensagem[style*="background: rgb(50, 80, 136)"],
+#cancelarCompra[style*="background: rgb(50, 80, 136)"] {
+  background: #fff !important;
+  color: #1e3c72 !important;
+  border-color: #fff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+}
+
+/* Contador de itens da sacola (span #num_itens) */
+#num_itens {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  color: #fff;
+  background: rgb(231, 76, 60);;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 4px;
+  padding: 0 4px;
+}
+
+/* =============================================
+   ÍCONE DE VOLTAR (PESQUISA) MELHORADO
+   ============================================= */
 .icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #f0f4f8; /* Fundo claro para contraste */
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: #2a5298; /* Cor do SVG */
-    flex-shrink: 0; /* Impede que o ícone encolha */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f0f4ff;
+  color: #2a5298;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
-
-.icon.oculto {
-    opacity: 0.5; /* Indica que está oculto, mas visível */
-    pointer-events: none; /* Desativa cliques se oculto */
-}
-
 .icon:hover {
-    background: #d9e2ec; /* Escurece no hover */
-    transform: scale(1.1); /* Efeito de zoom */
+  background: #d4e2fc;
+  transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.icon.oculto {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .icon svg {
-    width: 24px;
-    height: 24px;
-    fill: #2a5298; /* Cor do ícone */
-    transition: fill 0.3s ease;
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
 }
 
-.icon:hover svg {
-    fill: #1e3c72; /* Escurece o SVG no hover */
+/* =============================================
+   PESQUISA (mantém estilo clean)
+   ============================================= */
+.pesquisa_conteiner {
+  width: 100%;
+  max-width: 1280px;
+  margin-bottom: 20px;
 }
 
-/* Input de pesquisa */
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 60px;
+  padding: 6px 6px 6px 20px;
+  box-shadow: var(--shadow-xs);
+  transition: var(--transition);
+}
+
+.search-container:focus-within {
+  border-color: #2a5298;
+  box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+}
+
 #pesquisa {
-    flex: 1 1 auto; /* Ocupa espaço disponível, mas permite quebra */
-    padding: 12px 40px; /* Espaço para o ícone interno */
-    border: 1px solid #ddd;
-    border-radius: 25px;
-    font-size: 1rem;
-    background: #fff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.3s ease;
-    min-width: 200px; /* Mínimo para evitar colapso */
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px 8px;
+  font-size: 1rem;
+  color: var(--text);
+  outline: none;
+}
+#pesquisa::placeholder {
+  color: var(--text-muted);
 }
 
-#pesquisa:focus {
-    outline: none;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Ícone interno de lupa */
-.search-container::before {
-    position: absolute;
-    left: 15px;
-    font-size: 1.2rem;
-    color: #666;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-/* Botão Buscar */
 #btn_buscar {
-    padding: 12px 25px;
-    font-size: 1rem;
-    font-weight: 500;
-    background: #2a5298; /* Cor principal do tema */
-    color: #fff;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    flex-shrink: 0; /* Impede que o botão encolha */
+  padding: 12px 28px;
+  background: #2a5298;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
 }
-
 #btn_buscar:hover {
-    background: #1e3c72;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  background: #1e3c72;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .pesquisa_conteiner {
-        padding: 0 10px;
-    }
-
-    .search-container {
-        flex-direction: column;
-        align-items: stretch; /* Alinha os itens para ocupar a largura */
-        gap: 10px; /* Reduzi o gap em mobile */
-    }
-
-    .icon {
-        width: 35px;
-        height: 35px;
-        align-self: flex-start; /* Alinha o ícone à esquerda */
-    }
-
-    .icon svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    #pesquisa {
-        padding: 10px 35px;
-        width: 100%; /* Ocupa toda a largura em mobile */
-    }
-
-    #btn_buscar {
-        width: 100%;
-        padding: 12px;
-    }
+/* =============================================
+   CARDS DE PRODUTOS (mesmo estilo clean)
+   ============================================= */
+.produtos-section {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
-/* Grid de cards de produtos */
-.produtos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+.div_pai,
+.div_pai_sacola {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 20px;
+  max-height: 65vh;
+  overflow-y: auto;
+  padding: 6px 2px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 transparent;
 }
 
-/* Card individual de produto */
 .produto-card {
-    background: #fff;
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+  background:  #3b6cc015;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-xs);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
-
 .produto-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: #cbd5e0;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .produto-nome {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #2a5298;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
 }
 
 .produto-preco {
-    font-size: 1.1rem;
-    color: #155724; /* Verde para preço, evocando sucesso/venda */
-    margin-bottom: 5px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
 }
 
 .produto-estoque {
-    font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 15px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 18px;
 }
 
 .produto-actions {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
 }
 
-.btn-vender, .btn-add-sacola {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
+.btn-vender,
+.btn-add-sacola {
+  flex: 1;
+  padding: 10px 6px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--transition);
 }
 
 .btn-vender {
-    background: #1e3c72;
-    color: #fff;
+  background: #2a5298;
+  color: #fff;
 }
-
 .btn-vender:hover {
-    background: #2a5298;
+  background: #1e3c72;
+  box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2);
 }
 
 .btn-add-sacola {
-    background: #4CAF50; /* Verde para adicionar, evocando ação positiva */
-    color: #fff;
+  background: var(--accent);
+  color: #fff;
 }
-
 .btn-add-sacola:hover {
-    background: #388E3C;
+  background: #276749;
+  box-shadow: 0 4px 10px rgba(47, 133, 90, 0.2);
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .dashboard-header {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .produtos-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Estilos para a mensagem de feedback, scoped para evitar conflitos */
-.feedback-message {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    min-width: 200px;
-    max-width: 80%;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.feedback-message.visible {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-}
-
-.feedback-message.success {
-    background-color: #22c55e;
-    border: 1px solid #16a34a;
-}
-
-.feedback-message.error {
-    background-color: #ef4444;
-    border: 1px solid #dc2626;
-}
-
-.feedback-message::before {
-    content: '';
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.feedback-message.success::before {
-    content: '✔';
-    font-size: 16px;
-    font-weight: bold;
-    margin-right: 7px;
-}
-
-.feedback-message.error::before {
-    content: '✖';
-    font-size: 16px;
-    font-weight: bold;
-    margin-right: 7px;
-}
-
-/* Estilo para o botão de remover da sacola */
+/* =============================================
+   SACOLA
+   ============================================= */
 .btn_removeSacola {
-    padding: 10px 20px; /* Reduzi ligeiramente para menos destaque */
-    border: none;
-    margin: 10px 10px 10px 0px;
-    width: 40%; /* Mantive a largura, ajustável conforme layout */
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500; /* Reduzi para menos impacto visual */
-    transition: all 0.3s ease;
-    background:rgba(255, 127, 127, 1.0); 
-    color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Sombra mais leve */
-    text-align: center; /* Garante alinhamento do texto */
+  padding: 10px 20px;
+  margin-top: 8px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  width: fit-content;
 }
-
 .btn_removeSacola:hover {
-    background: rgb(250, 113, 113);
-    transform: translateY(-1px); /* Efeito de elevação reduzido */
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Sombra leve no hover */
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
 }
 
-/* Responsividade para garantir consistência em mobile */
-@media (max-width: 768px) {
-    .btn_removeSacola {
-        width: 100%; /* Ocupa toda a largura em mobile */
-        padding: 12px 20px; /* Ajuste para maior acessibilidade */
-        margin: 5px 0; /* Reduzi margem em mobile */
-    }
-}
-
-/* Estilo para o botão de finalizar sacola */
 .btn_finalizarSacola {
-    padding: 15px 30px; /* Aumentado para mais destaque */
-    border: none;
-    border-radius: 10px; /* Bordas um pouco mais arredondadas */
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.1rem; /* Fonte maior para destaque */
-    transition: all 0.3s ease;
-    background: linear-gradient(90deg, #4CAF50, #45a049); /* Gradiente sutil para visual mais rico */
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra mais pronunciada */
-    text-transform: uppercase; /* Letras maiúsculas para impacto */
-    letter-spacing: 0.5px; /* Espaçamento sutil para sofisticação */
-    display: block; /* Garante comportamento de bloco */
-    margin: 20px auto 0; /* Centraliza horizontalmente com margem superior */
+  padding: 16px 36px;
+  margin: 24px auto 0;
+  border: none;
+  border-radius: 40px;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #38a169, #2f855a);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+  cursor: pointer;
+  transition: var(--transition);
+  display: block;
 }
-
-/* Ajuste no container pai (ex.: .sacola-total) para centralização */
-.sacola-total {
-    text-align: center; /* Centraliza texto e elementos inline-block */
-    padding: 15px;
-}
-
-/* Hover */
 .btn_finalizarSacola:hover {
-    background: linear-gradient(90deg, #388E3C, #2f6b33); /* Gradiente mais escuro no hover */
-    transform: translateY(-3px); /* Efeito de elevação mais perceptível */
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); /* Sombra mais forte no hover */
+  background: linear-gradient(135deg, #2f855a, #276749);
+  box-shadow: 0 6px 18px rgba(56, 161, 105, 0.4);
+  transform: translateY(-2px);
 }
 
-/* Responsividade para garantir consistência em mobile */
-@media (max-width: 768px) {
-    .btn_finalizarSacola {
-        width: 100%; /* Ocupa toda a largura em mobile */
-        padding: 18px 30px; /* Ajuste para maior destaque em mobile */
-        font-size: 1.2rem; /* Fonte ainda maior em telas menores */
-        margin: 15px auto 0; /* Ajuste de margem em mobile */
-    }
+/* =============================================
+   FEEDBACK MENSAGEM
+   ============================================= */
+.feedback-message {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.feedback-message.visible {
+  opacity: 1;
+}
+.feedback-message.success {
+  background: #22c55e;
+}
+.feedback-message.error {
+  background: #ef4444;
+}
 
-    .sacola-total {
-        padding: 10px;
-    }
+/* =============================================
+   SCROLLBAR LIGHT
+   ============================================= */
+.div_pai::-webkit-scrollbar,
+.div_pai_sacola::-webkit-scrollbar {
+  width: 6px;
+}
+.div_pai::-webkit-scrollbar-track,
+.div_pai_sacola::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+.div_pai::-webkit-scrollbar-thumb,
+.div_pai_sacola::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 10px;
+}
+
+/* =============================================
+   RESPONSIVO
+   ============================================= */
+@media (max-width: 768px) {
+  .dashboard-venda {
+    padding: 12px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .user-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .dashboard-header nav ul {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  #home, #sacola, #btn_mensagem, #cancelarCompra {
+    padding: 10px 18px;
+    font-size: 0.85rem;
+  }
+
+  .search-container {
+    flex-wrap: wrap;
+    border-radius: 30px;
+  }
+
+  #btn_buscar {
+    width: 100%;
+  }
+
+  .div_pai,
+  .div_pai_sacola {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =============================================
+   UTILITÁRIOS
+   ============================================= */
+#esconde {
+  display: none !important;
 }
