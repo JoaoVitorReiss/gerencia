@@ -154,7 +154,7 @@
 }
 
 /* Estado hover */
-#home:hover, #sacola:hover, #btn_mensagem:hover, #cancelarCompra:hover {
+#home:hover, #sacola:hover, #btn_mensagem:hover, #cancelarCompra:hover, #perfil {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.4);
   color: #fff;
@@ -164,6 +164,7 @@
 
 /* Estado ativo (quando o JS define background: #325088ff ou similar) */
 #home[style*="background: rgb(50, 80, 136)"],
+#perfil[style*="background: rgb(50, 80, 136)"],
 #sacola[style*="background: rgb(50, 80, 136)"],
 #btn_mensagem[style*="background: rgb(50, 80, 136)"],
 #cancelarCompra[style*="background: rgb(50, 80, 136)"] {
@@ -181,8 +182,8 @@
   justify-content: center;
   min-width: 20px;
   height: 20px;
-  color: #fff;
-  background: rgb(231, 76, 60);;
+  background: #fff;
+  color: rgb(231, 76, 60);;
   border-radius: 50%;
   font-size: 0.75rem;
   font-weight: 700;
