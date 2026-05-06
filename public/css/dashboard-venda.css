@@ -110,11 +110,11 @@
 /* =============================================
    NAVEGAÇÃO – ABAS COM ÍCONES ALINHADOS
    ============================================= */
-.dashboard-header nav {
-  /* O nav fica dentro do header, mas no HTML pode estar em uma segunda linha; 
-     para manter a organização, vamos garantir que ele fique bem posicionado */
-}
+ /*.dashboard-header nav {
+  O nav fica dentro do header, mas no HTML pode estar em uma segunda linha; 
+     para manter a organização, vamos garantir que ele fique bem posicionado 
 
+}*/
 .dashboard-header nav ul {
   display: flex;
   gap: 12px;
