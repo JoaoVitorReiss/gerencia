@@ -106,15 +106,6 @@
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   transform: translateY(-1px);
 }
-
-/* =============================================
-   NAVEGAÇÃO – ABAS COM ÍCONES ALINHADOS
-   ============================================= */
- /*.dashboard-header nav {
-  O nav fica dentro do header, mas no HTML pode estar em uma segunda linha; 
-     para manter a organização, vamos garantir que ele fique bem posicionado 
-
-}*/
 .dashboard-header nav ul {
   display: flex;
   gap: 12px;
