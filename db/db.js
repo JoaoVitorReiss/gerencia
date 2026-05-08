@@ -1528,6 +1528,33 @@ const salvarAuditoria = async (dados, id_funcionario) => {
     }
 };
 
+// Essa função  busca os dados dos reembosos para faxer a auditoria
+const buscarAuditoriaVendas = async (dataInicio, dataFim) => {
+    try {
+        const conectar = await conecta_banco();
+        const sql = `
+            SELECT 
+                a.id_auditoria,
+                a.id_transacao_ref,
+                f.nome_funcionario_funcionario AS auditor,
+                a.tipo_acao,
+                a.valor_estornado,
+                a.motivo,
+                DATE_FORMAT(a.data_auditoria, '%d/%m/%Y %H:%i') AS data_formatada,
+                a.data_auditoria
+            FROM auditoria_vendas a
+            JOIN funcionarios f ON a.id_funcionario_auditor = f.id_funcionario_funcionario
+            WHERE a.data_auditoria >= ? AND a.data_auditoria <= CONCAT(?, ' 23:59:59')
+            ORDER BY a.data_auditoria DESC;
+        `;
+        const [linhas] = await conectar.query(sql, [dataInicio, dataFim]);
+        return linhas;
+    } catch (erro) {
+        console.error("Erro ao buscar auditoria de vendas:", erro);
+        throw erro;
+    }
+};
+
 
 module.exports = {
     buscarFuncionarioPorEmail,
@@ -1578,5 +1605,6 @@ module.exports = {
     marcarComoLida,
     excluirMensagem,
     buscarVendaPorTransacao,
-    salvarAuditoria
+    salvarAuditoria,
+    buscarAuditoriaVendas
 };

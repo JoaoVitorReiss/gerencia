@@ -16,7 +16,7 @@
     <div class="relatorio-container">
         <header class="relatorio-header">
             <h1>Relatório de Vendas</h1>
-            <div style="margin: 15px 0; font-size: 0.95em; display: flex; align-items: center; gap: 15px;">
+            <div id="auto-refresh-container" style="margin: 15px 0; font-size: 0.95em; display: flex; align-items: center; gap: 15px;">
                 <label style="cursor: pointer; user-select: none;">
                     <input type="checkbox" id="auto-refresh-toggle" checked>
                     Atualizar automaticamente a cada 3 minutos
@@ -52,7 +52,7 @@
                 <div class="kpi-valor" id="ticket_total">R$ 148,21</div>
                 <span class="kpi-status negativo" id="ticket_status">↓ 2% vs anterior</span>
             </div>
-            <div class="kpi-card">
+            <div class="kpi-card" id="card-estorno" style="cursor: pointer;">
                 <span class="kpi-titulo">Total Estornado</span>
                 <div class="kpi-valor" id="estornado_total" style="color: var(--danger, #ef4444);">R$ 0,00</div>
                 <span class="kpi-status" id="estornado_status">Registros de estornos</span>
@@ -119,6 +119,28 @@
         <div class="status-caixa" id="caixa-sugestao">
             </div>
         </div>
+
+        <div class="card-detalhe insights-painel" id="resumo-estorno-card">
+            <div class="card-header">
+                <h3>Resumo de Estornos</h3>
+                <span class="sub-header">Análise qualitativa das perdas</span>
+            </div>
+            <div class="insight-item">
+                <span class="label">Tipo mais comum:</span>
+                <span class="valor" id="estorno-tipo-comum">-</span>
+            </div>
+            <div class="insight-item">
+                <span class="label">Motivo principal:</span>
+                <span class="valor" id="estorno-motivo-principal">-</span>
+            </div>
+            <div class="insight-item">
+                <span class="label">Taxa de Estorno:</span>
+                <span class="valor" id="estorno-taxa">0.0%</span>
+            </div>
+            <div class="status-caixa" id="estorno-alerta" style="margin-top: 10px; font-size: 0.85em; padding: 10px; border-radius: 6px;">
+                <!-- Mensagem dinâmica -->
+            </div>
+        </div>
     </div>
 
 
@@ -151,13 +173,46 @@
                 <p id="relatorio-operacional-texto">Carregando análise...</p>
             </section>
 
+            <section class="analise-secao">
+                <h4><span class="icon">🛡️</span> Análise de Estornos e Qualidade de Operação</h4>
+                <p id="relatorio-estorno-texto">Carregando análise...</p>
+            </section>
+
             <section class="conclusao-tecnica" id="conclusao-final">
                 <strong>Conclusão tecnica:</strong>
                 <p id="relatorio-conclusao-texto">Aguardando dados para processar diagnóstico...</p>
             </section>
         </div>
-    </div>
-    </section>
+        
+        <!-- Nova Seção: Auditoria de Estornos -->
+        <div class="analise-detalhada-container" style="margin-top: 30px;">
+            <div class="card-detalhe" style="width: 100%;">
+                <div class="card-header">
+                    <h3>Auditoria de Estornos (Trocas, Devoluções e Reembolsos)</h3>
+                    <span class="sub-header">Histórico detalhado de todas as ações de estorno realizadas no período</span>
+                </div>
+                <div class="tabela-wrapper">
+                    <table id="tabela-auditoria">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>ID Transação</th>
+                                <th>Tipo Ação</th>
+                                <th>Valor Estornado</th>
+                                <th>Responsável (Auditor)</th>
+                                <th>Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpo-tabela-auditoria">
+                            <!-- Preenchido via JS -->
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 20px; color: #666;">Carregando dados de auditoria...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
     <script type="module" src="/js/relatorio.js"></script>
 </body>

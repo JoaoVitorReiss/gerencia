@@ -1480,6 +1480,20 @@ app.post("/msg_lida", authenticateJWT, async (req, res) => {
 
 
 
+// Essa rota e para pegar os dados para realizar  auditoria nos itens reebosados, cancelados...etc
+app.post("/api/relatorio_auditoria", authenticateJWT, requireAdm, async (req, res) => {
+    try {
+        const { inicio, fim } = req.body;
+        if (!inicio || !fim) {
+            return res.status(400).json({ mensagem: "Datas de início e fim são obrigatórias." });
+        }
+        const auditoria = await db.buscarAuditoriaVendas(inicio, fim);
+        res.status(200).json({ auditoria });
+    } catch (error) {
+        console.error("Erro ao buscar auditoria (Relatório):", error);
+        res.status(500).json({ mensagem: "Erro interno do servidor." });
+    }
+});
 
 // ROTAS DO MÓDULO DE DEVOLUÇÃO/AUDITORIA 
 app.get("/api/vendas/:id_transacao", authenticateJWT, async (req, res) => {

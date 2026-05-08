@@ -1,4 +1,4 @@
-let instaciaGrafico;
+let instanciaGrafico;
 let instanciaRosca;
 
 class DataSelect {
@@ -17,20 +17,116 @@ class DataSelect {
             const res = await resposta.json();
 
             if (resposta.ok) {
-                this.atualizaCard(res.dados);
-                this.desenharGrafico(res.dados.graficoFaturamento);
-                this.desenharGraficoPagamento(res.dados.graficoPagamento);
-                this.renderizarTabelaProdutos(res.dados.produtosTop);
-                this.preencherInsights(res.dados);
-                this.gerarRelatorioEscrito(res.dados);
-
-                // Salva o período atual para o refresh automático
                 this.currentInicio = inicio;
                 this.currentFim = fim;
                 this.updateLastUpdated();
+
+                this.atualizaCard(res.dados);
+                await this.buscarAuditoria(inicio, fim, res.dados.atual.faturamento_total);
+
+                this.desenharGrafico(res.dados.graficoFaturamento);
+                this.desenharGraficoPagamento(res.dados.graficoPagamento);
+                this.renderizarTabelaProdutos(res.dados.produtosTop, res.dados.atual.faturamento_total);
+                this.preencherInsights(res.dados);
+                this.gerarRelatorioEscrito(res.dados);
             }
         } catch (error) {
-            console.error("Erro no fetch:", error);
+            console.error("Erro na comunicação com o servidor:", error);
+        }
+    }
+
+    static async buscarAuditoria(inicio, fim, faturamentoReferencia) {
+        try {
+            const resposta = await fetch("/api/relatorio_auditoria", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inicio, fim })
+            });
+            const res = await resposta.json();
+            if (resposta.ok) {
+                this.renderizarTabelaAuditoria(res.auditoria, faturamentoReferencia);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar auditoria:", error);
+        }
+    }
+
+    static renderizarTabelaAuditoria(auditoria, faturamentoReferencia) {
+        const corpoTabela = document.getElementById("corpo-tabela-auditoria");
+        if (!corpoTabela) return;
+        
+        corpoTabela.innerHTML = "";
+
+        if (!auditoria || auditoria.length === 0) {
+            corpoTabela.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Nenhum registro de estorno encontrado no período.</td></tr>';
+            this.preencherResumoEstorno([], 0);
+            return;
+        }
+
+        auditoria.forEach(item => {
+            const linha = `
+                <tr>
+                    <td>${item.data_formatada}</td>
+                    <td><strong style="color: #325088;">${item.id_transacao_ref}</strong></td>
+                    <td><span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; background: #fef2f2; color: #ef4444;">${item.tipo_acao}</span></td>
+                    <td style="font-weight: bold; color: #ef4444;">R$ ${Number(item.valor_estornado).toFixed(2)}</td>
+                    <td>${item.auditor}</td>
+                    <td style="font-size: 0.9em; color: #475569;">${item.motivo}</td>
+                </tr>
+            `;
+            corpoTabela.innerHTML += linha;
+        });
+
+        this.preencherResumoEstorno(auditoria, faturamentoReferencia);
+    }
+
+    static preencherResumoEstorno(auditoria, faturamentoTotal) {
+        const elTipo = document.getElementById("estorno-tipo-comum");
+        const elMotivo = document.getElementById("estorno-motivo-principal");
+        const elTaxa = document.getElementById("estorno-taxa");
+        const elAlerta = document.getElementById("estorno-alerta");
+
+        if (!auditoria || auditoria.length === 0) {
+            if(elTipo) elTipo.innerText = "Nenhum";
+            if(elMotivo) elMotivo.innerText = "Nenhum";
+            if(elTaxa) elTaxa.innerText = "0.0%";
+            if(elAlerta) {
+                elAlerta.innerHTML = "✅ <strong>Operação Estável:</strong> Sem estornos ou devoluções no período.";
+                elAlerta.style.background = "#f0fdf4";
+                elAlerta.style.color = "#166534";
+            }
+            return;
+        }
+
+        const tipos = auditoria.reduce((acc, item) => {
+            acc[item.tipo_acao] = (acc[item.tipo_acao] || 0) + 1;
+            return acc;
+        }, {});
+        const tipoComum = Object.keys(tipos).reduce((a, b) => tipos[a] > tipos[b] ? a : b);
+
+        const motivos = auditoria.reduce((acc, item) => {
+            acc[item.motivo] = (acc[item.motivo] || 0) + 1;
+            return acc;
+        }, {});
+        const motivoPrincipal = Object.keys(motivos).reduce((a, b) => motivos[a] > motivos[b] ? a : b);
+
+        const totalEstornado = auditoria.reduce((acc, item) => acc + Number(item.valor_estornado), 0);
+        const taxa = faturamentoTotal > 0 ? (totalEstornado / faturamentoTotal * 100).toFixed(1) : "0.0";
+
+        if(elTipo) elTipo.innerText = tipoComum;
+        if(elMotivo) elMotivo.innerText = motivoPrincipal;
+        if(elTaxa) elTaxa.innerText = `${taxa}%`;
+
+        if(elAlerta) {
+            if (Number(taxa) > 10) {
+                elAlerta.innerHTML = "⚠️ <strong>Atenção:</strong> Índice de estorno elevado. Verifique os motivos principais.";
+                elAlerta.style.background = "#fff1f2"; 
+                elAlerta.style.color = "#991b1b";
+            } else {
+                elAlerta.innerHTML = "✅ <strong>Saudável:</strong> Taxa de estorno dentro do limite operacional.";
+                elAlerta.style.background = "#f0fdf4"; 
+                elAlerta.style.color = "#166534";
+            }
         }
     }
 
@@ -43,12 +139,12 @@ class DataSelect {
     }
 
     static startAutoRefresh() {
-        this.stopAutoRefresh(); // evita múltiplos intervals
+        this.stopAutoRefresh();
         this.autoRefreshInterval = setInterval(() => {
             if (this.currentInicio && this.currentFim) {
                 this.enviarParaServidor(this.currentInicio, this.currentFim);
             }
-        }, 3 * 60 * 1000); // 3 minutos
+        }, 3 * 60 * 1000);
     }
 
     static stopAutoRefresh() {
@@ -61,13 +157,11 @@ class DataSelect {
     static async data_selecionada() {
         const formatarData = (data) => data.toISOString().split('T')[0];
 
-        // Seletores
         const botoes = document.querySelectorAll(".btn-filtro");
         const inputInicio = document.getElementById("data_inicio");
         const inputFim = document.getElementById("data_fim");
         const btnBuscaManual = document.getElementById("btn_buscar_custom");
 
-        // Lógica dos Botões Rápidos (Hoje, 7d, 30d)
         botoes.forEach(botao => {
             botao.addEventListener("click", () => {
                 botoes.forEach(b => b.classList.remove("active"));
@@ -80,35 +174,27 @@ class DataSelect {
             });
         });
 
-        // Lógica da Busca Manual (Período Customizado)
-        btnBuscaManual.addEventListener("click", () => {
-            const inicio = inputInicio.value;
-            const fim = inputFim.value;
+        if(btnBuscaManual) {
+            btnBuscaManual.addEventListener("click", () => {
+                const inicio = inputInicio.value;
+                const fim = inputFim.value;
+                if (inicio && fim) {
+                    this.enviarParaServidor(inicio, fim);
+                } else {
+                    alert("Por favor, selecione as duas datas.");
+                }
+            });
+        }
 
-            if (inicio && fim) {
-                this.enviarParaServidor(inicio, fim);
-            } else {
-                alert("Por favor, selecione as duas datas.");
-            }
-        });
-
-        // Carregamento inicial (hoje)
         const hojeStr = formatarData(new Date());
         await this.enviarParaServidor(hojeStr, hojeStr);
 
         const toggle = document.getElementById("auto-refresh-toggle");
         if (toggle) {
             toggle.addEventListener("change", () => {
-                if (toggle.checked) {
-                    this.startAutoRefresh();
-                } else {
-                    this.stopAutoRefresh();
-                }
+                toggle.checked ? this.startAutoRefresh() : this.stopAutoRefresh();
             });
-
-            if (toggle.checked) {
-                this.startAutoRefresh();
-            }
+            if (toggle.checked) this.startAutoRefresh();
         }
     }
 
@@ -117,295 +203,258 @@ class DataSelect {
             const a = Number(atual) || 0;
             const ant = Number(anterior) || 0;
             if(ant === 0) return a > 0 ? 100 : 0;
-            return ((a - ant) * 100);
+            return ((a - ant) / ant) * 100;
         };
 
-        const formatarStatus = (elemento, variacao) => {
+        const formatarStatus = (elementoId, variacao) => {
+            const elemento = document.getElementById(elementoId);
+            if (!elemento) return;
             const cor = variacao >= 0 ? "green" : "red";
             const seta = variacao >= 0 ? "↑" : "↓";
             elemento.innerHTML = `<span style="color: ${cor}">${seta} ${Math.abs(variacao).toFixed(2)}%</span>`;
         };
 
-        const fatValor = document.getElementById("fatu_total");
-        const fatStatus = document.getElementById("faturamento_status");
-        fatValor.innerHTML = `R$ ${Number(dados.atual.faturamento_total).toFixed(2)}`;
-        formatarStatus(fatStatus, calcularVariacao(dados.atual.faturamento_total, dados.anterior.faturamento_total));
+        const faturamento = Number(dados.atual.faturamento_total || 0);
+        document.getElementById("fatu_total").innerHTML = `R$ ${faturamento.toFixed(2)}`;
+        formatarStatus("faturamento_status", calcularVariacao(faturamento, dados.anterior.faturamento_total));
 
-        const vendasValor = document.getElementById("vendas_total");
-        const vendasStatus = document.getElementById("vendas_status");
-        vendasValor.innerHTML = dados.atual.qtd_vendas;
-        formatarStatus(vendasStatus, calcularVariacao(dados.atual.qtd_vendas, dados.anterior.qtd_vendas));
+        document.getElementById("vendas_total").innerHTML = dados.atual.qtd_vendas || 0;
+        formatarStatus("vendas_status", calcularVariacao(dados.atual.qtd_vendas, dados.anterior.qtd_vendas));
 
-        const ticketValor = document.getElementById("ticket_total");
-        const ticketStatus = document.getElementById("ticket_status");
-        ticketValor.innerHTML = `R$ ${Number(dados.atual.ticket_medio).toFixed(2)}`;
-        formatarStatus(ticketStatus, calcularVariacao(dados.atual.ticket_medio, dados.anterior.ticket_medio));
+        document.getElementById("ticket_total").innerHTML = `R$ ${Number(dados.atual.ticket_medio || 0).toFixed(2)}`;
+        formatarStatus("ticket_status", calcularVariacao(dados.atual.ticket_medio, dados.anterior.ticket_medio));
 
         const estornadoValor = document.getElementById("estornado_total");
-        const estornadoStatus = document.getElementById("estornado_status");
-        if (estornadoValor && estornadoStatus) {
+        if (estornadoValor) {
             const estAtual = Number(dados.atual.valor_estornado) || 0;
-            const estAnt = Number(dados.anterior.valor_estornado) || 0;
             estornadoValor.innerHTML = `R$ ${estAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            const varEst = calcularVariacao(estAtual, estAnt);
-            // Para estorno, aumento é ruim (vermelho), queda é bom (verde)
-            const cor = varEst >= 0 ? "red" : "green";
-            const seta = varEst >= 0 ? "↑" : "↓";
-            estornadoStatus.innerHTML = `<span style="color: ${cor}">${seta} ${Math.abs(varEst).toFixed(2)}% vs anterior</span>`;
+            const varEst = calcularVariacao(estAtual, Number(dados.anterior.valor_estornado || 0));
+            const statusEst = document.getElementById("estornado_status");
+            if (statusEst) {
+                const cor = varEst >= 0 ? "red" : "green";
+                statusEst.innerHTML = `<span style="color: ${cor}">${varEst >= 0 ? "↑" : "↓"} ${Math.abs(varEst).toFixed(2)}% vs anterior</span>`;
+            }
         }
-    };
+    }
 
     static desenharGrafico(dadosGrafico) {
-        const { atual, anterior } = dadosGrafico;
-        const ctx = document.getElementById('meuGraficoLinha').getContext('2d');
-        if (!dadosGrafico || dadosGrafico.length === 0) {
-            console.warn("Nenhum dado encontrado para o gráfico.");
-            if (instaciaGrafico) instaciaGrafico.destroy();
-            return;
-        }
-        if (instaciaGrafico) {
-            instaciaGrafico.destroy();
-        }
+        const ctxEl = document.getElementById('meuGraficoLinha');
+        if (!ctxEl) return;
+        const ctx = ctxEl.getContext('2d');
+        if (instanciaGrafico) instanciaGrafico.destroy();
+        
+        const atual = dadosGrafico?.atual || [];
+        if (atual.length === 0) return;
 
         const datas = atual.map(d => d.data).sort();
-        if (datas.length === 0) return;
-        const inicio = new Date(datas[0] || new Date());
-        const fim    = new Date(datas[datas.length - 1] || new Date());
-
         const mapDados = new Map(atual.map(item => [item.data, item.total]));
         const mapEstorno = new Map(atual.map(item => [item.data, item.total_estornado || 0]));
 
-        const labelsCompletos = [];
-        const valoresFaturamento = [];
-        const valoresEstornado = [];
+        const labels = [];
+        const valoresFatu = [];
+        const valoresEst = [];
         
-        let dataAtual = new Date(inicio);
-        while (dataAtual <= fim) {
-            const str = dataAtual.toISOString().split('T')[0];
-            const dataObj = new Date(str + 'T00:00:00'); 
-            labelsCompletos.push(dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
-            valoresFaturamento.push(mapDados.get(str) || 0);
-            valoresEstornado.push(mapEstorno.get(str) || 0);
-            dataAtual.setDate(dataAtual.getDate() + 1);
-        };
+        let d = new Date(datas[0]);
+        const fim = new Date(datas[datas.length - 1]);
 
-        instaciaGrafico = new Chart(ctx, {
+        while (d <= fim) {
+            const str = d.toISOString().split('T')[0];
+            labels.push(new Date(str + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+            valoresFatu.push(mapDados.get(str) || 0);
+            valoresEst.push(mapEstorno.get(str) || 0);
+            d.setDate(d.getDate() + 1);
+        }
+
+        instanciaGrafico = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labelsCompletos,
+                labels: labels,
                 datasets: [
-                    {
-                        label: 'Faturamento Concluído',
-                        data: valoresFaturamento,
-                        borderColor: '#325088',
-                        backgroundColor: 'rgba(50, 80, 136, 0.1)', 
-                        borderWidth: 3,
-                        tension: 0.3, 
-                        fill: false,
-                        pointRadius: 5
-                    },
-                    {
-                        label: 'Devoluções/Reembolsos',
-                        data: valoresEstornado,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)', 
-                        borderWidth: 3,
-                        tension: 0.3, 
-                        fill: false,
-                        pointRadius: 5
-                    }
+                    { label: 'Faturamento', data: valoresFatu, borderColor: '#325088', tension: 0.3, fill: false },
+                    { label: 'Estornos', data: valoresEst, borderColor: '#ef4444', tension: 0.3, fill: false }
                 ]
             },
-            options: {
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => `R$ ${context.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
-                        }
-                    }
-                }
+            options: { 
+                responsive: true,
+                plugins: { 
+                    tooltip: { 
+                        callbacks: { 
+                            label: (c) => `R$ ${c.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits: 2})}` 
+                        } 
+                    } 
+                } 
             }
         });
     }
 
     static desenharGraficoPagamento(dadosPagamento) {
-        const ctx = document.getElementById('meuGraficoRosca').getContext('2d');
-        
+        const ctxEl = document.getElementById('meuGraficoRosca');
+        if (!ctxEl) return;
+        const ctx = ctxEl.getContext('2d');
         if (instanciaRosca) instanciaRosca.destroy();
-
-        const labels = dadosPagamento.map(item => item.metodo);
-        const valores = dadosPagamento.map(item => item.total);
 
         instanciaRosca = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: labels,
-                datasets: [{
-                    data: valores,
-                    backgroundColor: ['#325088', '#2ecc71', '#f1c40f', '#e74c3c', '#9b59b6'],
-                    hoverOffset: 4
+                labels: dadosPagamento.map(i => i.metodo),
+                datasets: [{ 
+                    data: dadosPagamento.map(i => i.total), 
+                    backgroundColor: ['#325088', '#2ecc71', '#f1c40f', '#e74c3c', '#9b59b6'] 
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
                     legend: { position: 'bottom' } 
-                }
+                } 
             }
         });
-    };
+    }
 
-    static renderizarTabelaProdutos(produtos) {
-        const corpoTabela = document.getElementById("corpo-tabela-produtos");
-        corpoTabela.innerHTML = ""; // Limpa a tabela anterior
+static renderizarTabelaProdutos(produtos, faturamentoTotal) {
+        const corpo = document.getElementById("corpo-tabela-produtos");
+        if (!corpo) return;
+        corpo.innerHTML = "";
 
         if (!produtos || produtos.length === 0) {
-            corpoTabela.innerHTML = '<tr><td colspan="4" style="text-align:center">Sem vendas no período</td></tr>';
+            corpo.innerHTML = '<tr><td colspan="4" style="text-align:center">Sem movimentação no período</td></tr>';
             return;
         }
 
-        const faturamentoTotalPeriodo = produtos.reduce((acc, p) => acc + Number(p.faturamento), 0);
+        // Usa o faturamento TOTAL do período (vem do backend)
+        const totalGeral = Number(faturamentoTotal) || produtos.reduce((acc, p) => acc + Number(p.faturamento), 0);
 
         produtos.forEach(item => {
-            const participacao = ((item.faturamento / faturamentoTotalPeriodo) * 100).toFixed(1);
-            
-            const linha = `
-                <tr>
-                    <td>${item.produto}</td>
-                    <td>${item.qtd}</td>
-                    <td>R$ ${Number(item.faturamento).toFixed(2)}</td>
-                    <td><strong>${participacao}%</strong></td>
-                </tr>
-            `;
-            corpoTabela.innerHTML += linha;
-        });
-    };
+            const faturamentoProduto = Number(item.faturamento);
+            const participacao = totalGeral > 0 
+                ? (faturamentoProduto / totalGeral * 100).toFixed(1) 
+                : 0;
 
-    static preencherInsights(dados){
+            corpo.innerHTML += `<tr>
+                <td>${item.produto}</td>
+                <td>${item.qtd}</td>
+                <td>R$ ${faturamentoProduto.toFixed(2)}</td>
+                <td><strong>${participacao}%</strong></td>
+            </tr>`;
+        });
+    }
+    static preencherInsights(dados) {
         const setTexto = (id, texto) => {
-            const elemento = document.getElementById(id);
-            if (elemento) {
-                elemento.innerText = texto;
-            } else {
-                console.warn(`Aviso: Elemento com ID '${id}' não encontrado no HTML.`);
-            }
+            const el = document.getElementById(id);
+            if (el) el.innerText = texto;
         };
 
-        const atualArray = dados.graficoFaturamento.atual || [];
-        const pagamentosArray = dados.graficoPagamento || [];
-        
-        if (atualArray.length > 0) {
-            const melhorDiaObj = [...atualArray].sort((a, b) => b.total - a.total)[0];
-            const dataFormatada = new Date(melhorDiaObj.data + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
+        const setHTML = (id, html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        };
+
+        const atual = dados.graficoFaturamento?.atual || [];
+        if (atual.length > 0) {
+            const melhor = [...atual].sort((a, b) => b.total - a.total)[0];
+            const dataFormatada = new Date(melhor.data + 'T00:00:00')
+                .toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
             setTexto("melhor-dia", dataFormatada);
+        } else {
+            setTexto("melhor-dia", "—");
         }
 
-        if (pagamentosArray.length > 0) {
-            const topMetodo = [...pagamentosArray].sort((a, b) => b.total - a.total)[0];
-            setTexto("metodo-top", topMetodo.metodo || topMetodo.venda_metodo_paga || "N/A");
+        const qtdVendas = Math.max(1, Number(dados.atual?.qtd_vendas || 0));
+        const itensPorVenda = (Number(dados.atual?.total_itens_vendidos || 0) / qtdVendas).toFixed(1);
+        setTexto("itens-por-venda", itensPorVenda);
+
+
+        const fatAtual = Number(dados.atual?.faturamento_total || 0);
+        const fatAnterior = Number(dados.anterior?.faturamento_total || 0);
+        
+        let textoComparativo = "—";
+
+        if (fatAnterior > 0) {
+            const perc = ((fatAtual - fatAnterior) / fatAnterior) * 100;
+            const cor = perc >= 0 ? "#166534" : "#991b1b";
+            const seta = perc >= 0 ? "↑" : "↓";
+            textoComparativo = `<span style="color:${cor}; font-weight: 600;">${seta} ${Math.abs(perc).toFixed(1)}%</span>`;
+        } else if (fatAtual > 0) {
+            textoComparativo = `<span style="color:#166534; font-weight: 600;">↑ Novo período</span>`;
         }
 
-        const totalItens = Number(dados.atual.total_itens_vendidos) || 0;
-        const totalVendas = Number(dados.atual.qtd_vendas) || 1;
-        setTexto("itens-por-venda", (totalItens / totalVendas).toFixed(1));
+        setHTML("comparativo-periodo", textoComparativo);
 
-        const campoComp = document.getElementById("comparativo-periodo");
-        if (campoComp) {
-            const totalAtual = atualArray.reduce((acc, item) => acc + Number(item.total), 0);
-            const totalAnterior = (dados.graficoFaturamento.anterior || []).reduce((acc, item) => acc + Number(item.total), 0);
-
-            if (totalAnterior > 0) {
-                const variacao = ((totalAtual - totalAnterior) / totalAnterior) * 100;
-                campoComp.innerHTML = `<span style="color: ${variacao >= 0 ? 'green' : 'red'}">${variacao >= 0 ? '↑' : '↓'} ${Math.abs(variacao).toFixed(1)}%</span>`;
-            } else {
-                campoComp.innerText = "Sem histórico";
-            }
+        const pgs = dados.graficoPagamento || [];
+        if (pgs.length > 0) {
+            const top = [...pgs].sort((a, b) => b.total - a.total)[0];
+            // Se quiser mostrar em algum lugar, use setTexto("metodo-top", top.metodo);
         }
     }
 
     static gerarRelatorioEscrito(dados) {
-        const faturamentoAtual = dados.graficoFaturamento?.atual || [];
-        const faturamentoAnterior = dados.graficoFaturamento?.anterior || [];
-        const produtos = dados.produtosTop || [];
-        const ticketMedio = Number(dados.atual?.ticket_medio) || 0;
-        const itensVenda = document.getElementById("itens-por-venda")?.innerText || "0.0";
-        const melhorDia = document.getElementById("melhor-dia")?.innerText || "N/A";
-        const metodoDominante = document.getElementById("relatorio-operacional-texto");
-        const datas_perildo = document.getElementById("periodo-relatorio");
-        const data_inicio = dados.datas.data_inicio.split('T')[0];
-        const data_fim = dados.datas.data_fim.split('T')[0];
+        const elFatu = document.getElementById("relatorio-faturamento-texto");
+        const elMix = document.getElementById("relatorio-mix-texto");
+        const elOperacional = document.getElementById("relatorio-operacional-texto");
+        const elEstorno = document.getElementById("relatorio-estorno-texto");
+        const elConclusao = document.getElementById("relatorio-conclusao-texto");
+        const elPeriodo = document.getElementById("periodo-relatorio");
 
-        const dadosPg = dados.graficoPagamento;
-        const maiorCapital = dadosPg.reduce((a, b) => (a.total > b.total ? a : b), {metodo: "N/A", total: 0});
-        const maisUtilizado = dadosPg.reduce((a, b) => (a.qtd > b.qtd ? a : b), {metodo: "N/A", qtd: 0});
+        // === Usar dados vindos do backend quando disponíveis ===
+        const faturamentoAtual = Number(dados.atual?.faturamento_total || 0);
+        const variacaoBackend = Number(dados.atual?.variacao_percentual || 0); // se o backend enviar
 
-        const metodoDominanteCard = maiorCapital.metodo;
-        const popular = maisUtilizado.metodo;
-
-        const totalAtual = faturamentoAtual.reduce((acc, i) => acc + Number(i.total), 0);
-        const totalAnterior = faturamentoAnterior.reduce((acc, i) => acc + Number(i.total), 0);
+        const atual = dados.graficoFaturamento?.atual || [];
+        const anterior = dados.graficoFaturamento?.anterior || [];
+        const totalAtual = atual.reduce((acc, i) => acc + Number(i.total), 0);
+        const totalAnt = anterior.reduce((acc, i) => acc + Number(i.total), 0);
         
-        let varPerc = 0;
-        if (totalAnterior > 0) {
-            varPerc = (((totalAtual - totalAnterior) / totalAnterior) * 100).toFixed(1);
+        // Prioriza variação vinda do backend, senão calcula
+        const varPerc = variacaoBackend || (totalAnt > 0 ? (((totalAtual - totalAnt) / totalAnt) * 100).toFixed(1) : 0);
+
+        if (elPeriodo) {
+            elPeriodo.innerHTML = `Período: <strong>${dados.datas.data_inicio.split('T')[0]}</strong> até <strong>${dados.datas.data_fim.split('T')[0]}</strong>`;
         }
 
-        datas_perildo.innerHTML = `
-            Período: <strong>${data_inicio}</strong> <em>até</em> <strong>${data_fim}</strong>
-        `;
-
-        // Sumário de Faturamento
-        const totalEstornadoAtual = Number(dados.atual?.valor_estornado) || 0;
-        const estornoTexto = totalEstornadoAtual > 0 
-            ? ` Notou-se um volume de estornos/devoluções no valor de R$ ${totalEstornadoAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}.` 
-            : '';
-
-        const faturamentoTexto = `O faturamento total consolidado foi de R$ ${totalAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. ` +
-            (totalAnterior > 0 
-                ? `Este valor apresenta uma variação de ${varPerc}% em relação ao período anterior. ` 
-                : `Não há dados históricos suficientes para comparação percentual direta. `) +
-            `O pico de demanda foi identificado no dia ${melhorDia}.` + estornoTexto;
-        
-        document.getElementById("relatorio-faturamento-texto").innerText = faturamentoTexto;
-
-        // Mix de Produtos
-        const principalProduto = produtos.length > 0 ? produtos[0].produto : "Nenhum produto listado";
-        document.getElementById("relatorio-mix-texto").innerText = 
-            `O item "${principalProduto}" destaca-se como o principal motor de receita no período. ` +
-            `O ticket médio operacional fixou-se em R$ ${ticketMedio.toFixed(2)}, com uma média de ${itensVenda} produtos por transação.`;
-
-        // Sumário de Método de pagamento
-        if (metodoDominanteCard && metodoDominanteCard !== "N/A" && metodoDominanteCard !== "-") {
-            metodoDominante.innerHTML = 
-                `A análise de fluxo indica que o método <strong>${metodoDominanteCard}</strong> ` +
-                `é a principal via de entrada de capital. Além disso, o método <strong>${popular}</strong> apresentou a maior frequência de uso. ` +
-                `Recomenda-se monitorar as taxas de liquidação e os custos associados a essas modalidades.`;
-        } else {
-            metodoDominante.innerHTML = 
-                `Ainda não há dados consolidados suficientes sobre os métodos de pagamento ` +
-                `para uma análise de eficiência operacional.`;
+        if (elFatu) {
+            elFatu.innerHTML = `O faturamento consolidado fechou em <strong>R$ ${faturamentoAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong>. Isso indica uma variação de <strong>${varPerc}%</strong> em relação ao período anterior.`;
         }
 
-        // Conclusão Técnica
-        const campoConclusao = document.getElementById("relatorio-conclusao-texto");
-        if (!totalAtual || totalAtual <= 0) {
-            campoConclusao.textContent = 
-                "Operação sem movimentação financeira no período selecionado. " +
-                "Aguardando vendas para gerar diagnóstico.";
-        } 
-        else if (varPerc >= 0) {
-            campoConclusao.textContent = 
-                "Os indicadores apontam uma trajetória positiva. " +
-                "A manutenção do ticket médio aliada à estabilidade no mix de produtos " +
-                "sugere um cenário de retenção e saúde comercial satisfatórios.";
-        } 
-        else {
-            campoConclusao.textContent = 
-                "Foi identificada retração nos indicadores de volume e faturamento. " +
-                "Recomenda-se: auditoria no estoque dos produtos líderes, " +
-                "revisão da política de preços/descontos e análise de fatores externos " +
-                "para reverter a tendência de queda.";
+        if (elMix) {
+            const pPrincipal = (dados.produtosTop || []).length > 0 ? dados.produtosTop[0].produto : "Nenhum";
+            const ticket = Number(dados.atual?.ticket_medio || 0).toFixed(2);
+            const itensPorVenda = document.getElementById("itens-por-venda")?.innerText || "2.0";
+            
+            elMix.innerHTML = `O produto <strong>"${pPrincipal}"</strong> liderou as vendas no período. O ticket médio ficou em <strong>R$ ${ticket}</strong>, com uma média de <strong>${itensPorVenda}</strong> itens por pedido.`;
+        }
+
+        if (elOperacional) {
+            const pgs = dados.graficoPagamento || [];
+            if (pgs.length > 0) {
+                const top = [...pgs].sort((a, b) => b.total - a.total)[0];
+                elOperacional.innerHTML = `A análise de fluxo indica que o método <strong>${top.metodo}</strong> foi o principal meio de pagamento. Recomenda-se monitorar as taxas associadas a essa modalidade.`;
+            } else {
+                elOperacional.innerText = "Não há dados suficientes de meios de pagamento para análise.";
+            }
+        }
+
+        if (elEstorno) {
+            const estValor = Number(dados.atual?.valor_estornado || 0);
+            const taxaE = document.getElementById("estorno-taxa")?.innerText || "0.0%";
+            
+            if (estValor > 0) {
+                elEstorno.innerHTML = `Identificamos <strong>R$ ${estValor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong> em estornos (${taxaE} da receita). Recomendamos monitorar os motivos para reduzir perdas operacionais.`;
+            } else {
+                elEstorno.innerHTML = `Excelente desempenho operacional: <strong>nenhum estorno</strong> registrado no período.`;
+            }
+        }
+
+        if (elConclusao) {
+            if (faturamentoAtual <= 0) {
+                elConclusao.innerHTML = "Aguardando novos registros de venda para gerar diagnóstico.";
+            } else if (varPerc >= 15) {
+                elConclusao.innerHTML = `Os indicadores mostram um <strong>crescimento saudável</strong> (+${varPerc}%). O mix de produtos demonstra boa retenção e equilíbrio comercial.`;
+            } else if (varPerc >= 0) {
+                elConclusao.innerHTML = `Os indicadores apontam <strong>estabilidade</strong> no período, com bom desempenho do mix de produtos.`;
+            } else {
+                elConclusao.innerHTML = `Houve uma <strong>retração</strong> no faturamento (${varPerc}%). Recomenda-se revisar a política de preços, estoque dos produtos líderes e fatores externos.`;
+            }
         }
     }
 
@@ -414,4 +463,5 @@ class DataSelect {
     }
 }
 
+// Inicialização
 DataSelect.init();

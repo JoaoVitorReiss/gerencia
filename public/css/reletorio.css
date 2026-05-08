@@ -8,11 +8,21 @@
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* ========== ESTILOS GERAIS (TELA) ========== */
 .relatorio-container {
     padding: 20px;
     background-color: var(--bg-light);
     min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Garante que nenhum texto seja cortado na tela também */
+.relatorio-container * {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal !important;
+    text-overflow: clip;
 }
 
 /* Header */
@@ -88,10 +98,10 @@
 .kpi-status.positivo { color: var(--success); }
 .kpi-status.negativo { color: var(--danger); }
 
-/* Seção de Gráficos */
+/* Gráficos */
 .graficos-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr; /* Gráfico de linha maior que o de rosca */
+    grid-template-columns: 2fr 1fr;
     gap: 20px;
 }
 
@@ -122,16 +132,7 @@
     color: #999;
 }
 
-/* Responsividade */
-@media (max-width: 900px) {
-    .graficos-grid {
-        grid-template-columns: 1fr;
-    };
-};
-
-
-
-/* ===== ESTILIZAÇÃO DOS CAMPOS DE DATA E BOTÃO BUSCAR (CORRIGIDA) ===== */
+/* Calendário e botões */
 .calendario-custom {
     display: flex;
     align-items: center;
@@ -142,9 +143,7 @@
     box-shadow: var(--shadow);
 }
 
-/* Inputs type="date" */
-#data_inicio,
-#data_fim {
+#data_inicio, #data_fim {
     padding: 8px 12px;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -157,51 +156,6 @@
     min-width: 140px;
 }
 
-/* Ícone do calendário - AGORA VISÍVEL E ESTILIZADO */
-#data_inicio::-webkit-calendar-picker-indicator,
-#data_fim::-webkit-calendar-picker-indicator {
-    background-color: transparent;
-    padding: 4px;
-    cursor: pointer;
-    border-radius: 4px;
-    opacity: 1; /* Totalmente visível */
-    filter: invert(28%) sepia(51%) saturate(497%) hue-rotate(178deg) brightness(94%) contrast(87%);
-    /* Aplica a cor azul primária (#325088) ao ícone */
-    transition: all 0.2s;
-}
-
-#data_inicio::-webkit-calendar-picker-indicator:hover,
-#data_fim::-webkit-calendar-picker-indicator:hover {
-    background-color: rgba(50, 80, 136, 0.1);
-    filter: invert(28%) sepia(51%) saturate(497%) hue-rotate(178deg) brightness(94%) contrast(87%);
-}
-
-/* Placeholder dos campos de data */
-#data_inicio::-webkit-datetime-edit-text,
-#data_fim::-webkit-datetime-edit-text {
-    color: #7f8c8d;
-}
-#data_inicio::-webkit-datetime-edit-fields-wrapper,
-#data_fim::-webkit-datetime-edit-fields-wrapper {
-    color: var(--text-dark);
-}
-
-/* Foco nos campos de data */
-#data_inicio:focus,
-#data_fim:focus {
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(50, 80, 136, 0.1);
-}
-
-/* Span "até" */
-.calendario-custom span {
-    color: var(--text-dark);
-    font-weight: 500;
-    font-size: 14px;
-    margin: 0 2px;
-}
-
-/* Botão Buscar (mantido) */
 #btn_buscar_custom {
     background-color: var(--primary-blue);
     color: white;
@@ -210,104 +164,10 @@
     padding: 8px 20px;
     font-size: 14px;
     font-weight: 600;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(50, 80, 136, 0.2);
-    letter-spacing: 0.3px;
 }
 
-#btn_buscar_custom:hover {
-    background-color: #1f3a5f;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(50, 80, 136, 0.3);
-}
-
-#btn_buscar_custom:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(50, 80, 136, 0.2);
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .calendario-custom {
-        flex-wrap: wrap;
-    }
-    #data_inicio,
-    #data_fim {
-        min-width: 120px;
-        flex: 1;
-    }
-}
-
-
-/* Container principal da grid */
-.graficos-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr; /* Linha maior, rosca menor */
-    gap: 20px;
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-/* Estilo base para containers de gráfico */
-.chart-container {
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Container específico para o gráfico de linha */
-.chart-container.large {
-    min-height: 350px;
-}
-
-/* Container específico para o gráfico de rosca */
-.chart-container.small {
-    min-height: 300px;
-}
-
-/* Cabeçalho do gráfico */
-.chart-header h3 {
-    margin: 0 0 15px 0;
-    color: #333;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-/* Wrapper para o canvas (ajuda no dimensionamento) */
-.chart-wrapper {
-    flex: 1;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 250px;
-}
-
-/* Estilo para os canvases */
-.chart-wrapper canvas {
-    width: 100% !important;
-    height: 100% !important;
-    max-height: 300px;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .graficos-grid {
-        grid-template-columns: 1fr; /* Empilha em telas pequenas */
-    }
-    
-    .chart-container.large,
-    .chart-container.small {
-        width: 100%;
-    }
-}
-
-/* Container Principal da Análise */
+/* Tabelas e cards de análise */
 .analise-detalhada-container {
     display: flex;
     gap: 20px;
@@ -320,18 +180,17 @@
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    flex: 2; /* A tabela ocupa mais espaço */
+    flex: 2;
     min-width: 300px;
 }
 
 .insights-painel {
-    flex: 1; /* O painel de insights é menor */
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
-/* Tabela Estilizada */
 .tabela-wrapper {
     overflow-x: auto;
     margin-top: 15px;
@@ -357,7 +216,6 @@ td {
     color: #2c3e50;
 }
 
-/* Itens de Insight */
 .insight-item {
     display: flex;
     justify-content: space-between;
@@ -365,10 +223,6 @@ td {
     border-bottom: 1px dashed #eee;
 }
 
-.insight-item .label { color: #7f8c8d; font-size: 0.85rem; }
-.insight-item .valor { font-weight: 700; color: #325088; }
-
-/* Caixa de Sugestão IA */
 .status-caixa {
     margin-top: auto;
     background: #f0f7ff;
@@ -378,39 +232,6 @@ td {
     font-size: 0.85rem;
     color: #34495e;
     line-height: 1.4;
-}
-
-.card-relatorio-executivo {
-    margin-top: 30px;
-    border-top: 5px solid var(--primary-blue);
-    line-height: 1.6;
-}
-
-.analise-secao {
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.analise-secao h4 {
-    color: #34495e;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.relatorio-conteudo p {
-    color: #555;
-    text-align: justify;
-    font-size: 0.95rem;
-}
-
-.conclusao-tecnica {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 5px solid #2ecc71;
 }
 
 .btn-print {
@@ -425,17 +246,87 @@ td {
     cursor: pointer;
 }
 
-/* REGRA DE OURO PARA IMPRESSÃO */
+/* ========== IMPRESSÃO FINAL - CORREÇÃO DE ORDEM E FILTRAGEM ========== */
 @media print {
-    body * { visibility: hidden; }
-    #sessao-impressao, #sessao-impressao * { visibility: visible; }
-    #sessao-impressao {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        box-shadow: none;
-        border: none;
+    /* Configurações Gerais */
+    @page { size: A4; margin: 10mm; }
+    html, body { background: white !important; font-size: 11pt; height: auto !important; overflow: visible !important; }
+
+    /* 1. Ocultar tudo o que não foi solicitado */
+    nav, .btn-print, .filtros-periodo, .calendario-custom, #auto-refresh-container, .kpi-grid, .status-caixa, .relatorio-header {
+        display: none !important;
     }
-    .btn-print { display: none; }
+
+    /* Ocultar cards indesejados (Insights e Resumo de Estorno) */
+    .graficos-grid .analise-detalhada-container .card-detalhe:not(:first-child) {
+        display: none !important;
+    }
+
+    /* Ocultar especificamente a Auditoria de Estornos (que está dentro do relatório) */
+    #sessao-impressao .analise-detalhada-container {
+        display: none !important;
+    }
+
+    /* 2. Reordenação do Layout */
+    .relatorio-container {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0 !important;
+    }
+
+    /* Relatório Executivo (O PRIMEIRO) */
+    #sessao-impressao {
+        display: block !important;
+        order: -10 !important; /* Valor negativo agressivo para ser o primeiro */
+        margin-bottom: 30px !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+
+    /* Grid que contém Top Produtos e Gráficos */
+    .graficos-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        order: 1 !important;
+        width: 100% !important;
+    }
+
+    /* Top Produtos (Meio) */
+    .graficos-grid .analise-detalhada-container {
+        display: block !important;
+        order: 1 !important;
+        margin-bottom: 25px !important;
+    }
+
+    .card-detalhe:first-child {
+        display: block !important;
+        border: 1px solid #eee !important;
+        padding: 15px !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* Gráficos (Fim) */
+    .chart-container {
+        display: block !important;
+        order: 2 !important;
+        margin-bottom: 30px !important;
+        border: 1px solid #eee !important;
+        page-break-inside: avoid !important;
+        min-height: 300px !important;
+    }
+
+    /* 3. Estilização e Correção de Cortes */
+    .tabela-wrapper, table { display: table !important; width: 100% !important; overflow: visible !important; }
+    tr { display: table-row !important; }
+    th, td { display: table-cell !important; border: 1px solid #eee !important; padding: 8px !important; }
+
+    canvas { display: block !important; width: 100% !important; height: 250px !important; object-fit: contain !important; }
+
+    /* Forçar visibilidade do conteúdo do relatório */
+    .relatorio-conteudo p, .analise-secao p, .analise-secao {
+        display: block !important;
+        overflow: visible !important;
+        height: auto !important;
+    }
 }
