@@ -18,21 +18,6 @@ const conecta_banco = async () => {
 };
 
 
-// const verifica_tipo = async(dados) => {
-//     try {
-//         const conectar = await conecta_banco();
-//         const sql = "select senha_funcionario_funcionario, email_funcionario_funcionario, tipo_funcionario_funcionario, nome_funcionario_funcionario, id_funcionario_funcionario from funcionarios where senha_funcionario_funcionario = ? and email_funcionario_funcionario = ?";
-//         const [rows] = await conectar.query(sql, dados);
-//         return rows; 
-        
-//     }catch (erro) {
-//         console.log("Erro ao verificar credenciais! ERRO: " + erro);
-
-//     }
-// }
-
-
-
 // Esta função agora APENAS busca o funcionário pelo e-mail
 const buscarFuncionarioPorEmail = async (email) => {
     try {
@@ -65,8 +50,6 @@ const atualizarAtividade = async (id) => {
         await conectar.query(sql, [id]);
     } catch (erro) {
         console.error("Erro ao atualizar atividade no DB:", erro);
-        // Não lançamos o erro (throw) para não travar a navegação do usuário 
-        // caso o log de atividade falhe por algum motivo momentâneo
     }
 };
 // Função para registrar o  ultimo login do funcionário
@@ -100,7 +83,7 @@ const buscarFuncionarioPorId = async (id) => {
         const sql = "SELECT id_funcionario_funcionario, nome_funcionario_funcionario, email_funcionario_funcionario, senha_funcionario_funcionario, tipo_funcionario_funcionario FROM funcionarios WHERE id_funcionario_funcionario = ?";
         const [rows] = await conectar.query(sql, [id]);
         const funcionario = rows[0]; // Pegar o primeiro resultado
-        console.log("Resultado de buscarFuncionarioPorId para ID:", id, "->", funcionario); // Logar o resultado
+        console.log("Resultado de buscarFuncionarioPorId para ID:", id, "->", funcionario);
         return funcionario; 
     } catch (erro) {
         console.error("Erro ao buscar funcionário por ID! ERRO: ", erro);
@@ -257,7 +240,6 @@ const registrarVendaTransacao = async (itensVenda) => {
         console.error("Transação de venda abortada. Fazendo Rollback! Erro:", erro);
         throw erro;
     } finally {
-        // Devolve a conexão principal para a piscina de conexões
         if (conexao) conexao.release();
     }
 };
@@ -295,7 +277,6 @@ const balancoVendas = async (dia = 1) => {
     try {
         const conectar = await conecta_banco();
         
-        // A query utiliza TIMESTAMP para unir data e hora e o parâmetro de horas para o intervalo
         const sql = `
             SELECT 
                 venda_metodo_paga AS metodo,
@@ -528,7 +509,6 @@ const dell_item = async (idItem, idUsuario) => {
             [idItem, idUsuario, produto[0].descri_produto, 'DESATIVADO', 'Soft Delete realizado',]
         );
 
-        // 3. EM VEZ DE DELETAR, DESATIVA
         const sqlDesativar = "UPDATE produtos SET ativo = 0 WHERE id_produto_produto = ?;";
         await conexao.query(sqlDesativar, [idItem]);
 
@@ -553,7 +533,6 @@ const atualizarComLog = async (dados) => {
     try {
         await conexao.beginTransaction();
 
-        // 1. Atualizamos o produto
         const sqlUpdate = `
             UPDATE produtos 
             SET descri_produto = ?, 
@@ -570,7 +549,6 @@ const atualizarComLog = async (dados) => {
             dados.id_produto
         ]);
 
-        // 2. Inserimos o log
         const logAnterior = `Qtd: ${dados.qtd_anterior}, Nome: ${dados.nome_anterio}, Preço: ${dados.preco_anterior}`;
         const logNovo = `Qtd: ${dados.qtd_nova}, Nome: ${dados.nome}, Preço: ${dados.preco}`;
 
@@ -632,7 +610,7 @@ const adicionarOuReporComLog = async (payload) => {
                 qtd_produto = qtd_produto + VALUES(qtd_produto),
                 preco_produto = VALUES(preco_produto),
                 validade = VALUES(validade),
-                ativo = 1`; // Garante que se estava desativado, ele volta a ser ativo
+                ativo = 1`; 
 
         const [resUpsert] = await conexao.query(sqlUpsert, [
             payload.nome_item.trim(),
@@ -641,7 +619,7 @@ const adicionarOuReporComLog = async (payload) => {
             payload.validade
         ]);
 
-        // Pegamos o ID do produto (ou o existente ou o recém-criado)
+        //pegamos o ID do produto (ou o existente ou o recém-criado)
         const idFinal = existente.length > 0 ? existente[0].id_produto_produto : resUpsert.insertId;
 
 
@@ -673,7 +651,7 @@ const adicionarOuReporComLog = async (payload) => {
 };
 
 
-// Essa função retorna para mim os 50 itens mais vendido geral, sem limites de data
+// Essa funçao retorna para mim os 50 itens mais vendido geral, sem limites de data
 const rankingVendasCompleto = async (dataFim) => {
     try {
         const conectar = await conecta_banco();
@@ -890,8 +868,6 @@ const exclusaoDefinitiva = async (idItem, idUsuario) => {
 
         await conexao.beginTransaction();
 
-        // 1. Buscamos as informações antes de apagar (para o log)
-        // Note que usamos [rows] para desestruturar o resultado do mysql2
         const [rows] = await conexao.query(
             "SELECT descri_produto FROM produtos WHERE id_produto_produto = ?", 
             [idItem]
@@ -903,18 +879,13 @@ const exclusaoDefinitiva = async (idItem, idUsuario) => {
 
         const nomeProduto = rows[0].descri_produto;
 
-        // 2. ATENÇÃO: Para deletar um produto, PRECISARMOS apagar as referências dele nas tabelas com Foreign Key
-        // Apagamos todo o histórico de logs atrelado a ele primeiro:
         await conexao.query("DELETE FROM estoque_logs WHERE id_produto_log = ?", [idItem]);
 
-        // 3. O golpe final: Deletar o produto fisicamente
         const [resultado] = await conexao.query(
             "DELETE FROM produtos WHERE id_produto_produto = ?", 
             [idItem]
         );
 
-        // 4. (Opcional) Log de exclusão - como o id_produto não existe mais, não podemos linkar o log.
-        // Se a sua tabela aceitar NULL em id_produto_log, podemos registrar:
         try {
             await conexao.query(
                 `INSERT INTO estoque_logs 
@@ -1000,7 +971,7 @@ const cadastrarFuncionario = async (dados) => {
         return resultado;
     } catch (erro) {
         console.error("Erro na Query de Cadastro:", erro);
-        throw erro; // Lançamos para a rota tratar o erro (como o ER_DUP_ENTRY)
+        throw erro;
     }
 };
 
@@ -1247,7 +1218,7 @@ const desligarFuncionario = async (idFuncionario, motivo, idUsuarioResponsavel) 
         const [resultado] = await conectar.query(sqlUpdate, [idFuncionario]);
 
         if (resultado.affectedRows > 0) {
-            // Registra o log de demissão (simplificado)
+            // Registra o log de demissão
             const sqlLog = `
                 INSERT INTO funcionario_logs 
                     (id_funcionario_log, id_usuario_log, anterior, novo, motivo)
