@@ -415,6 +415,11 @@ app.post("/finalizar_venda", authenticateJWT, requireOperario, async (req, res) 
             let nome_produto = dados_unitario[0].descri_produto;
             let preco_unitario = Number(dados_unitario[0].preco_produto);
 
+            let valor_recebido_DB = dados_venda.valor_recebido;
+            if (dados_venda.metodo !== "Dinheiro") {
+                valor_recebido_DB = dados_venda.total_venda;
+            }
+
             // Preparar item para transação
             let itensVendaArr = [{
                 quantidade_item: dados_venda.quantidade,
@@ -426,7 +431,7 @@ app.post("/finalizar_venda", authenticateJWT, requireOperario, async (req, res) 
                 valor_total: dados_venda.total_venda,
                 troco: dados_venda.troco,
                 hora: data['hora'],
-                valor_recebido: dados_venda.valor_recebido,
+                valor_recebido: valor_recebido_DB,
                 id_transacao: transactionId,
                 preco_unitario: preco_unitario
             }];
@@ -460,9 +465,7 @@ app.post("/finalizar_venda", authenticateJWT, requireOperario, async (req, res) 
             }; // dados finais da venda para enviar ao frontenf;
 
             req.session.dadosVenda_simples = dadosfinal_venda;
-            req.session.save(); //garante que a sessão foi salva antes de responder
-  
-            
+            req.session.save(); //garante que a sessão foi salva antes de responder       
 
             return res.status(200).json({
                 mensagem: "Venda finalizada com sucesso!",
@@ -589,7 +592,8 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
             
             const valor_total_item = preco_unitario * quantidade_item;
 
-
+            let valor_resPxcard_sacola = (metodo !== "Dinheiro") ? total_venda : 0;
+            
             dadosfinalVenda_sacola.push([
                 "itens", nome_produtoNota,
                 "nome_vendedor", nome_vendedor,
@@ -598,13 +602,15 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
                 "mtd_pagamento", metodo,
                 "tot_venda", valor_total_item,
                 "troco", troco,
-                "valor_resPxcard", valor_total_item,
+                "valor_resPxcard", valor_resPxcard_sacola,
                 "data_hora", dados_venda['data'].hora,
                 "val_res", valor_recebido,
                 "qtd_itens", quantidade_item,
                 "id_transation", transactionIdSacola,
                 "preco_unitario", preco_unitario
             ]);           
+            let valor_recebido_DB_sacola = (metodo !== "Dinheiro") ? total_venda : valor_recebido;
+
             // Agrupar itens no formato que a nova transação espera
             itensTransacaoArr.push({
                 quantidade_item: quantidade_item,
@@ -616,7 +622,7 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
                 valor_total: valor_total_item,
                 troco: troco,
                 hora: dados_venda['data'].hora,
-                valor_recebido: valor_recebido,
+                valor_recebido: valor_recebido_DB_sacola,
                 id_transacao: transactionIdSacola,
                 preco_unitario: preco_unitario
             });

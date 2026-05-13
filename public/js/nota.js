@@ -6,7 +6,7 @@ class closenota{
              location.assign('/dashboard_venda');
              try {
                 const response = await fetch("/dell_session", {
-                    method: "DELETE", // Especifica o método que você definiu no back-end
+                    method: "DELETE",
                     headers: {
                         "Content-Type": "application/json"
                     }
@@ -84,7 +84,7 @@ class GerarNota {
 
             elValorTotal.textContent = formatarMoeda(tot_venda);
 
-            if (mtd_pagamento === "Pix" || mtd_pagamento === "Cartão") {
+            if (mtd_pagamento === "Pix" || mtd_pagamento === "Cartão" || mtd_pagamento === "Cartao") {
                 elInfoPagamento.innerHTML = `
                 <div class="info-grid">
                     <div class="info-item">
@@ -171,7 +171,7 @@ class gerarNotaSacola {
             const totalGeral = listaProdutos.reduce((acc, item) => acc + Number(item.tot_venda), 0);
             elValorTotal.textContent = formatarMoeda(totalGeral);
 
-             if (mtd_pagamento === "Pix" || mtd_pagamento === "Cartão") {
+             if (mtd_pagamento === "Pix" || mtd_pagamento === "Cartão" || mtd_pagamento === "Cartao") {
                 elInfoPagamento.innerHTML = `
                 <div class="info-grid">
                     <div class="info-item">
