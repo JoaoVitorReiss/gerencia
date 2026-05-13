@@ -1,4 +1,3 @@
-// index.js
 require("dotenv").config();
 const express = require('express');
 const app = express();
@@ -10,12 +9,11 @@ const jwt = require("jsonwebtoken");
 const { authenticateJWT, requireOperario, requireAdm } = require('./middleware/authMiddleware'); 
 const { json } = require("stream/consumers");
 const { notEqual, strictEqual } = require("assert");
-//const { session } = require("passport");
 const session = require('express-session');
 const fs = require('fs').promises;
-
- 
+const multer = require('multer');
 const crypto = require('crypto'); 
+const bcrypt = require('bcryptjs');
 
 app.use(session({
     secret: process.env.SECRET_SESSION,
@@ -162,14 +160,9 @@ app.get("/dashboard_adm", authenticateJWT, requireAdm, async (req, res) => {
             id: req.user.id,
             tipo: req.user.tipo
             // Você pode adicionar mais dados se tiver colocado no JWT
-            // ex: email: req.user.email
         };
-
-        // 3. Cria um script que injeta os dados no HTML
+        
         const scriptInjecao = `<script>window.usuarioLogado = ${JSON.stringify(usuario)};</script>`;
-
-        // 4. Encontra um lugar no HTML para injetar o script (ex: antes da tag de fechamento do head)
-        // E envia a resposta com o HTML modificado
         html = html.replace('</head>', `${scriptInjecao}</head>`);
         res.send(html);
 
@@ -365,10 +358,6 @@ app.post("/finalizar_venda", authenticateJWT, requireOperario, async (req, res) 
 
     if (tipo_venda == 0) {
 
-
-        
-        // --- VALIDAÇÃO DE PRESENÇA E TIPO (Venda Simples) ---
-
         if (!iten || typeof iten !== 'number' || iten <= 0) {
             return res.status(400).json({ mensagem: "ID do produto inválido." });
         }
@@ -382,7 +371,7 @@ app.post("/finalizar_venda", authenticateJWT, requireOperario, async (req, res) 
             return res.status(400).json({ mensagem: "Campos obrigatórios de pagamento ou data ausentes." });
         }
 
-        //VALIDAÇÃO LÓGICA (Regras de Negócio) ---
+        //VALIDAÇÃO LÓGICA (Regras de Negócio)
         // VALIDAÇÃO DE ESTOQUE 
     
         try {
@@ -418,7 +407,7 @@ app.post("/finalizar_venda", authenticateJWT, requireOperario, async (req, res) 
                 }
             }
             
-            // --- 3. EXECUÇÃO (Atualizar DB e Registrar Venda) --
+            //(atualizar DB e Registrar Venda)
             const transactionId = crypto.randomUUID();
             //console.log(transactionId);
 
@@ -507,7 +496,7 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
     if (tipo_venda == 1) {
         const { metodo, itens, total_venda, valor_recebido, troco, data, id_vendedor } = dados_venda;
 
-    // 1. VALIDAÇÃO DE PRESENÇA E TIPO (Dados Gerais)
+    //VALIDAÇÃO DE PRESENÇA E TIPO (Dados Gerais)
     if (!itens || !Array.isArray(itens) || itens.length === 0) {
         return res.status(400).json({ mensagem: "A sacola de compras está vazia ou os dados dos itens estão inválidos." });
     }
@@ -517,7 +506,7 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
         return res.status(400).json({ mensagem: "Campos obrigatórios de pagamento ou data ausentes." });
     }
 
-    // 2. VALIDAÇÃO LÓGICA (Regras de Negócio por Item)
+    //VALIDAÇÃO LÓGICA (Regras de Negócio por Item)
     try {
         let totalCalculadoServidor = 0;
         const itensValidados = []; // Para armazenar os dados reais do DB (preço, etc.)
@@ -532,7 +521,7 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
                 return res.status(400).json({ mensagem: "ID do produto ou Quantidade de um item na sacola está inválido." });
             }
 
-            // B. Busca o produto no DB
+            //Busca o produto no DB
             const produtoDB = await db.produto_pesquisadoID(itenId);
             
             if (!produtoDB || produtoDB.length === 0) {
@@ -542,12 +531,12 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
             const estoqueDisponivel = produtoDB[0]?.qtd_produto;
             const precoUnitarioDB = produtoDB[0]?.preco_produto;
             
-            // C. Validação de Estoque
+            //Validação de Estoque
             if (quantidade > estoqueDisponivel) {
                 return res.status(400).json({ mensagem: `Estoque insuficiente para o produto ID ${itenId}. Disponível: ${estoqueDisponivel}.` });
             }
             
-            // D. Cálculo e Acúmulo do Total
+            //Cálculo e Acúmulo do Total
             const subtotalCalculado = precoUnitarioDB * quantidade;
             totalCalculadoServidor += subtotalCalculado;
             
@@ -558,16 +547,16 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
             });
         }
         
-        // 3. VALIDAÇÃO GERAL (Preço e Pagamento)
+        //VALIDAÇÃO GERAL (Preço e Pagamento)
         
-        // A. Validação de Preço Total
+        // Validação de Preço Total
         // Aceitar uma pequena margem de erro por causa de arredondamento
         if (Math.abs(totalCalculadoServidor - total_venda) > 0.02) {
             console.warn(`Alerta de preço (Sacola): Frontend: ${total_venda}, Servidor: ${totalCalculadoServidor}`);
             return res.status(400).json({ mensagem: "Inconsistência no valor total da venda da sacola." });
         }
         
-        // B. Validação de Pagamento (Se for Dinheiro)
+        //Validação de Pagamento (Se for Dinheiro)
         if (metodo === 'Dinheiro') {
             const total = Number(total_venda);
             const recebido = Number(valor_recebido);
@@ -582,7 +571,7 @@ app.post("/finalizar_vendasacola", authenticateJWT, requireOperario, async (req,
 
             for (let c in itens_sacola) {
 
-            // A. Capturar dados do item
+            //Capturar dados do item
             const id_produto_item = itens_sacola[c].id;
             let produtoCompleto = await db.produto_pesquisadoID(id_produto_item);
             const nome_produtoNota = produtoCompleto[0].descri_produto;
@@ -1117,9 +1106,7 @@ app.get("/novofuncionario", authenticateJWT, requireAdm, async (req, res) => {
 })
 
 
-// Rota para validar e salvar os dados dos novos funcionarios no banco de dados
-const multer = require('multer');
-
+// Rota para validar e salvar os dados dos novos funcionarios no banco de dado
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -1132,9 +1119,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
-// 2. A Rota Corrigida
-const bcrypt = require('bcryptjs');
 
 app.post("/cadastrar-funcionario", authenticateJWT, requireAdm, upload.single("foto_funcionario"), async (req, res) => {
     try {
@@ -1157,7 +1141,7 @@ app.post("/cadastrar-funcionario", authenticateJWT, requireAdm, upload.single("f
         // 4. Preparação do caminho da foto
         const foto_url = req.file ? `/img/funcionarios/${req.file.filename}` : '/img/funcionarios/default.png';
 
-        // 5. Chamar a função do Banco de Dados (que vamos criar abaixo)
+        // 5. Chamar a função do Banco de Dados
         const resultado = await db.cadastrarFuncionario({
             nome,
             email,
@@ -1425,11 +1409,7 @@ app.get("/busca_idtransacao", authenticateJWT, requireOperario, async (req, res)
     }
 })
 
-// Inclui suas rotas de autenticação (ex: POST /login)
 app.use(authRoutes);
-
-
-
 
 // Retorna a lista de contatos (funcionários ativos) com prévia da última mensagem
 app.get("/contatos_msg", authenticateJWT, async (req, res) => {
