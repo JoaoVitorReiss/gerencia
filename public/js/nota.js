@@ -217,7 +217,7 @@ class ExportarNota {
                 html2canvas: { scale: 2, useCORS: true, letterRendering: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 html2canvas: { 
-                scale: 2,          // Aumenta a resolução
+                scale: 6,          // Aumenta a resolução
                 useCORS: true,     // Ajuda a carregar ícones/fontes externas
                 logging: false, 
                 letterRendering: true 
@@ -254,7 +254,7 @@ class AcoesNota {
                 margin: [10, 10],
                 filename: 'comprovante.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
+                html2canvas: { scale: 6, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
