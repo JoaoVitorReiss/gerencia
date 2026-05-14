@@ -193,7 +193,6 @@ class acao_Venda {
             if (acaobtnvenderSacola.ok) {
                 const dadosDoServidor = await acaobtnvenderSacola.json();
                 
-                // CORREÇÃO CRÍTICA: Lemos a chave 'produto' (singular) que o servidor envia
                 listaProdutosSacola = dadosDoServidor.produto.map(produto => ({ 
                     ...produto,
                     qtdSelecionada: 1, 
@@ -203,10 +202,8 @@ class acao_Venda {
                     id: produto.id_produto_produto || produto.id 
                 }));
                 
-                // RENDERIZA A INTERFACE E CALCULA O TOTAL INICIAL
                 this.renderizarSacola(); 
                 
-                // CORREÇÃO: SÓ CONFIGURAMOS O LISTENER UMA VEZ NA INICIALIZAÇÃO
                 this.configurarListenersQuantidadeSacola();
 
             } else {
@@ -234,7 +231,7 @@ class acao_Venda {
             produtoDiv.className = 'item-sacola-wrapper'; 
             produtoDiv.innerHTML = `
                 <br>
-                <h3 class="produto-nome" id="nome_produto${produto.id}">${produto.descri_produto}<span class="icon" title="Editar Sacola" onclick="history.back()"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg></span></h3>        
+                <h3 class="produto-nome" id="nome_produto${produto.id}">${produto.descri_produto}<span class="icon btn_edit_sacola" title="Editar Sacola"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg></span></h3>        
 
                 <p class="produto-preco" id="preco_produto${produto.id}">R$${precoUnitario.toFixed(2)}</p>
                 
@@ -252,6 +249,18 @@ class acao_Venda {
                 <p class="q_disponivel">Quantidade disponivel:<span id="valor_qtd${produto.id}">${qtdDisponivel}</span></p>
 
             `;
+            
+            const btn_editSacola = produtoDiv.querySelector(".btn_edit_sacola");
+
+            if(btn_editSacola){
+                btn_editSacola.addEventListener("click", (evt) => {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    console.log("Botão de edição clicado");
+                    localStorage.setItem('abrir_sacola', 'true');
+                    window.location.href = '/dashboard_venda';
+                })
+            }
                 
             containerSacola.appendChild(produtoDiv);
         });
@@ -259,14 +268,11 @@ class acao_Venda {
         // Atualiza o valor total no elemento HTML
         valorTotal.innerHTML = `Valor Total: R$ ${valorTotalVendaSacola.toFixed(2)}`;
 
-        // ATENÇÃO: A chamada para configurarListenersQuantidadeSacola FOI MOVIDA para get_vendaSacola()
         this.atualizarCalculoTroco();
     }
 
     static configurarListenersQuantidadeSacola() {
-        // CORREÇÃO: Apenas adicionamos o listener uma vez ao elemento principal
         if (containerSacola) {
-            // Usamos bind para manter o 'this' apontando para a classe 'acao_Venda'
             containerSacola.addEventListener("click", this._handleQuantidadeClick.bind(this));
         }
     }
@@ -299,10 +305,8 @@ class acao_Venda {
                 }
             }
 
-            // Se a quantidade mudou, atualiza o ESTADO e RE-RENDERIZA tudo
             if (produto.qtdSelecionada !== novaQtd) {
                 produto.qtdSelecionada = novaQtd;
-                // A re-renderização atualiza o HTML, o subtotal e o Total Global (sem duplicar listeners)
                 this.renderizarSacola(); 
             }
         }
@@ -400,16 +404,14 @@ class acao_Venda {
         const itensParaVenda = listaProdutosSacola.map(produto => ({
             id: produto.id,
             quantidade: produto.qtdSelecionada,
-            // Opcional: Adicionar o preço para validação no servidor (boa prática)
-            //preco: produto.preco_produto
+
         }));
 
         
-        // 2. Coletar o Método de Pagamento e Valor Recebido
         const metodoPagamento = pagamentoSelect.value;
         const valorRecebido = (metodoPagamento === 'Dinheiro') ? Number(mDinheiro.value) : valorTotalVendaSacola;
         
-        // 3. Montar o Objeto de Dados Completo
+        //Montar o Objeto de Dados Completo
         const dadosVendaSacola = {
             id_vendedor: id_vendedor,
             tipo_venda: tipo_botao,
@@ -481,6 +483,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const redirecionaritem = localStorage.getItem('redirecionar');
                 
                 if (redirecionaritem) {
+                    localStorage.removeItem('produtoVendaId');
+                    localStorage.removeItem('lista_proutosVendaId');
                     window.location.href = redirecionaritem;
                     localStorage.removeItem('redirecionar');
                 } else {
@@ -516,6 +520,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const redirecionaritemS = localStorage.getItem('redirecionarS');
 
                 if (redirecionaritemS) {
+                    localStorage.removeItem('produtoVendaId');
+                    localStorage.removeItem('lista_proutosVendaId');
                     window.location.href = redirecionaritemS;
                     localStorage.removeItem('redirecionarS');
                 } else {

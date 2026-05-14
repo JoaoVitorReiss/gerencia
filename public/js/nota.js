@@ -249,7 +249,7 @@ class AcoesNota {
         const elemento = document.querySelector(".container");
 
         btnShare.addEventListener("click", async () => {
-            // 1. Configurações para gerar o PDF como Blob (na memória)
+            //Configurações para gerar o PDF como Blob (na memória)
             const opcoes = {
                 margin: [10, 10],
                 filename: 'comprovante.pdf',
@@ -259,19 +259,19 @@ class AcoesNota {
             };
 
             try {
-                // Esconde botões para não saírem no "print"
+                // Esconde botões para não saírem
                 document.querySelectorAll('.btn-header').forEach(b => b.style.visibility = 'hidden');
 
-                // 2. Gera o PDF e obtém o arquivo como BLOB
+                //Gera o PDF e obtém o arquivo como BLOB
                 const pdfBlob = await html2pdf().set(opcoes).from(elemento).outputPdf('blob');
                 
                 // Volta a mostrar os botões
                 document.querySelectorAll('.btn-header').forEach(b => b.style.visibility = 'visible');
 
-                // 3. Cria um arquivo real a partir do Blob para o sistema entender
+                //Cria um arquivo real a partir do Blob para o sistema entender
                 const arquivo = new File([pdfBlob], "comprovante_venda.pdf", { type: "application/pdf" });
 
-                // 4. Verifica se o navegador suporta compartilhamento de arquivos
+                //erifica se o navegador suporta compartilhamento de arquivos
                 if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
                     await navigator.share({
                         files: [arquivo],
@@ -279,7 +279,6 @@ class AcoesNota {
                         text: 'Olá! Segue o comprovante da sua compra.'
                     });
                 } else {
-                    // FALLBACK: Se não aparecer o WhatsApp ou falhar
                     const confirmacao = confirm("O compartilhamento nativo não está disponível. Deseja apenas baixar o PDF?");
                     if(confirmacao) {
                         html2pdf().set(opcoes).from(elemento).save();

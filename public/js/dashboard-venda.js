@@ -21,8 +21,15 @@ const btn_cancelar = document.getElementById("cancelarCompra");
 
 
 home.style.background = "#325088ff";
+
 // Array que armazena os IDs dos itens clicados
 let array_itensClic = [];
+
+// Recupera itens da sacola salvos no localStorage
+const sacolaSalva = localStorage.getItem('lista_proutosVendaId');
+if (sacolaSalva && sacolaSalva.trim() !== "") {
+    array_itensClic = sacolaSalva.split(',').map(Number).filter(id => !isNaN(id));
+}
 
 // Função JavaScript atualizada para mostrar a mensagem
 function mostrarMensagem(mensagem, tipo = 'erro') { // 'erro' ou 'sucesso'
@@ -237,6 +244,7 @@ class acao_venda {
                 }
                 
                 numIntens_sacola.innerHTML = array_itensClic.length;
+                localStorage.setItem('lista_proutosVendaId', array_itensClic.join(','));
                 //console.log("Itens na sacola:", array_itensClic);
             }
         });
@@ -388,6 +396,7 @@ class SacolaManager {
 
             // Remove o card do DOM
             produtoCard_s.remove();
+            localStorage.setItem('lista_proutosVendaId', array_itensClic.join(','));
 
             // Reexibe a sacola para refletir as mudanças
             //await this.exibirProdutosSacola();
@@ -471,8 +480,26 @@ class cancelar{
 // Inicialização
 acao_venda.acao_btnVender();
 acao_venda.acao_btnAdd();
-selecao_produto.exibirProdutos();
 mensagem.modalMensagem();
 cancelar.estorno();
 MensagemModal.inicializarNotificacoesGlobais();
+
+// Lógica de carregamento inicial (Home ou Sacola)
+(async () => {
+    numIntens_sacola.innerHTML = array_itensClic.length;
+    
+    // Se houver um sinal para abrir a sacola ou se houver itens e viemos da página de venda
+    const abrirSacola = localStorage.getItem('abrir_sacola') === 'true';
+    
+    if (abrirSacola && array_itensClic.length > 0) {
+        home.style.background = "none";
+        btn_mensagem.style.background = "none";
+        conteiner_pesquisa.setAttribute("id", "esconde");
+        await SacolaManager.exibirProdutosSacola();
+        SacolaManager.configurarRemoverElementoSacola();
+        localStorage.removeItem('abrir_sacola'); // Limpa o sinal
+    } else {
+        selecao_produto.exibirProdutos();
+    }
+})();
 
