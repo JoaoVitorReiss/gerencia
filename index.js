@@ -131,8 +131,6 @@ io.on('connection', (socket) => {
     });
 });
 
-
-
 // Rota Raiz: Redireciona se autenticado, serve login caso contrário
 app.get("/", (req, res, next) => {
     authenticateJWT(req, res, () => {
@@ -147,7 +145,7 @@ app.get("/", (req, res, next) => {
     });
 });
 
-
+;
 
 
 app.get("/dashboard_adm", authenticateJWT, requireAdm, async (req, res) => {
@@ -1519,13 +1517,6 @@ app.post("/api/auditoria", authenticateJWT, async (req, res) => {
 });
 
 
-
-
-
-server.listen(porta, () => {
-    console.log(`Servidor rodando com Chat na porta ${porta}`);
-});
-
 // Rota para exibir a página de login (diretamente)
 app.get("/login", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
@@ -1553,6 +1544,8 @@ app.delete("/dell_session", authenticateJWT, requireOperario, async (req, res) =
 })
 
 
+
+
 // Rota de Logout
 app.post("/logout", (req, res) => {
     const idUser = req.body.id;
@@ -1560,4 +1553,16 @@ app.post("/logout", (req, res) => {
     res.cookie('jwt', '', { maxAge: 1 }); // Expira o cookie imediatamente (1 milissegundo)
     res.redirect('/login'); // Redireciona para a página de login
     
+
+});
+
+
+//Exibir página 404 Not Found (Página não encontrada)
+app.use((req, res, next) => {
+    return res.status(404).sendFile(path.join(__dirname, 'views', '404.html'));
+})
+
+
+server.listen(porta, () => {
+    console.log(`Servidor rodando com Chat na porta ${porta}`);
 });

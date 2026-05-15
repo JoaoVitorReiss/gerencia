@@ -111,7 +111,6 @@ class EstoqueAPI {
         }
     }
 
-    // Novas rotas para Histórico, Exclusão Definitiva e Restauração ->
     static async obterHistorico(inicio, fim) {
         try {
             const res = await fetch("/historico_edicoes", {
@@ -690,7 +689,6 @@ class EstoqueController {
         this.initFiltrosDeData();
         TabelaUI.renderizarEstoqueBaixo();
         
-        // Delegação de eventos
         document.getElementById("dados_itemFalta").addEventListener("click", evt => {
             const btn = evt.target.closest('.edt_itemFalta');
             if (btn) ModalUI.abrirEdicaoAdicao({ titulo: 'Edita item', tipo: 1, id: btn.id });
@@ -831,10 +829,8 @@ class EstoqueController {
     }
 }
 
-// Substitua o final do arquivo por isso:
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => EstoqueController.init());
 } else {
-    // Se o DOM já estiver pronto, inicia direto
     EstoqueController.init();
 }

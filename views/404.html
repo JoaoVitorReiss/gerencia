@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Página não encontrada</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #1a202c;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .content {
+            text-align: center;
+            max-width: 320px;
+            width: 100%;
+        }
+
+        .code {
+            font-size: 5rem;
+            font-weight: 700;
+            color: #1e3c72;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2a5298;
+            margin-bottom: 0.75rem;
+        }
+
+        p {
+            font-size: 0.95rem;
+            color: #64748b;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #2a5298;
+            border-radius: 6px;
+            color: #2a5298;
+            background: transparent;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .btn:hover {
+            background: #2a5298;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="code">404</div>
+        <h1>Página não encontrada</h1>
+        <p>A página que você procura não existe ou foi movida.</p>
+        <button class="btn" onclick="location.assign('/')">Voltar</button>
+    </div>
+
+    <script>
+        // Fallback se não houver histórico
+        document.querySelector('.btn').addEventListener('click', function(e) {
+            if (window.history.length < 2) {
+                e.preventDefault();
+                location.assign('/')
+            }
+        });
+    </script>
+</body>
+</html>

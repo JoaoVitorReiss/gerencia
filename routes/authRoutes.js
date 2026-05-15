@@ -3,7 +3,7 @@ const authController = require("../controller/authController.js");
 
 const router = Router();
 
-router.get("/login_get", authController.login_get);
+// router.get("/login_get", authController.login_get);
 
 router.post("/login", authController.login_post);
 

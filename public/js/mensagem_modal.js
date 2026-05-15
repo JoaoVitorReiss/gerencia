@@ -2,9 +2,7 @@ let socket;
 let contatoAtivoId = null;
 
 export class MensagemModal {
-
     //Socket
-
     static io_socket() {
         if (!socket) {
             socket = io();
@@ -125,7 +123,7 @@ export class MensagemModal {
         const titulo = `Nova mensagem de ${nomeRemetente}`;
         const opcoes = {
             body: texto,
-            icon: '/img/icon/icon.png' // Ícone/logo padrão do sistema
+            icon: '/img/icon/icon.png' //logo padrão do sistema
         };
 
         if (Notification.permission === "granted") {
@@ -192,7 +190,6 @@ export class MensagemModal {
     }
 
     //  HTML e CSS 
-
 static mensagemHome() {
     return `
         <div class="msg-modal-root">
@@ -816,7 +813,7 @@ static mensagemHome() {
         return avatar ? avatar.innerHTML : '?';
     }
 
-    // -> Carrega histórico de mensagens
+    // Carrega histórico de mensagens
 
     static async carregarHistorico(id_contato) {
         const history = document.getElementById('msg-history');

@@ -1,4 +1,4 @@
-const configValidacao = false;
+const configValidacao = false; //true Para aceitar somente CPFs válidos(CPFs reais) e  números de telefone, false para aceitar qualquer conjunto de 11 digitos.
 
 function processarTelefone(telefone, validarReal = configValidacao) {
   const numeros = telefone.replace(/\D/g, '');
@@ -143,7 +143,7 @@ btn_salvar.addEventListener("click", (evt) => {
         return;
     }
 
-    // 1. Validação básica de senha ainda no Front (opcional, mas bom)
+    //Validação básica de senha ainda no Front
     if (senha_funcionario.value !== confSenha_funcionario.value) {
         erroPass.forEach(err => err.classList.add("erro"));
         alert("As senhas não coincidem!");
@@ -155,8 +155,6 @@ btn_salvar.addEventListener("click", (evt) => {
         salario_funcionario.focus();
         return;
     }
-
-    // 2. Criar o "Envelope" FormData
     const formData = new FormData();
 
     // 3. Adicionar os campos de texto
@@ -169,17 +167,15 @@ btn_salvar.addEventListener("click", (evt) => {
     formData.append("salario", salario_funcionario.value);
     formData.append("data_admissao", data_admissao_funcionario.value);
 
-    // 4. Adicionar a IMAGEM (O pulo do gato)
+    //Adicionar a IMAGEM
     const inputFoto = document.getElementById('foto');
     if (inputFoto.files[0]) {
-        // "foto_funcionario" deve ser o mesmo nome que você usará no upload.single() do Multer
         formData.append("foto_funcionario", inputFoto.files[0]);
     }
 
-    // 5. Enviar para o Backend via Fetch API
     fetch("/cadastrar-funcionario", {
         method: "POST",
-        body: formData // Note que NÃO usamos JSON.stringify aqui!
+        body: formData
     })
     .then(res => res.json())
     .then(data => {

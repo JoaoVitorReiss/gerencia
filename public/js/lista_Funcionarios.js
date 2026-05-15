@@ -86,9 +86,9 @@ class GetLista {
             tbody.appendChild(row);
         });
 
-        filtrarTabela();
         acaverInfo();
         acaoEditar();
+        filtrarTabela();
 
     }
     static async desligarFuncionario(id, motivo) {
@@ -106,7 +106,7 @@ class GetLista {
             }
         }
     }
-    static init() {
+    static init() { 
         this.lista_funcionarios(); 
         exfuncionario.btn_show();
 
@@ -462,12 +462,6 @@ class ModalEditarFuncionario {
 }
 }
 
-
-
-
-
-// FUNÇÕES GLOBAIS 
-
 function filtrarTabela() {
     const buscaInput = document.getElementById('busca');
     const filtroStatusInput = document.getElementById('filtro-status');
@@ -491,7 +485,6 @@ function filtrarTabela() {
         row.style.display = (matchBusca && matchStatus) ? '' : 'none';
     });
 }
-
 function acaverInfo(){
     const bntsVer = document.querySelectorAll(".btn-ver");
     bntsVer.forEach(btn => {

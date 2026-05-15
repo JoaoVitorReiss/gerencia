@@ -1,14 +1,17 @@
 // middlewares/authMiddleware.js
 const jwt = require("jsonwebtoken");
 const db = require('../db/db.js');
+const path = require('path')
+// const fs = require('fs');
+
 
 // Middleware de AUTENTICAÇÃO: Verifica a validade do JWT e anexa o usuário ao req
-const authenticateJWT = (req, res, next) => { // Renomeado de requireAuth para authenticateJWT
+const authenticateJWT = (req, res, next) => { 
     const token = req.cookies.jwt;
 
-    if (!token) { // Use !token para clareza
+    if (!token) { 
         console.log("Token JWT não encontrado. Redirecionando para login.");
-        return res.redirect('/login'); // Use return para encerrar a execução
+        return res.redirect('/login'); // return para encerrar a execução
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
@@ -29,7 +32,7 @@ const authenticateJWT = (req, res, next) => { // Renomeado de requireAuth para a
 };
 
 // Middleware de AUTORIZAÇÃO: Verifica se o usuário tem o papel necessário
-// Recebe o papel esperado (ex: 1 para operário, 2 para admin)
+// Recebe o papel esperado (ex: 1 para operário/funcionario, 2 para admin)
 const requireRole = (papelNecessario) => {
     return (req, res, next) => {
         // Este middleware assume que authenticateJWT já foi executado
@@ -38,8 +41,9 @@ const requireRole = (papelNecessario) => {
         if (!req.user || req.user.tipo !== papelNecessario) {
      
             console.log(`Acesso negado: Usuário com tipo ${req.user ? req.user.tipo : 'N/A'} tentou acessar rota de tipo ${papelNecessario}.`);
+
             // Se não tiver o papel necessário, envia 403 Forbidden
-            return res.status(403).send("Acesso negado. Você não tem permissão para esta página.");
+            return res.status(403).sendFile(path.join(__dirname, '../views', '403.html'));
         }
         
         console.log(`Autorizado: Usuário (ID: ${req.user.id}) é do tipo ${papelNecessario}.`);
@@ -48,12 +52,12 @@ const requireRole = (papelNecessario) => {
 };
 
 // Funções de middleware específicas para cada papel, usando requireRole
-const requireOperario = requireRole(1); // Assumindo tipo 1 para Operário
-const requireAdm = requireRole(2);     // Assumindo tipo 2 para Administrador
+const requireOperario = requireRole(1); // tipo 1 para Operário/Funcionario
+const requireAdm = requireRole(2);     // tipo 2 para Administrador
 
 module.exports = { 
     authenticateJWT,      // Middleware de autenticação JWT principal
-    requireRole,          // O gerador de middleware para papéis (opcional, mas útil)
-    requireOperario,      // Middleware para proteger rotas de operário
+    requireRole,          // O gerador de middleware para papéis
+    requireOperario,      // Middleware para proteger rotas de operário/Funcionario
     requireAdm            // Middleware para proteger rotas de administrador
 };

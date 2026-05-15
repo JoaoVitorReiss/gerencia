@@ -1,7 +1,6 @@
 // No início do seu tela_login.js, fora do event listener
 const feedbackMensagem = document.getElementById('mensagem-feedback');
 
-// Função JavaScript atualizada para mostrar a mensagem
 function mostrarMensagem(mensagem, tipo = 'erro') { // 'erro' ou 'sucesso'
     const feedbackMensagem = document.getElementById('mensagem-feedback');
     
