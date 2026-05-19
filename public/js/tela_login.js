@@ -190,7 +190,7 @@ class login {
         const fundoLogin = document.createElement("div");
         fundoLogin.setAttribute("id", "fundoLogin");
         fundoLogin.setAttribute("class", "fundoLogin");
-        document.body.appendChild(fundoLogin); // Mudei de prepend() para appendChild()
+        document.body.appendChild(fundoLogin);
         // document.body.prepend(fundoLogin);
 
 
@@ -277,7 +277,6 @@ class login {
                 email: inputUsername.value
             };
             if (inputSenha.value.length < 1 || inputUsername.value.length < 1) {
-                // Substituído alert()
                 mostrarMensagem("Os campos não podem ser vazios!", "erro"); 
                 return; 
             }
@@ -306,12 +305,10 @@ class login {
                     }, 1000); // Redireciona após 1 segundo
                 } else {
                     console.log("Erro no login:", dadosResposta.message || "Erro desconhecido.");
-                    // Substituído alert()
                     mostrarMensagem(dadosResposta.message || "Credenciais inválidas. Tente novamente.", "erro"); 
                 }
             }catch (error) {
                 console.error("Erro ao enviar os dados de login para o servidor! ERRO: ", error); // Use console.error para erros
-                // Substituído console.log por mostrarMensagem
                 mostrarMensagem("Não foi possível conectar ao servidor. Tente novamente mais tarde.", "erro"); 
             }
             }
